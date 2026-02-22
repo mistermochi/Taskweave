@@ -4,13 +4,13 @@
 import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { Check, Trash2, Lock } from 'lucide-react';
 import { TaskEntity, Tag, RecurrenceConfig, EnergyLevel } from '@/types';
-import { calculateTaskTime, formatTimer } from '@/utils/timeUtils';
 import { parseTaskInput } from '@/utils/textParserUtils';
 import { TagService } from '@/services/TagService';
 import { TaskDisplay } from '@/components/task-row/TaskDisplay';
 import { TaskInput } from '@/components/task-row/TaskInput';
 import { TaskRowPickers } from '@/components/task-row/TaskRowPickers';
 import { TaskRowActions } from '@/components/task-row/TaskRowActions';
+import { useTaskTimer, useTaskDisplayInfo } from '@/hooks/useTaskTimer';
 
 interface TaskRowProps {
     task: TaskEntity;
@@ -37,47 +37,10 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
     isSelected
 }) => {
     // --- Display Logic ---
-    const isCompleted = task.status === 'completed';
-    const isArchived = task.status === 'archived';
+    const { isCompleted, isArchived, activeBlockers, isBlocked, isOverdue, displayedDuration } = useTaskDisplayInfo(task, allTasks);
     
-    const activeBlockers = useMemo(() => {
-        if (!task.blockedBy || task.blockedBy.length === 0 || !allTasks) return [];
-        return task.blockedBy.map(id => allTasks.find(t => t.id === id)).filter(t => t && t.status !== 'completed');
-    }, [task.blockedBy, allTasks]);
-    
-    const isBlocked = activeBlockers.length > 0;
-    const isOverdue = task.dueDate && task.dueDate < Date.now() && !isCompleted && !isArchived;
-
-    const displayedDuration = useMemo(() => {
-        if (isCompleted && typeof task.actualDuration === 'number') {
-            return Math.max(1, Math.round(task.actualDuration / 60));
-        }
-        return task.duration;
-    }, [isCompleted, task.actualDuration, task.duration]);
-
     // --- Timer Logic ---
-    const [timeDisplay, setTimeDisplay] = useState<string | null>(null);
-    const [isRunning, setIsRunning] = useState(false);
-    const [isOvertime, setIsOvertime] = useState(false);
-
-    useEffect(() => {
-        if (!task.isFocused) {
-            setTimeDisplay(null);
-            setIsRunning(false);
-            return;
-        }
-        const updateTimer = () => {
-            const metrics = calculateTaskTime(task);
-            setTimeDisplay(formatTimer(metrics.remaining));
-            setIsRunning(metrics.status === 'running');
-            setIsOvertime(metrics.isOvertime);
-        };
-        updateTimer();
-        if (task.lastStartedAt) {
-            const interval = setInterval(updateTimer, 1000);
-            return () => clearInterval(interval);
-        }
-    }, [task, task.isFocused, task.lastStartedAt, task.remainingSeconds]);
+    const { timeDisplay, isRunning, isOvertime } = useTaskTimer(task);
 
     // --- Edit & Interaction State ---
     const [isEditing, setIsEditing] = useState(initialIsEditing);
@@ -252,9 +215,9 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                 notes: notesDraft.trim(),
                 duration: effectiveDuration,
                 energy: effectiveEnergy,
-                dueDate: effectiveDueDate ?? null as any,
-                assignedDate: effectiveAssignedDate ?? null as any,
-                recurrence: (effectiveDueDate ? finalRecurrence : undefined) ?? null as any,
+                dueDate: effectiveDueDate ?? null,
+                assignedDate: effectiveAssignedDate ?? null,
+                recurrence: (effectiveDueDate ? finalRecurrence : undefined) ?? null,
                 category: finalTagId,
                 blockedBy: blockedByDraft,
             });

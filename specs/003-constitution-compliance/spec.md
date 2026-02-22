@@ -87,10 +87,78 @@ The team needs to systematically fix violations according to the roadmap.
 
 - **SC-003**: Each phase has measurable exit criteria (e.g., "reduce 'any' types from 37 to 0")
 
-- **SC-004**: The roadmap shows estimated timeline for full compliance (e.g., "3 sprints")
+- **SC-004**: The roadmap shows estimated timeline for full compliance (e.g., "5 sprints")
+
+---
+
+## Proposed Remediation Phases
+
+### Phase 1: Quick Wins (1 sprint)
+- Configure ESLint `@typescript-eslint/no-explicit-any` rule
+- Fix 37 'any' type instances
+- Remove empty controller file
+
+### Phase 2: Component Refactoring (2 sprints)
+- Split TaskRow (416 → multiple components under 250 lines)
+- Split RecommendationEngine (530 → multiple services under 250 lines)
+- Add React.memo to list components
+
+### Phase 3: Architecture Improvements (2 sprints)
+- Consolidate context providers (6 → 3 levels)
+- Add React.lazy() for code splitting
+- Set up automated code health gates in CI
 
 ---
 
 ## Assumptions
 
 The analysis assumes the existing codebase can be scanned programmatically. The roadmap will prioritize high-impact, low-effort fixes first. ESLint can be configured to detect most violations automatically.
+
+---
+
+## Clarifications
+
+### Session 2026-02-22
+- Q: Should we re-analyze the codebase or use existing anti-pattern data? → A: Use existing anti-pattern data from specs/002-anti-bloat-constitution directly
+
+---
+
+## Known Violations (from Anti-Pattern Analysis)
+
+### Principle VIII - Component Size Limits (250 lines max)
+
+| File | Current Lines | Severity |
+|------|---------------|----------|
+| `components/TaskRow.tsx` | 416 | Critical |
+| `services/RecommendationEngine.ts` | 530 | Critical |
+| `components/pickers/RecurrencePicker.tsx` | 268 | High |
+| `components/task-row/TaskRowPickers.tsx` | 215 | Medium |
+
+### Principle IX - Type Safety (no 'any' types)
+
+| File | Instances | Severity |
+|------|-----------|----------|
+| `services/TaskService.ts` | 3+ | High |
+| `hooks/controllers/*.ts` | 5+ | High |
+| Various components | 37 total | High |
+
+### Principle X - Code Duplication
+
+| Pattern | Locations | Severity |
+|---------|-----------|----------|
+| ContextService.getInstance() | 24 calls | Medium |
+| Duplicate utility functions | 3+ locations | Medium |
+
+### Principle XII - Context Provider Consolidation
+
+| File | Nesting Depth | Severity |
+|------|---------------|----------|
+| `AppProvider.tsx` | 6 levels | Medium |
+
+### Principle XIII - Automated Code Health Gates
+
+| Check | Status |
+|-------|--------|
+| ESLint no-explicit-any | Not configured |
+| File size limits | Not enforced |
+| Duplicate detection | Not configured |

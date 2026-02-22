@@ -64,10 +64,11 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
             } else {
                 throw new Error("No token received");
             }
-        } catch (e: any) {
-            console.error("Import failed:", e);
+        } catch (e: unknown) {
+            const error = e as Error;
+            console.error("Import failed:", error);
             
-            if (e.message === 'DOMAIN_NOT_AUTHORIZED' || e.message === 'GOOGLE_AUTH_NOT_ENABLED' || e.message === 'POPUP_CLOSED') {
+            if (error.message === 'DOMAIN_NOT_AUTHORIZED' || error.message === 'GOOGLE_AUTH_NOT_ENABLED' || error.message === 'POPUP_CLOSED') {
                 setError("Demo Mode (Auth Config Missing)");
                 const mocks = service.getMockEvents() as CalendarEvent[];
                 const mockEventsWithIds = mocks.map((e, i) => ({ ...e, calendarId: i % 2 === 0 ? 'primary' : 'work@example.com' }));
@@ -75,7 +76,7 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
                 setupEvents(filteredMocks, alreadyImported); // Pass alreadyImported
                 setIsOpen(true);
             } else {
-                setError(e.message || "Failed to connect");
+                setError(error.message || "Failed to connect");
             }
         } finally {
             setIsLoading(false);

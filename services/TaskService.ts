@@ -1,7 +1,7 @@
 
 import { db } from '../firebase';
 import { doc, updateDoc, deleteDoc, setDoc, writeBatch, collection, addDoc, getDoc } from 'firebase/firestore';
-import { TaskEntity, Category, EnergyLevel, RecurrenceConfig } from '../types';
+import { Task, TaskEntity, Category, EnergyLevel, RecurrenceConfig } from '../types';
 import { ContextService } from './ContextService';
 import { getNextRecurrenceDate, calculateTaskTime } from '@/utils/timeUtils';
 
@@ -159,7 +159,7 @@ export class TaskService {
 
         // Part 1: Mark original task as complete
         const originalTaskRef = doc(db, 'users', uid, 'tasks', originalTask.id);
-        const updatePayload: any = {
+        const updatePayload: Partial<Task> = {
             status: 'completed',
             completedAt: completedAt,
             updatedAt: completedAt,

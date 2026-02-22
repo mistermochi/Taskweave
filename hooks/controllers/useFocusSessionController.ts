@@ -31,7 +31,7 @@ export const useFocusSessionController = (taskId: string | undefined) => {
   }, [task, uid, hasAutoStarted, isActive, metrics.remaining, taskService, tasks]);
 
   useEffect(() => {
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     
     if (isActive) {
       interval = setInterval(() => {

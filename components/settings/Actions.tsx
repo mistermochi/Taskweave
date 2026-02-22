@@ -50,9 +50,10 @@ export const Actions: React.FC = () => {
         const finalMessage = `Migration Verification:\n\n${results.join('\n')}\n\nOverall: ${isSuccess ? 'Success! All data migrated correctly.' : 'Mismatch detected. Some data may be missing.'}`;
         alert(finalMessage);
 
-    } catch (e: any) {
-        console.error("Migration verification failed:", e);
-        alert(`An error occurred during verification: ${e.message}`);
+    } catch (e: unknown) {
+        const error = e as Error;
+        console.error("Migration verification failed:", error);
+        alert(`An error occurred during verification: ${error.message}`);
     } finally {
         setIsVerifying(false);
     }

@@ -9,7 +9,7 @@ import { useUserSettings } from '@/hooks/useUserSettings';
 import { useNavigation } from '@/context/NavigationContext';
 import { 
   Inbox, Sun, Settings, Plus, 
-  BarChart2, ChevronDown
+  BarChart2, ChevronDown, LucideIcon
 } from 'lucide-react';
 import { TagTree } from '@/components/TagSidebar';
 import { TagService } from '@/services/TagService';
@@ -35,7 +35,7 @@ export const Sidebar: React.FC = () => {
         await TagService.getInstance().createTag('New Project', null);
     };
 
-    const NavItem = ({ onClick, icon: Icon, label, isActive, count, colorClass = "text-secondary" }: { onClick: () => void, icon: any, label: string, isActive: boolean, count?: number, colorClass?: string }) => {
+    const NavItem = ({ onClick, icon: Icon, label, isActive, count, colorClass = "text-secondary" }: { onClick: () => void, icon: LucideIcon, label: string, isActive: boolean, count?: number, colorClass?: string }) => {
         return (
           <button 
             onClick={onClick}

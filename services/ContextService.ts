@@ -13,7 +13,7 @@ export class ContextService {
     private motionService: MotionService;
     private userId: string | null = null;
 
-    private constructor() {
+    constructor() {
         this.userConfigService = UserConfigService.getInstance();
         this.deviceService = DeviceService.getInstance();
         this.locationService = LocationService.getInstance();

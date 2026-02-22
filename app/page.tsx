@@ -75,7 +75,7 @@ export default function HomePage() {
 
             // --- Sync Profile on Login ---
             try {
-                const updates: any = {};
+                const updates: Record<string, unknown> = {};
                 const newName = user.displayName?.split(' ')[0];
 
                 if (newName && (!settingsSnap.exists() || currentSettings.displayName === 'Traveler')) {

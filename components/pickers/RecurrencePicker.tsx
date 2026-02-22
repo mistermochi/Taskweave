@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RecurrenceConfig } from '@/types';
+import { RecurrenceConfig, RecurrenceFrequency } from '@/types';
 import { ChevronDown, Check } from 'lucide-react';
 import { formatRecurrence } from '@/utils/timeUtils';
 import { PickerContainer } from './PickerContainer';
@@ -127,10 +127,10 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
              </div>
           </div>
           <div className="flex-[2] relative">
-             <select 
-               value={frequency}
-               onChange={(e) => {
-                  const freq = e.target.value as any;
+              <select 
+                value={frequency}
+                onChange={(e) => {
+                   const freq = e.target.value as RecurrenceFrequency;
                   setFrequency(freq);
                   if (freq === 'weekly') {
                       commitChange({ frequency: freq, weekDays: [baseDate.getDay()] });

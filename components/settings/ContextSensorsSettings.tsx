@@ -93,7 +93,7 @@ export const ContextSensorsSettings: React.FC<ContextSensorsSettingsProps> = ({ 
           {settings.useLocation && (
             <div className="flex items-center justify-between p-3 bg-surface-highlight rounded-xl border border-border">
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">Set "Home"</span>
+                <span className="text-sm font-medium text-foreground">Set &quot;Home&quot;</span>
                 <span className={`text-xxs ${locationStatus.includes('Error') ? 'text-red-400' : 'text-primary'}`}>{locationStatus}</span>
               </div>
               <button 

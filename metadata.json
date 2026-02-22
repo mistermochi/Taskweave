@@ -1,0 +1,8 @@
+{
+  "name": "Taskweave",
+  "description": "A holistic productivity and wellness companion that aligns your tasks with your energy levels.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation"
+  ]
+}

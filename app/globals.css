@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode Colors */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+
+    --surface: 0 0% 98%;
+    --surface-1-hsl: 220 13% 91%;
+    --surface-2-hsl: 220 13% 85%;
+    --surface-highlight: 0 0% 96%;
+
+    --border: 240 5.9% 90%;
+    --secondary: 240 4.8% 60%;
+    
+    /* Default: Green. This is overridden by ThemeProvider */
+    --primary: 142.1 76.2% 36.3%; 
+    --primary-dim: 142.1 76.2% 26.3%;
+    --primary-foreground: 355.7 100% 97.3%;
+    
+    --accent: 24.6 95% 53.1%;
+    --accent-purple: 271 91% 65%;
+  }
+
+  .dark {
+    /* Dark Mode Colors (from original config) */
+    --background: 140 33% 1.2%;
+    --foreground: 140 5% 85%;
+
+    --surface: 152 35% 5.5%;
+    --surface-1-hsl: 150 25% 8%;
+    --surface-2-hsl: 148 20% 9%;
+    --surface-highlight: 145 23% 10.8%;
+
+    --border: 140 10% 15%;
+    --secondary: 140 9% 58%;
+
+    /* Default: Green. This is overridden by ThemeProvider */
+    --primary: 149 80% 46%;
+    --primary-dim: 149 80% 36%;
+    --primary-foreground: 149 80% 5%;
+
+    --accent: 30 100% 63%;
+    --accent-purple: 276 95% 76%;
+  }
+}
+
+
+html,
+body,
+:root {
+  height: 100%;
+}
+
+/* Custom Scrollbar Hide */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+/* Range Slider Styling */
+input[type=range] {
+  -webkit-appearance: none; 
+  background: transparent; 
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  margin-top: -8px; 
+  box-shadow: 0 0 15px hsla(var(--primary), 0.4);
+  border: 2px solid hsl(var(--surface));
+}
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  background: hsl(var(--surface-highlight));
+  border-radius: 2px;
+}
+
+/* Mobile scrolling fixes */
+@media (max-width: 768px) {
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    height: 100%;
+    overflow: hidden; /* Prevent body scroll, handle in app */
+  }
+  
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

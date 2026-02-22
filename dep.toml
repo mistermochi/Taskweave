@@ -1,0 +1,27 @@
+[install]
+cache = true
+frozenLockfile = false
+
+[run]
+shell = "system"
+
+[build]
+entry = "index.tsx"
+outdir = "./dist"
+target = "browser"
+sourcemap = true
+minify = true
+define = { 
+  "process.env.GEMINI_API_KEY" = "${GEMINI_API_KEY}",
+  "process.env.API_KEY" = "${GEMINI_API_KEY}"
+}
+external = ["react", "react-dom", "lucide-react", "dexie", "dexie-react-hooks"]
+
+[serve]
+port = 3000
+development = true
+static = ["./", "./index.html"]
+
+[loader]
+".tsx" = "jsx"
+".ts" = "ts"

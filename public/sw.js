@@ -7,10 +7,9 @@ const APP_SHELL_URLS = [
   '/',
   '/manifest.json',
   '/logo.svg',
-  '/app/globals.css',
   '/offline.html',
-  // Note: We don't cache Next.js specific JS chunks here as their names are hashed and change on every build.
-  // The service worker will cache them on-the-fly during the first visit.
+  '/icons/manifest-icon-192.maskable.png',
+  '/icons/manifest-icon-512.maskable.png',
 ];
 
 // --- INSTALL: Cache the App Shell ---
@@ -54,6 +53,11 @@ self.addEventListener('activate', (event) => {
 
 // --- FETCH: Intercept network requests ---
 self.addEventListener('fetch', (event) => {
+  // Only cache GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   // For navigation requests (i.e., loading a page), use a network-first strategy.
   // This ensures the user always gets the latest version of the app's HTML shell if online.
   if (event.request.mode === 'navigate') {

@@ -1,50 +1,99 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Taskweave Constitution
+
+<!--
+Sync Impact Report - Amendment 1
+================================
+Version: 1.0.0 → 1.1.0 (MINOR - new principle added)
+
+Added Principles:
+- VI. Test-Driven Development (NON-NEGOTIABLE) - Red-Green-Refactor with Jest
+
+Modified Principles: None
+
+Removed Sections: None
+
+Templates Status:
+- ✅ plan-template.md - No updates needed
+- ✅ spec-template.md - No updates needed  
+- ✅ tasks-template.md - Already references test-first approach
+- ✅ checklist-template.md - No constitution references
+
+No follow-up TODOs.
+-->
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Exclusive Focus
+Every feature MUST enforce single active task logic to maintain state integrity. The system ensures only one task can be in focus at any given time. Starting a new session automatically stops any other active session. This prevents cognitive overload and ensures data consistency.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Atomic Operations
+All data mutations MUST be clean and predictable. Each operation MUST be atomic - either fully completed or fully rolled back. No partial state changes are permitted. This ensures data integrity and simplifies debugging.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Real-time First
+All data access MUST leverage `onSnapshot` for instant UI updates across devices. Local state MUST sync immediately with Firestore. Optimistic updates are permitted only when they can be reconciled with server state.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Semantic Clarity
+All user-facing terminology MUST use intuitive, user-friendly terms. Internal code MUST use terms that match user expectations. Examples: "Project" over "Category", "Task" over "Item". No jargon unless it improves precision.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Offline Reliability
+The application MUST function during intermittent connectivity. Local caching via Firebase Firestore persistence MUST maintain full functionality offline. Background sync MUST reconcile changes when connectivity returns. No operation should fail silently due to network issues.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### VI. Test-Driven Development (NON-NEGOTIABLE)
+All features MUST follow the Red-Green-Refactor TDD cycle using Jest:
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+1. **Red**: Write a failing test first that describes the desired behavior
+2. **Green**: Write minimum code to make the test pass
+3. **Refactor**: Improve code while keeping tests passing
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+Test requirements:
+- Use `@testing-library/react` for component tests
+- Use `@testing-library/jest-dom` for DOM assertions
+- Use `jest-environment-jsdom` for React testing environment
+- Unit tests MUST achieve meaningful coverage for business logic
+- Integration tests MUST verify component interactions
+- Run `npm test` (Jest with `--watchAll=false`) before any PR
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+No feature is complete until tests pass. Tests document behavior and prevent regressions.
+
+## Technology Stack
+
+The following technologies MUST be used for all implementation:
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript 5.3+
+- **UI**: React 18 with Tailwind CSS and ShadCN UI
+- **Backend**: Firebase (Firestore & Auth)
+- **Offline**: PWA standard with custom service workers and Firestore persistence
+
+New dependencies MUST be evaluated for offline compatibility and type safety before adoption.
+
+## Development Workflow
+
+All feature development MUST follow the Specify methodology:
+
+1. **Specification**: Create feature spec in `specs/[###-feature]/spec.md`
+2. **Plan**: Create implementation plan with research and data model
+3. **Tasks**: Generate task list organized by user story priority
+4. **Implementation**: Implement with test-first approach
+5. **Validation**: Verify against acceptance criteria
+
+All PRs MUST verify:
+- Tests pass (`npm test`)
+- Lint passes (`npm run lint`)
+- Build succeeds (`npm run build`)
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This Constitution supersedes all other practices. Amendments require:
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+1. Documentation of proposed changes with rationale
+2. Review and approval via PR
+3. Migration plan if changes affect existing features
+4. Version bump following semantic versioning:
+   - MAJOR: Backward incompatible governance/principle changes
+   - MINOR: New principles or materially expanded guidance  
+   - PATCH: Clarifications, wording, typo fixes
+
+All team members MUST verify compliance with these principles before merging any changes.
+
+**Version**: 1.1.0 | **Ratified**: 2026-02-22 | **Last Amended**: 2026-02-22

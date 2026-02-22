@@ -17,16 +17,21 @@ export default function HomePage() {
 
   useEffect(() => {
     // --- PWA Service Worker Registration ---
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(registration => {
-          console.log('Service Worker registered with scope:', registration.scope);
-        }).catch(error => {
+    const registerSW = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js');
+          console.log('Service Worker registered:', registration.scope);
+        } catch (error) {
           console.error('Service Worker registration failed:', error);
-        });
-      });
-    }
-    // --- END PWA Registration ---
+        }
+      } else {
+        console.warn('Service Workers not supported');
+      }
+    };
+    
+    // Register immediately
+    registerSW();
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {

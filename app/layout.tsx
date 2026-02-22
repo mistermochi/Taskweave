@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: 'Taskweave',
   description: 'A holistic productivity and wellness companion that aligns your tasks with your energy levels.',
   manifest: '/manifest.json',
+  themeColor: '#29d187',
 }
 
 export default function RootLayout({

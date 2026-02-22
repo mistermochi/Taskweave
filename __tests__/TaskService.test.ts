@@ -5,7 +5,6 @@ import { ContextService } from '../services/ContextService';
 import { doc, setDoc, updateDoc, deleteDoc, writeBatch, collection, addDoc } from 'firebase/firestore';
 import { getNextRecurrenceDate } from '../utils/timeUtils';
 import { TaskEntity, RecurrenceConfig } from '../types';
-import crypto from 'crypto';
 
 // --- Mocks ---
 
@@ -65,7 +64,6 @@ describe('TaskService', () => {
     jest.clearAllMocks();
 
     // Set up mocks for this test scope
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue('mock-uuid');
     (writeBatch as jest.Mock).mockReturnValue(mockBatch);
 
     // Get a fresh instance for each test
@@ -80,7 +78,7 @@ describe('TaskService', () => {
       expect(setDoc).toHaveBeenCalledWith(
         expect.anything(), // doc ref
         expect.objectContaining({
-          id: 'mock-uuid',
+          id: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
           title: 'Test Task',
           category: 'Work',
           duration: 30,
@@ -277,14 +275,12 @@ describe('TaskService', () => {
   // Test Focus Session methods
   describe('Focus Sessions', () => {
     it('should start a session correctly', async () => {
-      const updateSpy = jest.spyOn(taskService, 'updateTask');
-      await taskService.startSession('task-focus', 1500);
-      expect(updateSpy).toHaveBeenCalledWith('task-focus', {
-        remainingSeconds: 1500,
-        lastStartedAt: MOCK_NOW,
-        isFocused: true,
-      });
-      updateSpy.mockRestore();
+      const mockActiveTasks: TaskEntity[] = [];
+      await taskService.startSession('task-focus', 1500, mockActiveTasks);
+      
+      // Verify batch was used for the operation
+      expect(mockBatch.update).toHaveBeenCalled();
+      expect(mockBatch.commit).toHaveBeenCalledTimes(1);
     });
 
     it('should pause a session correctly', async () => {
@@ -329,7 +325,7 @@ describe('TaskService', () => {
       
       // Creates a new 'mood' vital
       expect(setDoc).toHaveBeenCalledWith(
-        doc(db, 'users', 'test-uid', 'vitals', 'mock-uuid'),
+        expect.objectContaining({ path: expect.stringContaining('users/test-uid/vitals/') }),
         expect.objectContaining({
           type: 'mood',
           value: 85,

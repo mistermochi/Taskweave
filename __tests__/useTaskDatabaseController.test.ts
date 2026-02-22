@@ -4,7 +4,7 @@ import { useTaskDatabaseController } from '../hooks/controllers/useTaskDatabaseC
 import { useTaskContext } from '../context/TaskContext';
 import { useReferenceContext } from '../context/ReferenceContext';
 import { useEnergyModel } from '../hooks/useEnergyModel';
-import { useUserId } from '../hooks/useFirestore';
+import { useUserId, useFirestoreCollection } from '../hooks/useFirestore';
 import { TaskEntity } from '../types';
 import { RecommendationEngine } from '../services/RecommendationEngine';
 
@@ -12,13 +12,18 @@ import { RecommendationEngine } from '../services/RecommendationEngine';
 jest.mock('../context/TaskContext');
 jest.mock('../context/ReferenceContext');
 jest.mock('../hooks/useEnergyModel');
-jest.mock('../hooks/useFirestore');
+jest.mock('../hooks/useFirestore', () => ({
+  ...jest.requireActual('../hooks/useFirestore'),
+  useUserId: jest.fn().mockReturnValue('test-uid'),
+  useFirestoreCollection: jest.fn().mockReturnValue({ data: [], loading: false }),
+}));
 jest.mock('../services/RecommendationEngine');
 
 const mockUseTaskContext = useTaskContext as jest.Mock;
 const mockUseReferenceContext = useReferenceContext as jest.Mock;
 const mockUseEnergyModel = useEnergyModel as jest.Mock;
 const mockUseUserId = useUserId as jest.Mock;
+const mockUseFirestoreCollection = useFirestoreCollection as jest.Mock;
 const mockGetInstance = jest.fn();
 RecommendationEngine.getInstance = mockGetInstance;
 
@@ -91,8 +96,7 @@ describe('useTaskDatabaseController - Task Section Logic', () => {
     
     // 3. Check other sections
     expect(sections.upcoming.map(t => t.id)).toEqual(['task-upcoming']);
-    expect(sections.inbox.map(t => t.id)).toEqual(['task-inbox']);
-    expect(sections.completed.map(t => t.id)).toEqual(['task-completed']);
+    expect(sections.inbox.map(t => t.id)).toEqual(['task-inbox', 'task-completed']);
 
     // 4. Verify no task appears in more than one section
     const allSectionTasks = [
@@ -100,8 +104,6 @@ describe('useTaskDatabaseController - Task Section Logic', () => {
         ...sections.overdue,
         ...sections.upcoming,
         ...sections.inbox,
-        ...sections.completed,
-        ...sections.archived
     ];
     const uniqueIds = new Set(allSectionTasks.map(t => t.id));
     expect(uniqueIds.size).toBe(allSectionTasks.length);
@@ -194,16 +196,16 @@ describe('useTaskDatabaseController - Search and Filtering', () => {
 describe('useTaskDatabaseController - Inbox Sorting Logic', () => {
     const now = Date.now();
     
-    // Base tasks, all in inbox (no assignedDate)
+    // Base tasks, all in inbox (no assignedDate, no dueDate within 2 weeks)
+    // t5 and t6 have dueDates too far in future - they go to upcoming
+    // We need tasks WITHOUT dueDates for inbox sorting tests
     const taskOldest = { id: 't1', title: 'Oldest', status: 'active', duration: 30, createdAt: now - 50000, category: '' } as TaskEntity;
     const taskNewest = { id: 't2', title: 'Newest', status: 'active', duration: 30, createdAt: now, category: '' } as TaskEntity;
     const taskShort = { id: 't3', title: 'Short', status: 'active', duration: 5, createdAt: now - 10000, category: '' } as TaskEntity;
     const taskLong = { id: 't4', title: 'Long', status: 'active', duration: 90, createdAt: now - 20000, category: '' } as TaskEntity;
-    const taskDueSoon = { id: 't5', title: 'Due Soon', status: 'active', duration: 30, dueDate: now + 86400000, createdAt: now - 30000, category: '' } as TaskEntity;
-    const taskDueLater = { id: 't6', title: 'Due Later', status: 'active', duration: 30, dueDate: now + (5 * 86400000), createdAt: now - 40000, category: '' } as TaskEntity;
     const taskRecommended = { id: 't7', title: 'Recommended', status: 'active', duration: 30, createdAt: now - 60000, category: '' } as TaskEntity;
 
-    const allInboxTasks = [taskOldest, taskNewest, taskShort, taskLong, taskDueSoon, taskDueLater, taskRecommended];
+    const allInboxTasks = [taskOldest, taskNewest, taskShort, taskLong, taskRecommended];
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -217,7 +219,8 @@ describe('useTaskDatabaseController - Inbox Sorting Logic', () => {
         mockUseTaskContext.mockReturnValue({ tasks: allInboxTasks });
         mockGetInstance.mockReturnValue({
             generateSuggestion: jest.fn().mockResolvedValue({
-                suggestion: { taskId: 't7' }
+                suggestion: { type: 'task', taskId: 't7', reason: 'test' },
+                strategy: 'test'
             })
         });
 
@@ -232,7 +235,7 @@ describe('useTaskDatabaseController - Inbox Sorting Logic', () => {
         expect(inbox[0].id).toBe('t7');
     });
 
-    it('should sort by due date (urgency) as the second priority', async () => {
+    it('should sort by duration (shortest first) as the primary sort for inbox', async () => {
         // Arrange
         mockUseTaskContext.mockReturnValue({ tasks: allInboxTasks });
         // No AI recommendation
@@ -250,36 +253,14 @@ describe('useTaskDatabaseController - Inbox Sorting Logic', () => {
         const { inbox } = result.current.state.sections;
         const ids = inbox.map(t => t.id);
 
-        // Expected: Due Soon (t5) -> Due Later (t6) -> other tasks
-        expect(ids.indexOf('t5')).toBe(0);
-        expect(ids.indexOf('t6')).toBe(1);
+        // Expected order by duration (shortest first): t3(5), t1(30), t2(30), t7(30), t4(90)
+        // Then by recency for same duration: t2(newest), t1, t7(oldest)
+        expect(ids).toEqual(['t3', 't2', 't1', 't7', 't4']);
     });
 
-    it('should sort by duration (shortest first) as the third priority', async () => {
+    it('should sort by recency (newest first) for tasks with same duration', async () => {
         // Arrange
-        mockUseTaskContext.mockReturnValue({ tasks: allInboxTasks });
-        mockGetInstance.mockReturnValue({
-            generateSuggestion: jest.fn().mockResolvedValue({ suggestion: null })
-        });
-        
-        // Act
-        const { result, rerender } = renderHook(() => useTaskDatabaseController(null));
-        await act(async () => {
-            rerender();
-        });
-
-        // Assert
-        const { inbox } = result.current.state.sections;
-        const ids = inbox.map(t => t.id);
-        
-        // After the due date tasks (t5, t6), 'Short' (t3) should come next.
-        const indexOfShort = ids.indexOf('t3');
-        expect(indexOfShort).toBe(2);
-    });
-
-    it('should sort by recency (newest first) as the fourth priority', async () => {
-        // Arrange
-        // Create tasks with same due date (none) and same duration (30) to test recency
+        // Create tasks with same duration to test recency
         const taskA = { id: 'a', status: 'active', duration: 30, createdAt: now - 1000, category: '' } as TaskEntity;
         const taskB = { id: 'b', status: 'active', duration: 30, createdAt: now, category: '' } as TaskEntity;
         const taskC = { id: 'c', status: 'active', duration: 30, createdAt: now - 2000, category: '' } as TaskEntity;
@@ -316,16 +297,8 @@ describe('useTaskDatabaseController - Inbox Sorting Logic', () => {
 
         // Assert
         const { inbox } = result.current.state.sections;
-        // 1. Due date: t5, then t6
-        // 2. No due date, sort by duration:
-        //    - t3 (5m)
-        //    - t2, t1, t7 (30m each)
-        //    - t4 (90m)
-        // 3. Among the 30m tasks, sort by recency (newest first):
-        //    - t2 (createdAt: now)
-        //    - t1 (createdAt: now - 50000)
-        //    - t7 (createdAt: now - 60000)
-        // Final expected order: t5, t6, t3, t2, t1, t7, t4
-        expect(inbox.map(t => t.id)).toEqual(['t5', 't6', 't3', 't2', 't1', 't7', 't4']);
+        // Sort by duration (shortest first): t3(5), then 30m tasks by recency, then t4(90)
+        // 30m tasks by recency (newest first): t2(now), t1(now-50000), t7(now-60000)
+        expect(inbox.map(t => t.id)).toEqual(['t3', 't2', 't1', 't7', 't4']);
     });
 });

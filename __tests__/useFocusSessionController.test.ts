@@ -43,6 +43,7 @@ describe('useFocusSessionController', () => {
     remainingSeconds: null,
     lastStartedAt: null,
     updatedAt: Date.now(),
+    blockedBy: [],
   };
 
   const mockRunningTask: TaskEntity = {
@@ -77,7 +78,12 @@ describe('useFocusSessionController', () => {
     renderHook(() => useFocusSessionController('task-1'));
 
     // Verify that startSession was called on mount for an idle task
-    expect(mockTaskService.startSession).toHaveBeenCalledWith('task-1', 1500);
+    // Implementation passes: taskId, remainingSeconds, allActiveTasks
+    expect(mockTaskService.startSession).toHaveBeenCalledWith(
+      'task-1',
+      expect.any(Number),
+      expect.any(Array)
+    );
   });
 
   it('should not start a session that is already running', () => {
@@ -128,7 +134,12 @@ describe('useFocusSessionController', () => {
     });
 
     // toggleTimer should call startSession because the task is not active
-    expect(mockTaskService.startSession).toHaveBeenCalledWith('task-1', expect.any(Number));
+    // Implementation passes: taskId, remainingSeconds, allActiveTasks
+    expect(mockTaskService.startSession).toHaveBeenCalledWith(
+      'task-1',
+      expect.any(Number),
+      expect.any(Array)
+    );
     expect(mockTaskService.startSession).toHaveBeenCalledTimes(1);
   });
 

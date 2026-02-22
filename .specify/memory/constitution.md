@@ -1,12 +1,17 @@
 # Taskweave Constitution
 
 <!--
-Sync Impact Report - Amendment 1
+Sync Impact Report - Amendment 3
 ================================
-Version: 1.0.0 → 1.1.0 (MINOR - new principle added)
+Version: 1.2.0 → 1.3.0 (MINOR - new principles added)
 
 Added Principles:
-- VI. Test-Driven Development (NON-NEGOTIABLE) - Red-Green-Refactor with Jest
+- VIII. Component Size Limits (NON-NEGOTIABLE)
+- IX. Type Safety Enforcement (NON-NEGOTIABLE)
+- X. Code Duplication Tolerance
+- XI. Performance Budgets
+- XII. Context Provider Consolidation
+- XIII. Automated Code Health Gates
 
 Modified Principles: None
 
@@ -15,7 +20,7 @@ Removed Sections: None
 Templates Status:
 - ✅ plan-template.md - No updates needed
 - ✅ spec-template.md - No updates needed  
-- ✅ tasks-template.md - Already references test-first approach
+- ✅ tasks-template.md - No updates needed
 - ✅ checklist-template.md - No constitution references
 
 No follow-up TODOs.
@@ -55,15 +60,72 @@ Test requirements:
 
 No feature is complete until tests pass. Tests document behavior and prevent regressions.
 
+### VII. Client-Side Only Architecture
+This project is strictly client-side only. All rendering and data operations happen in the browser:
+
+- All components use 'use client' directive
+- Firebase SDK is used directly from client code
+- No Server Actions or server-side data mutations
+- Offline-first with Firestore persistence and service workers
+- All business logic executes in the browser
+
+### VIII. Component Size Limits (NON-NEGOTIABLE)
+
+Single files MUST NOT exceed:
+- **250 lines** for any component or service file
+- **50 lines** for any single function
+- **5 props** maximum for React components
+
+Files exceeding these limits MUST be split into smaller, focused modules. Use composition patterns to extract logic into custom hooks or utility functions.
+
+### IX. Type Safety Enforcement (NON-NEGOTIABLE)
+
+The 'any' type is strictly prohibited in production code. All functions, variables, and return types MUST have explicit type definitions. Use `unknown` with proper type guards when type is uncertain. Lint rule `@typescript-eslint/no-explicit-any` MUST be enabled and enforced.
+
+### X. Code Duplication Tolerance
+
+Duplicate code patterns MUST be refactored when:
+- More than 3 consecutive lines are identical
+- Same logic appears in more than 2 locations
+- Logic could be extracted to a shared utility or hook
+
+Use ESLint rules to detect and flag duplication.
+
+### XI. Performance Budgets
+
+All new code MUST adhere to performance budgets:
+- Initial JavaScript bundle under 200KB (compressed)
+- Largest Contentful Paint under 2.5 seconds
+- Time to Interactive under 3.5 seconds
+
+Use React.lazy() for route-based code splitting. Components larger than 100KB should be lazy-loaded.
+
+### XII. Context Provider Consolidation
+
+Context providers SHOULD be consolidated to minimize nesting depth. Maximum 3 levels of context nesting. Use useReducer with single context for complex state instead of multiple providers.
+
+### XIII. Automated Code Health Gates
+
+All PRs MUST pass automated checks before merge:
+- No new 'any' types introduced
+- No component files exceeding size limits
+- No duplicate code patterns exceeding tolerance
+- Lint passes
+- TypeScript compilation succeeds
+- Tests pass
+
+Integrate these checks into CI/CD pipeline.
+
 ## Technology Stack
 
 The following technologies MUST be used for all implementation:
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 14 (App Router) - Client-Side Only Architecture
 - **Language**: TypeScript 5.3+
 - **UI**: React 18 with Tailwind CSS and ShadCN UI
-- **Backend**: Firebase (Firestore & Auth)
+- **Backend**: Firebase (Firestore & Auth) - Client-side SDK only
 - **Offline**: PWA standard with custom service workers and Firestore persistence
+- **Firebase Security**: Firebase API keys in client code are safe and intended - Firebase uses key restrictions and security rules for protection
 
 New dependencies MUST be evaluated for offline compatibility and type safety before adoption.
 
@@ -96,4 +158,4 @@ This Constitution supersedes all other practices. Amendments require:
 
 All team members MUST verify compliance with these principles before merging any changes.
 
-**Version**: 1.1.0 | **Ratified**: 2026-02-22 | **Last Amended**: 2026-02-22
+**Version**: 1.3.0 | **Ratified**: 2026-02-22 | **Last Amended**: 2026-02-22

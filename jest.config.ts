@@ -18,10 +18,10 @@ const config: Config = {
     '^.+\.(css|sass|scss)$': 'identity-obj-proxy',
 
     // Handle module aliases
-    '^@/(.*)$': '<rootDir>/$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
 
     // Mock @google/genai
-    '@google/genai': '<rootDir>/__mocks__/google/genai.js',
+    '@google/genai': '<rootDir>/src/__mocks__/google/genai.js',
   },
   transform: {
     // Use ts-jest for ts/tsx files

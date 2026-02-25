@@ -1,16 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TaskEntity, RecurrenceConfig, EnergyLevel } from '../types';
 
-interface UseTaskEditStateOptions {
-    task: TaskEntity;
-    initialIsEditing: boolean;
-    onUpdate?: (task: TaskEntity, updates: Partial<TaskEntity>) => void;
-    onComplete?: (task: TaskEntity) => void;
-}
-
+/**
+ * Interface for the state managed by the task editor hook.
+ */
 interface UseTaskEditStateResult {
+    /** Whether the editor is currently in edit mode. */
     isEditing: boolean;
     setIsEditing: (value: boolean | ((prev: boolean) => boolean)) => void;
+    /** Current values of the draft fields in the editor. */
     drafts: {
         title: string;
         notes: string;
@@ -22,8 +20,11 @@ interface UseTaskEditStateResult {
         recurrence: RecurrenceConfig | undefined;
         blockedBy: string[];
     };
+    /** Function to update draft fields. */
     setDrafts: React.Dispatch<React.SetStateAction<UseTaskEditStateResult['drafts']>>;
+    /** Persists the draft changes to the database. */
     saveChanges: () => void;
+    /** Snapshot of the effective values (drafts) for display. */
     effectiveValues: {
         tagId: string;
         duration: number;
@@ -35,6 +36,16 @@ interface UseTaskEditStateResult {
     };
 }
 
+/**
+ * Custom hook that manages the temporary state of a task while it's being edited.
+ * It provides a "scratchpad" for changes (drafts) before they are committed to Firestore.
+ *
+ * @param task - The original task being edited.
+ * @param initialIsEditing - Initial visibility of the edit interface.
+ * @param onUpdate - Callback triggered when changes are saved.
+ * @param onComplete - Callback triggered when the task is finalized (currently unused).
+ * @returns State and control functions for the task editor.
+ */
 export const useTaskEditState = (
     task: TaskEntity,
     initialIsEditing: boolean,
@@ -99,7 +110,7 @@ export const useTaskEditState = (
         },
         setDrafts: (updater) => {
             if (typeof updater === 'function') {
-                const newDrafts = updater({ title: titleDraft, notes: notesDraft, tag: tagDraft, duration: durationDraft, energy: energyDraft, dueDate: dueDateDraft, assignedDate: assignedDateDraft, recurrence: recurrenceDraft, blockedBy: blockedByDraft });
+                const newDrafts = (updater as any)({ title: titleDraft, notes: notesDraft, tag: tagDraft, duration: durationDraft, energy: energyDraft, dueDate: dueDateDraft, assignedDate: assignedDateDraft, recurrence: recurrenceDraft, blockedBy: blockedByDraft });
                 setTitleDraft(newDrafts.title);
                 setNotesDraft(newDrafts.notes);
                 setTagDraft(newDrafts.tag);

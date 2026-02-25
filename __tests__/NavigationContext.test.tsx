@@ -1,3 +1,9 @@
+/**
+ * @file Unit tests for NavigationContext.
+ * Verifies that the application can correctly transition between views,
+ * manage focus session expansion, and handle historical view "memory".
+ */
+
 import React, { PropsWithChildren } from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { NavigationProvider, useNavigation } from '../context/NavigationContext';
@@ -51,10 +57,10 @@ describe('NavigationContext', () => {
       });
       expect(result.current.isFocusExpanded).toBe(false);
     });
-    
+
     it('should not toggle expansion if no session is active', () => {
         const { result } = renderHook(() => useNavigation(), { wrapper });
-  
+
         // No active task, so state should not change
         act(() => {
           result.current.toggleFocusExpansion();
@@ -80,7 +86,7 @@ describe('NavigationContext', () => {
 
     it('should hide the summary modal', () => {
         const { result } = renderHook(() => useNavigation(), { wrapper });
-  
+
         act(() => {
           result.current.completeFocusSession('task-summary-1');
         });
@@ -101,7 +107,7 @@ describe('NavigationContext', () => {
       act(() => {
         result.current.showDashboard();
       });
-      
+
       act(() => {
         result.current.startBreathing();
       });
@@ -109,7 +115,7 @@ describe('NavigationContext', () => {
       expect(result.current.currentView).toBe(ViewName.BREATHING);
       expect(result.current.previousView).toBe(ViewName.DASHBOARD);
     });
-    
+
     it('should return to the previous view after a break', () => {
       const { result } = renderHook(() => useNavigation(), { wrapper });
 
@@ -133,14 +139,14 @@ describe('NavigationContext', () => {
 
     it('should not store previousView for main navigation actions', () => {
         const { result } = renderHook(() => useNavigation(), { wrapper });
-  
+
         act(() => {
           result.current.showDashboard();
         });
         act(() => {
             result.current.showDatabase();
         });
-  
+
         expect(result.current.currentView).toBe(ViewName.DATABASE);
         // Navigating between main views should not set a "previous view" for breaks
         expect(result.current.previousView).toBeUndefined();
@@ -155,7 +161,7 @@ describe('NavigationContext', () => {
       act(() => {
         result.current.showDashboard();
       });
-      
+
       act(() => {
         result.current.selectTag('tag-work-1');
       });
@@ -166,11 +172,11 @@ describe('NavigationContext', () => {
 
     it('should handle quick add task by switching view and setting section', () => {
       const { result } = renderHook(() => useNavigation(), { wrapper });
-      
+
       act(() => {
         result.current.showDashboard();
       });
-      
+
       act(() => {
         result.current.quickAddTask('today');
       });
@@ -183,12 +189,12 @@ describe('NavigationContext', () => {
 
     it('should clear the autoCreateSection after it has been read', () => {
         const { result } = renderHook(() => useNavigation(), { wrapper });
-        
+
         act(() => {
           result.current.quickAddTask('inbox');
         });
         expect(result.current.autoCreateSection).toBe('inbox');
-        
+
         act(() => {
             result.current.clearAutoCreate();
         });

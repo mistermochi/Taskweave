@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
@@ -12,23 +11,53 @@ import { TaskRowPickers } from '@/components/task-row/TaskRowPickers';
 import { TaskRowActions } from '@/components/task-row/TaskRowActions';
 import { useTaskTimer, useTaskDisplayInfo } from '@/hooks/useTaskTimer';
 
+/**
+ * Interface for TaskRow props.
+ */
 interface TaskRowProps {
+    /** The task entity to display. */
     task: TaskEntity;
+    /** All tasks for resolving dependencies and blockers. */
     allTasks: TaskEntity[];
+    /** List of all available user tags. */
     tags: Tag[];
+    /** Callback for completing the task. */
     onComplete: (task: TaskEntity) => void;
+    /** Callback for focusing on the task. */
     onFocus: (task: TaskEntity) => void;
+    /** Optional callback for scheduling the task for today. */
     onScheduleToday?: (task: TaskEntity) => void;
+    /** Optional callback for deleting the task permanently. */
     onDelete?: (id: string) => void;
+    /** Optional callback for updating task fields. */
     onUpdate?: (task: TaskEntity, updates: Partial<TaskEntity>) => void;
+    /** Optional callback for archiving the task. */
     onArchive?: (task: TaskEntity) => void;
+    /** Whether the row should be visually highlighted (e.g., if recommended). */
     highlight?: boolean; 
+    /** Whether the row should start in edit mode (e.g., during creation). */
     initialIsEditing?: boolean;
+    /** Callback for discarding changes and exiting edit mode. */
     onDiscard?: () => void;
+    /** Optional callback for multi-selection mode. */
     onSelect?: (task: TaskEntity) => void;
+    /** Whether the row is selected in multi-selection mode. */
     isSelected?: boolean;
 }
 
+/**
+ * A highly interactive, multi-state row component representing a single task.
+ * It manages its own draft state during editing and integrates with
+ * Natural Language Processing (NLP) for quick attribute entry.
+ *
+ * @component
+ * @interaction
+ * - Clicking the row toggles between display and edit modes.
+ * - Supports inline attribute editing (Category, Duration, Energy, Dates, Recurrence, Blockers).
+ * - Integrates with `useTaskTimer` for live status tracking.
+ * - Handles complex state transitions like "Delete Confirmation" and "Delayed Completion" for animation.
+ * - Uses `memo` and custom prop comparison for optimized list rendering.
+ */
 const TaskRowComponent: React.FC<TaskRowProps> = ({ 
     task, allTasks, tags, onComplete, onFocus, onScheduleToday, onDelete, onUpdate, onArchive, highlight,
     initialIsEditing = false,
@@ -36,13 +65,9 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
     onSelect,
     isSelected
 }) => {
-    // --- Display Logic ---
     const { isCompleted, isArchived, activeBlockers, isBlocked, isOverdue, displayedDuration } = useTaskDisplayInfo(task, allTasks);
-    
-    // --- Timer Logic ---
     const { timeDisplay, isRunning, isOvertime } = useTaskTimer(task);
 
-    // --- Edit & Interaction State ---
     const [isEditing, setIsEditing] = useState(initialIsEditing);
     const [isCompleting, setIsCompleting] = useState(false);
     const [showActions, setShowActions] = useState(false);
@@ -50,7 +75,7 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
     const [isHoverCapable, setIsHoverCapable] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     
-    // Drafts
+    // Internal draft state for smooth editing experience
     const [titleDraft, setTitleDraft] = useState(task.title);
     const [notesDraft, setNotesDraft] = useState(task.notes || "");
     const [tagDraft, setTagDraft] = useState(task.category);
@@ -61,17 +86,14 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
     const [recurrenceDraft, setRecurrenceDraft] = useState<RecurrenceConfig | undefined>(task.recurrence);
     const [blockedByDraft, setBlockedByDraft] = useState<string[]>(task.blockedBy || []);
 
-    // Selection mode state
     const isSelectionMode = !!onSelect;
     const isCheckedForDisplay = isSelectionMode ? (isSelected ?? false) : (isCompleted || isCompleting);
 
-    // Detect Input Capability
     useEffect(() => {
         const checkHover = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches;
         setIsHoverCapable(checkHover());
     }, []);
 
-    // Sync draft on open
     useEffect(() => {
         if (isEditing && !initialIsEditing) {
             setTitleDraft(task.title);
@@ -87,13 +109,14 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
         if (isEditing) setIsDeletePending(false);
     }, [isEditing, task, initialIsEditing]);
 
-    // --- NLP Parsing ---
+    /**
+     * Real-time NLP parsing of the title input to extract metadata.
+     */
     const parsedInput = useMemo(() => {
         if (!isEditing) return null;
         return parseTaskInput(titleDraft);
     }, [titleDraft, isEditing]);
 
-    // Computed Effective Values
     const effectiveTagId = useMemo(() => {
         if (parsedInput?.attributes.tagKeyword) {
             const match = tags.find(t => t.name.toLowerCase() === parsedInput.attributes.tagKeyword);
@@ -108,7 +131,6 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
     const effectiveDueDate = parsedInput?.attributes.dueDate ?? dueDateDraft;
     const effectiveRecurrence = parsedInput?.attributes.recurrence ?? recurrenceDraft;
 
-    // Ensure visibility when entering edit mode
     useEffect(() => {
         if (isEditing && containerRef.current) {
             setTimeout(() => {
@@ -117,21 +139,21 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
         }
     }, [isEditing]);
     
-    // Delayed completion for animation
     useEffect(() => {
         if (isCompleting && !isSelectionMode) {
             const timer = setTimeout(() => {
                 onComplete(task);
-            }, 300); // Animation duration
+            }, 300);
             return () => clearTimeout(timer);
         }
     }, [isCompleting, onComplete, task, isSelectionMode]);
 
-    // Click Outside Handling
+    /**
+     * Closes edit mode and saves changes when clicking outside the row.
+     */
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             const target = e.target as Node;
-            // Check if the click happened inside a flyout. If so, do nothing.
             if ((target as HTMLElement).closest('[data-flyout-container]')) {
                 return;
             }
@@ -167,6 +189,10 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
         setShowActions(false); 
     };
 
+    /**
+     * Commits the current draft changes to the database.
+     * Includes logic to automatically create new tags from NLP keywords.
+     */
     const saveChanges = async () => {
         const finalTitle = parsedInput ? (parsedInput.cleanTitle || titleDraft) : titleDraft;
         const cleanTitle = finalTitle.trim();
@@ -376,4 +402,5 @@ const arePropsEqual = (prevProps: TaskRowProps, nextProps: TaskRowProps) => {
     return true;
 };
 
+/** Optimized version of the TaskRow component using memoization. */
 export const TaskRow = memo(TaskRowComponent, arePropsEqual);

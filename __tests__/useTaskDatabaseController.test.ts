@@ -1,4 +1,10 @@
 
+/**
+ * @file Unit tests for useTaskDatabaseController.
+ * Verifies the logic for task categorization (sections), searching,
+ * and AI-informed sorting within the task database.
+ */
+
 import { renderHook, act } from '@testing-library/react';
 import { useTaskDatabaseController } from '../hooks/controllers/useTaskDatabaseController';
 import { useTaskContext } from '../context/TaskContext';
@@ -9,6 +15,13 @@ import { TaskEntity } from '../types';
 import { RecommendationEngine } from '../services/RecommendationEngine';
 
 // Mock dependencies
+
+// Global firebase mock to prevent init errors
+jest.mock('../firebase', () => ({
+  auth: {},
+  db: {},
+}));
+
 jest.mock('../context/TaskContext');
 jest.mock('../context/ReferenceContext');
 jest.mock('../hooks/useEnergyModel');
@@ -33,7 +46,7 @@ describe('useTaskDatabaseController - Task Section Logic', () => {
   const now = new Date('2024-08-15T10:00:00Z'); // Thursday
   const startOfToday = new Date('2024-08-15T00:00:00Z').getTime();
   const endOfToday = new Date('2024-08-15T23:59:59Z').getTime();
-  
+
   // --- MOCK TASKS ---
   const overdueTask: TaskEntity = { id: 'task-overdue', title: 'Way Past Due', status: 'active', dueDate: startOfToday - 86400000, duration: 30, energy: 'Medium', category: 'Work', createdAt: Date.now() } as TaskEntity;
   const dueTodayTask: TaskEntity = { id: 'task-due-today', title: 'Due Today', status: 'active', dueDate: startOfToday + 3600000, duration: 30, energy: 'Medium', category: 'Work', createdAt: Date.now() } as TaskEntity;
@@ -64,7 +77,7 @@ describe('useTaskDatabaseController - Task Section Logic', () => {
     mockUseUserId.mockReturnValue('test-uid');
     mockUseReferenceContext.mockReturnValue({ tags: [] });
     mockUseEnergyModel.mockReturnValue({ currentEnergy: 75 });
-    
+
     // Mock the RecommendationEngine to prevent it from running in tests
     mockGetInstance.mockReturnValue({
         generateSuggestion: jest.fn().mockResolvedValue({ suggestion: null })
@@ -93,7 +106,7 @@ describe('useTaskDatabaseController - Task Section Logic', () => {
     expect(sections.overdue).toHaveLength(2);
     // CRITICAL: Ensure the special case task is NOT here
     expect(sections.overdue.map(t => t.id)).not.toContain('task-overdue-and-today');
-    
+
     // 3. Check other sections
     expect(sections.upcoming.map(t => t.id)).toEqual(['task-upcoming']);
     expect(sections.inbox.map(t => t.id)).toEqual(['task-inbox', 'task-completed']);
@@ -173,7 +186,7 @@ describe('useTaskDatabaseController - Search and Filtering', () => {
         act(() => {
             result.current.actions.setSearchQuery('nonexistent');
         });
-        
+
         const { sections } = result.current.state;
         expect(sections.inbox.length).toBe(0);
         expect(sections.today.length).toBe(0);
@@ -195,7 +208,7 @@ describe('useTaskDatabaseController - Search and Filtering', () => {
 
 describe('useTaskDatabaseController - Inbox Sorting Logic', () => {
     const now = Date.now();
-    
+
     // Base tasks, all in inbox (no assignedDate, no dueDate within 2 weeks)
     // t5 and t6 have dueDates too far in future - they go to upcoming
     // We need tasks WITHOUT dueDates for inbox sorting tests
@@ -229,7 +242,7 @@ describe('useTaskDatabaseController - Inbox Sorting Logic', () => {
         await act(async () => {
             rerender();
         });
-        
+
         // Assert
         const { inbox } = result.current.state.sections;
         expect(inbox[0].id).toBe('t7');
@@ -242,7 +255,7 @@ describe('useTaskDatabaseController - Inbox Sorting Logic', () => {
         mockGetInstance.mockReturnValue({
             generateSuggestion: jest.fn().mockResolvedValue({ suggestion: null })
         });
-        
+
         // Act
         const { result, rerender } = renderHook(() => useTaskDatabaseController(null));
         await act(async () => {
@@ -264,18 +277,18 @@ describe('useTaskDatabaseController - Inbox Sorting Logic', () => {
         const taskA = { id: 'a', status: 'active', duration: 30, createdAt: now - 1000, category: '' } as TaskEntity;
         const taskB = { id: 'b', status: 'active', duration: 30, createdAt: now, category: '' } as TaskEntity;
         const taskC = { id: 'c', status: 'active', duration: 30, createdAt: now - 2000, category: '' } as TaskEntity;
-        
+
         mockUseTaskContext.mockReturnValue({ tasks: [taskA, taskB, taskC] });
         mockGetInstance.mockReturnValue({
             generateSuggestion: jest.fn().mockResolvedValue({ suggestion: null })
         });
-        
+
         // Act
         const { result, rerender } = renderHook(() => useTaskDatabaseController(null));
         await act(async () => {
             rerender();
         });
-        
+
         // Assert
         const { inbox } = result.current.state.sections;
         // Expected order is newest to oldest: B, A, C

@@ -1,13 +1,25 @@
-
 import React from 'react';
 
+/**
+ * Interface for SectionHeader props.
+ */
 interface SectionHeaderProps {
+  /** The primary title for the section. */
   title: string;
+  /** Optional secondary text or description. */
   subtitle?: string;
+  /** Optional element to render on the right side of the header. */
   action?: React.ReactNode;
+  /** Optional custom CSS classes. */
   className?: string;
 }
 
+/**
+ * A standard header for content sections within a view.
+ * Provides a consistent layout for titles and context-specific actions.
+ *
+ * @component
+ */
 export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle, action, className='' }) => (
   <div className={`flex items-end justify-between mb-4 px-1 ${className}`}>
     <div>

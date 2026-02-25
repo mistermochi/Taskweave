@@ -1,3 +1,9 @@
+/**
+ * @file Unit tests for time and recurrence utilities.
+ * Verifies the logic for calculating next occurrence dates for
+ * various recurrence patterns (daily, weekly, monthly).
+ */
+
 import { calculateTaskTime, formatTimer, getNextRecurrenceDate } from '../utils/timeUtils';
 import { TaskEntity, RecurrenceConfig } from '../types';
 
@@ -60,9 +66,9 @@ describe('timeUtils', () => {
       const metrics = calculateTaskTime(runningTask);
       expect(metrics.status).toBe('running');
       expect(metrics.totalSeconds).toBe(1500);
-      
+
       // Expected remaining: 900s (from snapshot) - 300s (since resume) = 600s
-      expect(metrics.remaining).toBe(600); 
+      expect(metrics.remaining).toBe(600);
       // Expected elapsed: 1500s (total) - 600s (remaining) = 900s
       expect(metrics.elapsed).toBe(900);
       expect(metrics.progress).toBe(0.6); // 900 / 1500
@@ -104,7 +110,7 @@ describe('timeUtils', () => {
         // Expect: April 3, 2024 (next Wednesday)
         expect(nextDate.toISOString().split('T')[0]).toBe('2024-04-03');
     });
-    
+
     it('should calculate the next bi-weekly recurrence', () => {
         const config: RecurrenceConfig = { frequency: 'weekly', interval: 2 };
         const nextDate = new Date(getNextRecurrenceDate(baseTimestamp, config));
@@ -119,7 +125,7 @@ describe('timeUtils', () => {
         // Expect: March 29, 2024 (Friday)
         expect(nextDate.toISOString().split('T')[0]).toBe('2024-03-29');
     });
-    
+
     it('should handle weekly wrap-around', () => {
         const friBase = new Date('2024-03-29T10:00:00Z').getTime(); // Friday
         const config: RecurrenceConfig = { frequency: 'weekly', interval: 1, weekDays: [1, 3, 5] }; // Mon, Wed, Fri
@@ -134,7 +140,7 @@ describe('timeUtils', () => {
         // Expect: April 27, 2024
         expect(nextDate.toISOString().split('T')[0]).toBe('2024-04-27');
     });
-    
+
     it('should handle monthly recurrence from a long month to a short one', () => {
         const jan31 = new Date('2024-01-31T10:00:00Z').getTime();
         const config: RecurrenceConfig = { frequency: 'monthly', interval: 1 };
@@ -195,24 +201,24 @@ describe('timeUtils', () => {
         // Expect: March 27, 2025
         expect(nextDate.toISOString().split('T')[0]).toBe('2025-03-27');
     });
-    
+
     it('should calculate the next bi-yearly recurrence', () => {
         const config: RecurrenceConfig = { frequency: 'yearly', interval: 2 };
         const nextDate = new Date(getNextRecurrenceDate(baseTimestamp, config));
         // Expect: March 27, 2026
         expect(nextDate.toISOString().split('T')[0]).toBe('2026-03-27');
     });
-    
+
     it('should handle catch-up for past due recurring dates', () => {
         // Set 'now' to be far in the future
         jest.setSystemTime(new Date('2024-05-01T10:00:00Z'));
-        
+
         const config: RecurrenceConfig = { frequency: 'daily', interval: 1 };
         // Base date is March 27, but 'now' is May 1. Next should be May 2.
         const nextDate = new Date(getNextRecurrenceDate(baseTimestamp, config));
-        
+
         expect(nextDate.toISOString().split('T')[0]).toBe('2024-05-02');
-        
+
         // Reset time for other tests in this suite
         jest.setSystemTime(baseDate);
     });

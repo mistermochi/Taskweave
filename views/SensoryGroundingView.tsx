@@ -1,10 +1,20 @@
-
 'use client';
 
 import React, { useState } from 'react';
 import { X, Eye, Hand, Ear, Wind, Smile, Check } from 'lucide-react';
 import { useNavigation } from '@/context/NavigationContext';
 
+/**
+ * Guided grounding exercise following the "5-4-3-2-1" technique.
+ * It helps users reduce anxiety and regain focus during high-stress moments
+ * by forcing them to interact with their immediate environment using all five senses.
+ *
+ * @component
+ * @interaction
+ * - Users tap the screen to "find" each item.
+ * - The interface cycles through 5 Sight, 4 Touch, 3 Sound, 2 Smell, and 1 Taste.
+ * - Provides haptic-like visual feedback and a completion state.
+ */
 export const SensoryGroundingView: React.FC = () => {
   const { returnToPreviousView } = useNavigation();
 
@@ -23,6 +33,10 @@ export const SensoryGroundingView: React.FC = () => {
 
   const currentStep = steps[currentStepIndex];
 
+  /**
+   * Main interaction handler. Increments the count for the current sense
+   * or transitions to the next sense if the count is reached.
+   */
   const handleTap = () => {
     if (isCompleted) return;
 
@@ -33,12 +47,13 @@ export const SensoryGroundingView: React.FC = () => {
     
     if (nextCount >= currentStep.count) {
       if (currentStepIndex < steps.length - 1) {
-        // Delay slightly for transition
+        // Transition to next sensory step
         setTimeout(() => {
             setCurrentStepIndex(prev => prev + 1);
             setItemsFound(0);
         }, 300);
       } else {
+        // All senses calibrated
         setIsCompleted(true);
       }
     } else {
@@ -73,7 +88,6 @@ export const SensoryGroundingView: React.FC = () => {
       );
   }
 
-  // Calculate dots for progress visualization
   const dots = Array.from({ length: currentStep.count }).map((_, i) => i < itemsFound);
 
   return (
@@ -87,7 +101,7 @@ export const SensoryGroundingView: React.FC = () => {
       {/* Ripple Animation on Tap */}
       <div className={`absolute inset-0 bg-foreground/5 pointer-events-none transition-opacity duration-200 ${tapAnimation ? 'opacity-100' : 'opacity-0'}`}></div>
 
-      {/* Header */}
+      {/* Close Header */}
       <button 
           onClick={(e) => { e.stopPropagation(); returnToPreviousView(); }}
           className="absolute top-8 right-6 z-30 p-2 text-foreground/30 hover:text-foreground hover:bg-foreground/10 rounded-full transition-all"

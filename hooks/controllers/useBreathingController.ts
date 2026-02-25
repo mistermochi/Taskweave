@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useUserId } from '@/hooks/useFirestore';
 import { db } from '@/firebase';
@@ -6,6 +5,13 @@ import { doc, setDoc } from 'firebase/firestore';
 import { ContextService } from '@/services/ContextService';
 import { useNavigation } from '@/context/NavigationContext';
 
+/**
+ * View Controller for the Breathing exercise interface.
+ * Manages the timing and sequencing of breathing phases (Inhale, Hold, Exhale)
+ * and handles session persistence.
+ *
+ * @returns State (current phase and instruction text) and Actions (closing the session).
+ */
 export const useBreathingController = () => {
   const uid = useUserId();
   const { returnToPreviousView } = useNavigation();
@@ -13,6 +19,10 @@ export const useBreathingController = () => {
   const [text, setText] = useState('Inhale');
   const startTimeRef = useRef(Date.now());
 
+  /**
+   * Main breathing loop.
+   * Cycles through 4s Inhale, 2s Hold, and 4s Exhale.
+   */
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
@@ -39,6 +49,10 @@ export const useBreathingController = () => {
     return () => clearTimeout(timeoutId);
   }, []);
 
+  /**
+   * Ends the breathing session, logs the duration to Firestore if significant,
+   * and returns the user to their previous view.
+   */
   const closeSession = async () => {
     const endTime = Date.now();
     const durationSeconds = Math.round((endTime - startTimeRef.current) / 1000);

@@ -3,10 +3,23 @@ import { AIPredictionRequest, AIPredictionResponse, TaskEntity } from '@/types/s
 import { AIPromptBuilder } from './AIPromptBuilder';
 import { ARM_NAMES } from "./LinUCBService";
 
+/**
+ * Service that interfaces with the Google Gemini AI models.
+ * Used for generating synthetic training data, power-user scheduling assistance,
+ * and conversational coaching.
+ *
+ * @singleton Use `AIService.getInstance()` to access the service.
+ */
 export class AIService {
+    /** The initialized Google AI client. */
     private ai: GoogleGenAI | null = null;
+    /** Singleton instance of the service. */
     private static instance: AIService;
 
+    /**
+     * Private constructor for singleton pattern.
+     * Initializes the Gemini client using the API key from environment variables.
+     */
     constructor() {
         try {
             if (process.env.API_KEY) {
@@ -19,15 +32,31 @@ export class AIService {
         }
     }
 
+    /**
+     * Returns the singleton instance of AIService.
+     * @returns The AIService instance.
+     */
     static getInstance(): AIService {
         if (!this.instance) this.instance = new AIService();
         return this.instance;
     }
 
+    /**
+     * Checks if the AI service is properly configured and available for use.
+     * @returns True if the client is initialized.
+     */
     isAvailable(): boolean {
         return !!this.ai;
     }
 
+    /**
+     * Sends a chat message to the AI coach and retrieves a response.
+     *
+     * @param history - List of previous messages in the conversation.
+     * @param message - The current user message.
+     * @param context - Optional context about the user's state (tasks, energy, etc.).
+     * @returns A promise resolving to the AI's response text.
+     */
     public async sendChatMessage(
         history: { role: 'user' | 'model'; text: string }[],
         message: string,
@@ -58,11 +87,22 @@ export class AIService {
         }
     }
 
+    /**
+     * High-level scheduling suggestion logic (Placeholder).
+     */
     async generateSuggestions(request: AIPredictionRequest): Promise<{ suggestions: AIPredictionResponse['suggestions']; confidence: number }> {
         // Placeholder for future scheduling implementation
         return { suggestions: [], confidence: 0 };
     }
 
+    /**
+     * Generates synthetic training data using the AI model.
+     * This data is used to "warm-start" the machine learning model (LinUCB)
+     * based on expert productivity heuristics.
+     *
+     * @param tasks - The user's actual task backlog to use as context for scenario generation.
+     * @returns A promise resolving to an array of synthetic scenarios.
+     */
     async getCalibrationData(tasks: TaskEntity[]): Promise<{ hour: number; energy: number; lastCategory?: string; strategy: string }[]> {
         if (!this.ai) throw new Error("AI Service not available");
 
@@ -102,6 +142,9 @@ export class AIService {
         }
     }
 
+    /**
+     * Retrieves usage statistics for the AI service.
+     */
     getUsageStats() {
         return {
             requests: 0,
@@ -110,5 +153,8 @@ export class AIService {
         };
     }
 
+    /**
+     * Resets usage statistics.
+     */
     resetUsageStats() {}
 }

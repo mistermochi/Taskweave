@@ -1,24 +1,44 @@
-
 import { useMemo } from "react";
 import { useVitalsContext } from '@/context/VitalsContext';
 import { useFirestoreCollection } from '@/hooks/useFirestore';
 import { where } from 'firebase/firestore';
 import { Category, TaskEntity } from "@/types";
 
+/**
+ * View Controller for the Insights/Analytics interface.
+ * Aggregates historical task and vitals data to calculate productivity metrics,
+ * category distributions, and peak focus hours.
+ *
+ * @returns State containing aggregated statistics and recent vitals for charting.
+ */
 export const useInsightsController = () => {
   const { vitals: recentVitals, loading: contextLoading } = useVitalsContext();
 
-  // Fetch full completed history specifically for Insights view.
+  /**
+   * Real-time subscription to all completed tasks.
+   * Constraints: Fetch only items with 'completed' status.
+   */
   const historyConstraints = useMemo(() => [
     where('status', '==', 'completed')
   ], []);
 
   const { data: allCompletedTasks, loading: historyLoading } = useFirestoreCollection<TaskEntity>('tasks', historyConstraints);
 
+  /**
+   * Most recent 50 vitals, sorted by time descending.
+   */
   const sortedVitals = useMemo(() => {
     return [...recentVitals].sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
   }, [recentVitals]);
 
+  /**
+   * Aggregated performance metrics calculated from the user's full history.
+   * Includes:
+   * - Total tasks completed and total hours focused.
+   * - Breakdowns by category (e.g., Work vs Personal).
+   * - Identification of the user's "Peak Focus Hour".
+   * - Average task duration.
+   */
   const stats = useMemo(() => {
     const totalTasks = allCompletedTasks.length;
     const totalSeconds = allCompletedTasks.reduce((acc, t) => 

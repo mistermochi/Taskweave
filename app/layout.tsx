@@ -1,30 +1,58 @@
-import type { Metadata } from 'next'
-import { Manrope } from 'next/font/google'
-import './globals.css'
+import type { Metadata, Viewport } from "next";
+import { Manrope } from "next/font/google";
+import "./globals.css";
+import { AppProvider } from "@/context/AppProvider";
 
-const manrope = Manrope({ 
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-manrope',
-})
+/**
+ * Global font configuration using Google Manrope.
+ */
+const manrope = Manrope({ subsets: ["latin"] });
 
+/**
+ * Metadata for the Focus Flow application.
+ * Defines PWA capabilities and SEO descriptions.
+ */
 export const metadata: Metadata = {
-  title: 'Taskweave',
-  description: 'A holistic productivity and wellness companion that aligns your tasks with your energy levels.',
-  manifest: '/manifest.json',
-  themeColor: '#29d187',
-}
+  title: "Focus Flow",
+  description: "Biometric-aware productivity system",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Focus Flow",
+  },
+};
 
+/**
+ * Viewport configuration for mobile responsiveness.
+ */
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
+/**
+ * The Root Layout of the Next.js application.
+ * It wraps the entire application in the `AppProvider` context hierarchy
+ * and applies global styling and fonts.
+ *
+ * @param children - The active page content.
+ */
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en" className={`${manrope.variable}`}>
-      <body className={`h-full font-sans bg-background text-foreground selection:bg-primary/30`}>
+    <html lang="en" className="dark">
+      <body className={`${manrope.className} bg-background text-foreground antialiased`}>
+        <AppProvider>
           {children}
+        </AppProvider>
       </body>
     </html>
-  )
+  );
 }

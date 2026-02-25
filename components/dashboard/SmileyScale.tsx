@@ -1,8 +1,23 @@
-
 import React from 'react';
 import { Angry, Frown, Meh, Smile, Laugh } from 'lucide-react';
 
-export const SmileyScale = ({ value, onChange }: { value: number; onChange: (val: number) => void }) => {
+/**
+ * Interface for SmileyScale props.
+ */
+interface SmileyScaleProps {
+  /** The currently selected mood level (1-5). */
+  value: number;
+  /** Callback triggered when a new level is selected. */
+  onChange: (val: number) => void;
+}
+
+/**
+ * A qualitative 5-point scale for tracking user mood/energy.
+ * It uses descriptive icons from Angry to Laughing to capture the user's state.
+ *
+ * @component
+ */
+export const SmileyScale = ({ value, onChange }: SmileyScaleProps) => {
   const steps = [
     { level: 1, icon: Angry, color: 'text-red-400', label: 'Drained' },
     { level: 2, icon: Frown, color: 'text-orange-400', label: 'Low' },

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef } from 'react';
@@ -6,12 +5,15 @@ import { ChevronDown } from 'lucide-react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import Flyout from '@/components/ui/Flyout';
 
+/**
+ * Styling variants for the Chip component using Class Variance Authority.
+ */
 const chipVariants = cva(
   'flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-xxs font-bold transition-colors select-none',
   {
     variants: {
       isActive: {
-        true: '', // Applied via className for dynamic colors or compound variants for static
+        true: '',
         false: 'bg-foreground/5 border-transparent text-secondary hover:bg-foreground/10 hover:text-foreground',
       },
     },
@@ -21,12 +23,16 @@ const chipVariants = cva(
   }
 );
 
-
+/**
+ * Interface for Chip props.
+ */
 interface ChipProps extends VariantProps<typeof chipVariants> {
+  /** Optional icon to display inside the chip. */
   icon?: React.ElementType;
+  /** Main label content. */
   label: React.ReactNode;
   
-  // Style props
+  // Custom Style Properties
   colorClass?: string;
   bgClass?: string;
   borderClass?: string;
@@ -34,18 +40,25 @@ interface ChipProps extends VariantProps<typeof chipVariants> {
   labelColor?: string;
   buttonStyle?: React.CSSProperties;
   
-  // State
+  /** Whether the component is in a clickable, editable state. */
   isEditing?: boolean;
+  /** Whether icons should be filled when active. */
   fill?: boolean;
   
-  // Flyout content is now a render prop
+  /** Optional render prop for flyout content. If provided, the chip becomes a toggle for this flyout. */
   flyoutContent?: (close: () => void) => React.ReactNode;
+  /** Preferred position of the attached flyout. */
   flyoutPosition?: 'top' | 'right' | 'bottom' | 'left';
   
-  // Visual tweaks
   className?: string;
 }
 
+/**
+ * A highly versatile "badge-like" component used for task metadata (Energy, Duration, Tags).
+ * It supports a read-only display mode and an interactive edit mode with an optional flyout menu.
+ *
+ * @component
+ */
 export const Chip: React.FC<ChipProps> = ({ 
   icon: Icon, 
   label, 
@@ -65,9 +78,11 @@ export const Chip: React.FC<ChipProps> = ({
   const [isFlyoutOpen, setIsFlyoutOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   
-  // Read-Only View
+  /**
+   * Render Read-Only View (non-interactive inline metadata).
+   */
   if (!isEditing) {
-    if (!isActive && !label) return null; // Don't render empty chips in read-only
+    if (!isActive && !label) return null;
     return (
       <div className={`flex items-center gap-1 text-xs transition-colors ${className} ${colorClass} ${isActive ? 'font-medium' : 'opacity-70'}`}>
         {Icon && <Icon size={10} className={fill && isActive ? 'fill-current' : ''} style={iconColor ? { color: iconColor } : {}} />}
@@ -76,12 +91,14 @@ export const Chip: React.FC<ChipProps> = ({
     );
   }
 
-  // Combine classes for the button
   const buttonClasses = chipVariants({
     isActive,
     className: isActive ? `${bgClass} ${borderClass} ${colorClass} ${className}` : className
   });
 
+  /**
+   * Render Interactive View (a button that can trigger a flyout).
+   */
   const buttonElement = (
     <button 
         ref={triggerRef}
@@ -95,7 +112,6 @@ export const Chip: React.FC<ChipProps> = ({
       </button>
   );
 
-  // Edit Mode Button
   if (flyoutContent) {
       return (
           <>

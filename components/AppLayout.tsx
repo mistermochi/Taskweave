@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -8,10 +7,25 @@ import {
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 
+/**
+ * Interface for AppLayout props.
+ */
 interface AppLayoutProps {
+  /** The View component to render within the layout. */
   children: React.ReactNode;
 }
 
+/**
+ * The standard structural layout for the authenticated application.
+ * Includes the navigation sidebar (desktop and mobile), a fixed top header,
+ * and the main scrollable content area.
+ *
+ * @component
+ * @interaction
+ * - Synchronizes with `NavigationContext` to show a global progress bar during view transitions.
+ * - Handles sidebar collapse/expand logic for both desktop and mobile views.
+ * - Displays a floating action button (FAB) on mobile for quick task entry.
+ */
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const { 
     currentView, 
@@ -25,6 +39,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  /**
+   * Automatically closes the mobile menu whenever the user navigates.
+   */
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [currentView, activeTagId]);
@@ -32,18 +49,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     <div className="flex h-full bg-background text-foreground overflow-hidden font-sans">
       
+      {/* Global Transition Progress Bar */}
       {isNavigating && (
         <div className="fixed top-0 left-0 w-full h-0.5 bg-foreground/10 z-[100]">
             <div className="h-full bg-primary animate-subtle-progress"></div>
         </div>
       )}
 
+      {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div 
             className="fixed inset-0 bg-background/60 z-40 backdrop-blur-sm md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
         ></div>
       )}
+
+      {/* Mobile Sidebar (Drawer) */}
       <aside 
         className={`
             fixed inset-y-0 left-0 z-50 w-sidebar-mobile bg-surface-highlight border-r border-border transform transition-transform duration-300 ease-productive-in-out
@@ -53,6 +74,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         <Sidebar />
       </aside>
 
+      {/* Desktop Sidebar */}
       <aside 
         className={`
             hidden md:flex flex-col border-r border-border bg-surface transition-all duration-300 ease-productive-in-out
@@ -62,13 +84,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         <Sidebar />
       </aside>
 
+      {/* Main App Container */}
       <div className="flex-1 flex flex-col h-full min-w-0 bg-background relative transition-all duration-300">
         
+        {/* Responsive Header */}
         <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-background shrink-0">
             <div className="flex items-center gap-3">
                 <button 
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
                     className="hidden md:flex text-secondary hover:text-foreground p-1 rounded hover:bg-foreground/5 transition-colors"
+                    title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
                 >
                     {isSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
                 </button>
@@ -96,13 +121,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             </div>
         </header>
 
+        {/* View Content */}
         <main className="flex-1 overflow-y-auto no-scrollbar relative">
             <div className="max-w-4xl mx-auto h-full">
                 {children}
             </div>
         </main>
 
-        {/* Hide FAB when focus session is active */}
+        {/* Mobile Floating Action Button (FAB) */}
         {!activeTaskId && (
             <button 
                 onClick={() => quickAddTask()}

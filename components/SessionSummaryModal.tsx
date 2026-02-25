@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -6,11 +5,27 @@ import { Check, Zap, BatteryWarning, Meh, X } from 'lucide-react';
 import { useSessionSummaryController } from '../hooks/controllers/useSessionSummaryController';
 import { Modal } from '@/components/ui/Dialog';
 
+/**
+ * Interface for SessionSummaryModal props.
+ */
 interface SessionSummaryModalProps {
+    /** The ID of the task that was just completed. If null, modal is hidden. */
     taskId?: string;
+    /** Callback to close the modal. */
     onClose: () => void;
 }
 
+/**
+ * Reflection modal displayed after completing a focus session.
+ * It allows the user to log their post-task mood and optional notes,
+ * which are then used to update the biological energy model.
+ *
+ * @component
+ * @interaction
+ * - Uses `useSessionSummaryController` to calculate energy impact in real-time.
+ * - Displays a set of mood options (Drained, Neutral, Energized).
+ * - Persists the reflection data to Firestore on completion.
+ */
 const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({ taskId, onClose }) => {
   const { state, actions } = useSessionSummaryController(taskId);
 
@@ -34,7 +49,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({ taskId, onClo
             onClose={onClose}
         />
         <Modal.Content>
-            {/* Task Info */}
+            {/* Task Summary Info */}
             <div className="flex items-start gap-4 mb-8">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <Check size={24} className="text-primary" />
@@ -49,10 +64,10 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({ taskId, onClo
                 </div>
             </div>
 
-            {/* Inputs */}
+            {/* Reflection Inputs */}
             <div className="space-y-6">
                 
-                {/* Mood */}
+                {/* Mood Selection */}
                 <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-secondary/50 mb-3">How do you feel?</label>
                     <div className="grid grid-cols-3 gap-2">
@@ -72,7 +87,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({ taskId, onClo
                     </div>
                 </div>
 
-                {/* Notes */}
+                {/* Session Notes */}
                 <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-secondary/50 mb-2">Notes</label>
                     <input 

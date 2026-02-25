@@ -1,33 +1,31 @@
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
-import { initializeApp } from 'firebase/app';
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-
-// Configuration provided by user
+/**
+ * Firebase Client Configuration.
+ * These values are typically sourced from environmental variables
+ * to support different deployment environments.
+ */
 const firebaseConfig = {
-  apiKey: "AIzaSyDlwY6k9SjlKzE6ioj1G-istyMWwZyJvoA",
-  authDomain: "vitality-7396e.firebaseapp.com",
-  projectId: "vitality-7396e",
-  storageBucket: "vitality-7396e.firebasestorage.app",
-  messagingSenderId: "953062308598",
-  appId: "1:953062308598:web:f093f14966e8d438e58ad7"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-const app = initializeApp(firebaseConfig);
+/**
+ * Initialize Firebase Application (Singleton).
+ * Ensures that `initializeApp` is only called once in the client lifecycle
+ * by checking the existing apps list.
+ */
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-export const db = getFirestore(app);
+/**
+ * Exported Firebase Service instances for use throughout the application.
+ */
 export const auth = getAuth(app);
-
-
-// Enable persistence to allow offline access and faster initialization
-enableIndexedDbPersistence(db)
-  .catch((err) => {
-    if (err.code === 'failed-precondition') {
-      // This can happen if multiple tabs are open.
-      console.warn('Firestore persistence failed: multiple tabs open.');
-    } else if (err.code === 'unimplemented') {
-      // The current browser does not support all of the
-      // features required to enable persistence.
-      console.warn('Firestore persistence is not available in this browser.');
-    }
-  });
+export const db = getFirestore(app);
+export default app;

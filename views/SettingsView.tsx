@@ -13,6 +13,13 @@ import { Actions } from '@/components/settings/Actions';
 import { Toast } from '@/components/ui/Feedback';
 import { useTaskContext } from '@/context/TaskContext';
 
+/**
+ * User preferences and profile configuration view.
+ * It provides a comprehensive interface for managing themes, external integrations
+ * (like Google Calendar), hardware sensor permissions, and behavioral modeling.
+ *
+ * @component
+ */
 export const SettingsView: React.FC = () => {
   const { settings, updateSettings } = useUserSettings();
   const { tasks } = useTaskContext();

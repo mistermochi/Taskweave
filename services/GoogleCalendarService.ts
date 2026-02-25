@@ -1,25 +1,45 @@
 'use client';
 
 import { GoogleAuthProvider, signInWithPopup, UserCredential } from "firebase/auth";
-import { auth } from '@/firebase'; // Import the shared auth instance
+import { auth } from '@/firebase';
 
-// Added .readonly to be able to list calendars
+/**
+ * Scopes required to interact with the Google Calendar API.
+ * Includes readonly access to calendar lists and event details.
+ */
 const SCOPES = [
     "https://www.googleapis.com/auth/calendar.readonly",
     "https://www.googleapis.com/auth/calendar.events.readonly"
 ];
 
+/**
+ * Service for integrating with Google Calendar via OAuth.
+ * Allows users to import their external schedules into the application
+ * to better coordinate productivity with existing commitments.
+ *
+ * @singleton Use `GoogleCalendarService.getInstance()` to access the service.
+ */
 export class GoogleCalendarService {
+  /** Singleton instance of the service. */
   private static instance: GoogleCalendarService;
   
+  /**
+   * Returns the singleton instance of GoogleCalendarService.
+   * @returns The GoogleCalendarService instance.
+   */
   static getInstance() {
     if (!this.instance) this.instance = new GoogleCalendarService();
     return this.instance;
   }
 
+  /**
+   * Triggers a Google OAuth popup to obtain an access token.
+   *
+   * @returns A promise resolving to the access token string or null.
+   * @throws Error if the popup is blocked, the domain is not authorized, or the user cancels.
+   */
   async getAccessToken(): Promise<string | null> {
     const provider = new GoogleAuthProvider();
-    // Add all required scopes
     SCOPES.forEach(scope => provider.addScope(scope));
 
     try {
@@ -41,7 +61,12 @@ export class GoogleCalendarService {
     }
   }
 
-  // New method to fetch the list of calendars
+  /**
+   * Fetches a list of all calendars accessible by the user.
+   *
+   * @param token - Valid Google OAuth access token.
+   * @returns A promise resolving to an array of calendar metadata.
+   */
   async fetchCalendarList(token: string): Promise<{ id: string; summary: string }[]> {
     try {
         const res = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
@@ -54,18 +79,23 @@ export class GoogleCalendarService {
         }
 
         const data = await res.json();
-        // Filter for calendars the user can read and wants to see, and return their IDs
         return data.items
             .filter((item: any) => item.accessRole === 'owner' || item.accessRole === 'writer' || item.accessRole === 'reader')
             .map((item: any) => ({ id: item.id, summary: item.summary }));
     } catch (e) {
         console.error("API Call Failed to list calendars", e);
-        // Fallback to primary if the list fails
         return [{ id: 'primary', summary: 'Primary Calendar' }];
     }
   }
 
-  // Updated to fetch events from multiple calendars
+  /**
+   * Fetches upcoming events from one or more Google Calendars.
+   *
+   * @param token - Valid Google OAuth access token.
+   * @param calendarIds - Array of calendar identifiers to query.
+   * @param days - Number of days into the future to fetch events for (default 7).
+   * @returns A promise resolving to a sorted array of unique calendar events.
+   */
   async fetchUpcomingEvents(token: string, calendarIds: string[], days = 7) {
      const now = new Date();
      const end = new Date();
@@ -99,10 +129,8 @@ export class GoogleCalendarService {
             }
         }
         
-        // De-duplicate events by ID (in case of shared events on multiple calendars)
         const uniqueEvents = Array.from(new Map(allEvents.map(event => [event.id, event])).values());
 
-        // Sort all collected events by start time
         uniqueEvents.sort((a, b) => {
             const timeA = new Date(a.start.dateTime || a.start.date).getTime();
             const timeB = new Date(b.start.dateTime || b.start.date).getTime();
@@ -117,7 +145,9 @@ export class GoogleCalendarService {
      }
   }
 
-  // Fallback data for testing/demo when Auth fails
+  /**
+   * Generates a set of static mock events for development and demonstration purposes.
+   */
   getMockEvents() {
     const baseNow = new Date();
     

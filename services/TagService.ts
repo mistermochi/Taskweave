@@ -1,13 +1,21 @@
-
 import { db } from '../firebase';
 import { doc, setDoc, updateDoc, deleteDoc, collection, writeBatch, getDocs, query, where } from 'firebase/firestore';
 import { Tag } from '../types';
 import { ContextService } from './ContextService';
 
+/**
+ * Service for managing user tags (categories) in Firestore.
+ * Handles the creation, update, deletion, and hierarchy of tags.
+ *
+ * @singleton Use `TagService.getInstance()` to access the service.
+ */
 export class TagService {
+  /** Singleton instance of the service. */
   private static instance: TagService;
   
-  // Default Colors for initial seed
+  /**
+   * Default hex colors for the initial set of seeded tags.
+   */
   private readonly DEFAULT_COLORS = {
     'Work': '#9333ea',      // Purple-600
     'Personal': '#ea580c',  // Orange-600
@@ -15,6 +23,10 @@ export class TagService {
     'Hobbies': '#0284c7'    // Sky-600
   };
 
+  /**
+   * Returns the singleton instance of TagService.
+   * @returns The TagService instance.
+   */
   public static getInstance(): TagService {
     if (!TagService.instance) {
       TagService.instance = new TagService();
@@ -22,8 +34,11 @@ export class TagService {
     return TagService.instance;
   }
 
-  // --- Actions ---
-
+  /**
+   * Fetches all tags for the current user from Firestore.
+   *
+   * @returns A promise resolving to an array of `Tag` objects.
+   */
   public async getTags(): Promise<Tag[]> {
     const uid = ContextService.getInstance().getUserId();
     if (!uid) return [];
@@ -33,6 +48,11 @@ export class TagService {
     return snapshot.docs.map(doc => doc.data() as Tag);
   }
 
+  /**
+   * Seeds the user's account with a default set of tags if no tags currently exist.
+   *
+   * @interaction Uses a Firestore `writeBatch` for atomic creation of default tags.
+   */
   public async initializeDefaultsIfEmpty() {
     const uid = ContextService.getInstance().getUserId();
     if (!uid) return;
@@ -60,6 +80,17 @@ export class TagService {
     }
   }
 
+  /**
+   * Creates a new tag in Firestore.
+   *
+   * @param name - The display name of the tag.
+   * @param parentId - The ID of the parent tag for hierarchy, or null for root tags.
+   * @returns A promise resolving to the unique ID of the newly created tag.
+   *
+   * @logic
+   * - Generates a random HSL color for the new tag.
+   * - Uses a UUID for the tag identifier.
+   */
   public async createTag(name: string, parentId: string | null = null): Promise<string> {
     const uid = ContextService.getInstance().getUserId();
     if (!uid) return "";
@@ -81,6 +112,12 @@ export class TagService {
     return newTagId;
   }
 
+  /**
+   * Updates properties of an existing tag.
+   *
+   * @param tagId - The unique ID of the tag to update.
+   * @param updates - Partial object containing the fields to update.
+   */
   public async updateTag(tagId: string, updates: Partial<Tag>) {
     const uid = ContextService.getInstance().getUserId();
     if (!uid) return;
@@ -89,6 +126,12 @@ export class TagService {
     await updateDoc(tagRef, updates);
   }
 
+  /**
+   * Changes the parent of a tag, moving it in the hierarchy.
+   *
+   * @param tagId - The ID of the tag to move.
+   * @param newParentId - The ID of the new parent tag, or null to move to root.
+   */
   public async moveTag(tagId: string, newParentId: string | null) {
     if (tagId === newParentId) return;
     const uid = ContextService.getInstance().getUserId();
@@ -98,6 +141,16 @@ export class TagService {
     await updateDoc(tagRef, { parentId: newParentId });
   }
 
+  /**
+   * Deletes a tag and performs cleanup for tasks and sub-tags.
+   *
+   * @param tagId - The unique ID of the tag to delete.
+   *
+   * @logic (Atomic Batch)
+   * 1. Resets the category of all tasks associated with this tag to an empty string.
+   * 2. Promotes all child tags of the deleted tag to the root level (parentId: null).
+   * 3. Deletes the tag document itself.
+   */
   public async deleteTag(tagId: string) {
     const uid = ContextService.getInstance().getUserId();
     if (!uid) return;

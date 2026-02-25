@@ -8,19 +8,34 @@ import { EmptyState } from '@/components/ui/Feedback';
 import { TaskRow } from '@/components/TaskRow';
 import { TaskEntity, Tag, UserSettings, EnergyLevel } from '@/types';
 
+/**
+ * Interface for CalendarImportModal props.
+ */
 interface CalendarImportModalProps {
+  /** Whether the modal is visible. */
   isOpen: boolean;
+  /** List of calendar events fetched from Google. */
   events: CalendarEvent[];
+  /** IDs of events currently selected for import. */
   selectedIds: Set<string>;
-  importedEventIds: Set<string>; // Add new prop
+  /** IDs of events that have already been imported as tasks. */
+  importedEventIds: Set<string>;
+  /** Callback to toggle the selection of an event. */
   onToggle: (id: string) => void;
+  /** Callback to finalize the import of selected events. */
   onConfirm: () => void;
+  /** Callback to close the modal without importing. */
   onCancel: () => void;
+  /** All available user tags for project mapping. */
   tags: Tag[];
+  /** User settings for retrieving calendar configurations. */
   settings: Partial<UserSettings>;
 }
 
-// This helper converts a Google Calendar event into a TaskEntity for preview purposes.
+/**
+ * Transforms a raw Google Calendar event into a transient TaskEntity for UI preview.
+ * This allows reusing the standard `TaskRow` component for event selection.
+ */
 const eventToTaskPreview = (event: CalendarEvent, tags: Tag[], settings: Partial<UserSettings>, isImported: boolean): TaskEntity => {
     let duration = 30;
     let dueDate: number | undefined = undefined;
@@ -64,7 +79,7 @@ const eventToTaskPreview = (event: CalendarEvent, tags: Tag[], settings: Partial
         id: event.id,
         title: event.summary || 'Untitled Event',
         notes: notes.trim(),
-        status: isImported ? 'completed' : 'active', // Use 'completed' status to get disabled look
+        status: isImported ? 'completed' : 'active',
         category: projectId,
         duration,
         energy,
@@ -74,11 +89,17 @@ const eventToTaskPreview = (event: CalendarEvent, tags: Tag[], settings: Partial
     } as TaskEntity;
 };
 
+/**
+ * Modal dialog for selecting and importing Google Calendar events as application tasks.
+ * It groups events by day and provides a preview of how the task will look.
+ *
+ * @component
+ */
 export const CalendarImportModal: React.FC<CalendarImportModalProps> = ({ 
     isOpen, 
     events, 
     selectedIds, 
-    importedEventIds, // Use new prop
+    importedEventIds,
     onToggle, 
     onConfirm, 
     onCancel,
@@ -142,7 +163,6 @@ export const CalendarImportModal: React.FC<CalendarImportModalProps> = ({
                                         onComplete={() => {}}
                                         onFocus={() => {}}
                                         isSelected={isSelected}
-                                        // Disable selection for already imported tasks
                                         onSelect={isImported ? undefined : () => onToggle(event.id)}
                                     />
                                 );

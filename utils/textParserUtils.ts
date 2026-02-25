@@ -1,6 +1,15 @@
 
+/**
+ * Utility for parsing natural language strings into structured task data.
+ * It uses regular expressions to extract attributes like duration, energy,
+ * tags, and dates from a single line of text.
+ */
+
 import { EnergyLevel, RecurrenceConfig } from '../types';
 
+/**
+ * Result of the natural language parsing operation.
+ */
 export interface ParsedTaskInput {
     cleanTitle: string;
     attributes: {
@@ -13,6 +22,15 @@ export interface ParsedTaskInput {
     };
 }
 
+/**
+ * Parses a natural language string into task attributes.
+ *
+ * @param text - The raw text input (e.g., "Email client #work ~15m @today")
+ * @returns A `ParsedTaskInput` object containing the clean title and metadata.
+ *
+ * @example
+ * parseTaskInput("Gym ~60m !high") // { cleanTitle: "Gym", attributes: { duration: 60, energy: 'High' } }
+ */
 export const parseTaskInput = (text: string): ParsedTaskInput => {
     let cleanTitle = text;
     const attributes: ParsedTaskInput['attributes'] = {};
@@ -27,23 +45,23 @@ export const parseTaskInput = (text: string): ParsedTaskInput => {
         fri: 5, friday: 5,
         sat: 6, saturday: 6
     };
-    
+
     // Helper: Resolve Date with Year Rollover
     const resolveDate = (day: number, monthIdx: number, type: 'due' | 'assigned') => {
         const now = new Date();
         const year = now.getFullYear();
-        
+
         let d = new Date(year, monthIdx, day);
-        
+
         // Reset time for accurate date comparison
         const todayStart = new Date(now);
         todayStart.setHours(0,0,0,0);
-        
+
         // Rollover to next year if date is in the past (strictly before today)
         if (d < todayStart) {
             d.setFullYear(year + 1);
         }
-        
+
         if (type === 'due') {
             d.setHours(23, 59, 59, 999);
         } else {
@@ -58,8 +76,8 @@ export const parseTaskInput = (text: string): ParsedTaskInput => {
         const currentDay = d.getDay();
         let diff = dayIdx - currentDay;
         // If it's today, we might want today if it's assigned, but for "every monday" usually implies starting this cycle
-        if (diff < 0) diff += 7; 
-        
+        if (diff < 0) diff += 7;
+
         d.setDate(d.getDate() + diff);
         if (type === 'due') {
             d.setHours(23, 59, 59, 999);
@@ -114,7 +132,7 @@ export const parseTaskInput = (text: string): ParsedTaskInput => {
             }
         }
     }
-    
+
     if (!attributes.dueDate) {
         const dueTodayMatch = cleanTitle.match(/(?:^|\s)due\s+(today|tod)(?:\b|$)/i);
         if (dueTodayMatch) {
@@ -149,7 +167,7 @@ export const parseTaskInput = (text: string): ParsedTaskInput => {
     }
 
     // 4. Recurrence Logic
-    
+
     const multiDayRegex = /(?:^|\s)every\s+((?:(?:mon|tue|wed|thu|fri|sat|sun|monday|tuesday|wednesday|thursday|friday|saturday|sunday)[a-z]*\b(?:,?\s*(?:and\s*)?)?)+)(?:\b|$)/i;
     const multiDayMatch = cleanTitle.match(multiDayRegex);
 
@@ -169,15 +187,15 @@ export const parseTaskInput = (text: string): ParsedTaskInput => {
                 interval: 1,
                 weekDays: sortedDays
             };
-            
+
             if (!attributes.dueDate) {
                 const today = new Date().getDay();
                 let nextDay = sortedDays.find(d => d >= today);
-                if (nextDay === undefined) nextDay = sortedDays[0]; 
-                
+                if (nextDay === undefined) nextDay = sortedDays[0];
+
                 attributes.dueDate = getNextDayOfWeek(nextDay, 'due');
             }
-            
+
             cleanTitle = cleanTitle.replace(multiDayMatch[0], ' ');
         }
     }
@@ -194,7 +212,7 @@ export const parseTaskInput = (text: string): ParsedTaskInput => {
             }
             cleanTitle = cleanTitle.replace(weekendMatch[0], ' ');
         }
-        
+
         const weekdayMatch = cleanTitle.match(/(?:^|\s)every\s+weekday(?:\b|$)/i);
         if (weekdayMatch) {
             attributes.recurrence = { frequency: 'weekly', interval: 1, weekDays: [1, 2, 3, 4, 5] };
@@ -211,30 +229,30 @@ export const parseTaskInput = (text: string): ParsedTaskInput => {
     if (!attributes.recurrence) {
         const freqRegex = /(?:^|\s)(?:every\s+(\d+)?\s*)?(day|days|daily|week|weeks|weekly|month|months|monthly|year|years|yearly)(?:\b|$)/i;
         const match = cleanTitle.match(freqRegex);
-        
+
         if (match) {
             const fullStr = match[0].trim();
             const intervalStr = match[1];
             const unit = match[2].toLowerCase();
             const isAlias = ['daily', 'weekly', 'monthly', 'yearly'].includes(unit);
             const hasEvery = fullStr.toLowerCase().startsWith('every');
-            
+
             if (isAlias || hasEvery) {
                 const interval = intervalStr ? parseInt(intervalStr) : 1;
                 let frequency: 'daily' | 'weekly' | 'monthly' | 'yearly' = 'daily';
-                
+
                 if (unit.startsWith('week')) frequency = 'weekly';
                 else if (unit.startsWith('month')) frequency = 'monthly';
                 else if (unit.startsWith('year')) frequency = 'yearly';
-                
+
                 attributes.recurrence = { frequency, interval };
-                
+
                 if (!attributes.dueDate) {
                     const d = new Date();
                     d.setHours(23, 59, 59, 999);
                     attributes.dueDate = d.getTime();
                 }
-                
+
                 cleanTitle = cleanTitle.replace(match[0], ' ');
             }
         }
@@ -271,7 +289,7 @@ export const parseTaskInput = (text: string): ParsedTaskInput => {
             }
         }
     }
-    
+
     if (!attributes.assignedDate) {
         const todayMatch = cleanTitle.match(/(?:^|\s)(?:@)?(today|tod)(?:\b|$)/i);
         if (todayMatch) {
@@ -281,7 +299,7 @@ export const parseTaskInput = (text: string): ParsedTaskInput => {
             cleanTitle = cleanTitle.replace(todayMatch[0], ' ');
         }
     }
-    
+
     if (!attributes.assignedDate) {
         const tomMatch = cleanTitle.match(/(?:^|\s)(?:@)?(tomorrow|tom)(?:\b|$)/i);
         if (tomMatch) {

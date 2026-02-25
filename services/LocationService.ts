@@ -1,10 +1,21 @@
-
 import { ContextSnapshot } from '../types';
 import { UserSettings } from '@/types';
 
+/**
+ * Service for retrieving and processing the user's geographic location.
+ * Used to provide context-aware suggestions (e.g., suggesting specific tasks
+ * when the user is at "Home" vs. "Work").
+ *
+ * @singleton Use `LocationService.getInstance()` to access the service.
+ */
 export class LocationService {
+    /** Singleton instance of the service. */
     private static instance: LocationService;
 
+    /**
+     * Returns the singleton instance of LocationService.
+     * @returns The LocationService instance.
+     */
     public static getInstance(): LocationService {
         if (!LocationService.instance) {
             LocationService.instance = new LocationService();
@@ -12,6 +23,18 @@ export class LocationService {
         return LocationService.instance;
     }
 
+    /**
+     * Retrieves the current location status, taking user privacy settings into account.
+     *
+     * @param config - The user's application settings.
+     * @returns A promise resolving to the current location label and coordinates.
+     *
+     * @logic
+     * 1. Returns "Unknown" if location tracking is disabled in settings.
+     * 2. Uses the browser Geolocation API to fetch coordinates.
+     * 3. Calculates distance from the user's configured "Home" coordinates.
+     * 4. Labels the location as "Home" if within 100 meters, otherwise "Remote".
+     */
     public async getLocationStatus(config: UserSettings): Promise<ContextSnapshot['location']> {
         const result: ContextSnapshot['location'] = {
             label: 'Unknown',
@@ -46,6 +69,9 @@ export class LocationService {
         return result;
     }
 
+    /**
+     * Calculates the great-circle distance between two points on the Earth using the Haversine formula.
+     */
     private getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
         const R = 6371;
         const dLat = this.deg2rad(lat2 - lat1);
@@ -58,6 +84,9 @@ export class LocationService {
         return R * c;
     }
 
+    /**
+     * Converts degrees to radians.
+     */
     private deg2rad(deg: number): number {
         return deg * (Math.PI / 180);
     }

@@ -1,19 +1,37 @@
+'use client';
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card';
-import { Brain, Loader2, CheckCircle2, Sparkles } from 'lucide-react';
+import { Brain, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 import { RecommendationEngine } from '@/services/RecommendationEngine';
 import { useTaskContext } from '@/context/TaskContext';
 import { useVitalsContext } from '@/context/VitalsContext';
 
+/**
+ * Settings section for managing the machine learning "brain" of the application.
+ * It allows the user to manually trigger calibration cycles to align the AI
+ * recommendation engine with their current backlog or historical behavior.
+ *
+ * @component
+ * @interaction
+ * - "Calibrate with AI": Uses LLM (Gemini) to generate synthetic success scenarios.
+ * - "Learn from History": Replays previous task completions to train the LinUCB model.
+ */
 export const MentalModelSettings: React.FC = () => {
   const { tasks } = useTaskContext();
   const { vitals } = useVitalsContext();
+
+  /** Status of the AI-driven synthetic calibration. */
   const [calibrationStatus, setCalibrationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [calibrationCount, setCalibrationCount] = useState(0);
+
+  /** Status of the historical behavior re-learning. */
   const [historyCalibrationStatus, setHistoryCalibrationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [historyCalibrationCount, setHistoryCalibrationCount] = useState(0);
 
+  /**
+   * Triggers the synthetic calibration flow.
+   */
   const handleAICalibration = async () => {
     if (tasks.length === 0) {
         alert("Please add some tasks before calibrating.");
@@ -30,6 +48,9 @@ export const MentalModelSettings: React.FC = () => {
     }
   };
 
+  /**
+   * Triggers the historical data replay flow.
+   */
   const handleHistoryCalibration = async () => {
     if (tasks.filter(t => t.status === 'completed').length === 0) {
         alert("No completed tasks found in history to learn from.");
@@ -64,6 +85,7 @@ export const MentalModelSettings: React.FC = () => {
                 Engine status: {calibrationStatus === 'success' || historyCalibrationStatus === 'success' ? <span className="text-primary">Ready</span> : <span className="text-secondary">Cold Start</span>}
             </p>
             
+            {/* AI Synthetic Calibration Button */}
             <button 
               onClick={handleAICalibration}
               disabled={calibrationStatus === 'loading' || tasks.length === 0}
@@ -78,6 +100,7 @@ export const MentalModelSettings: React.FC = () => {
                 )}
             </button>
 
+            {/* Historical Re-learning Button */}
             <button 
               onClick={handleHistoryCalibration}
               disabled={historyCalibrationStatus === 'loading' || tasks.filter(t => t.status === 'completed').length === 0}

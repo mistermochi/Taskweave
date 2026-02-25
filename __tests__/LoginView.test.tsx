@@ -1,3 +1,9 @@
+/**
+ * @file Unit tests for LoginView component.
+ * Verifies the rendering of the landing page and the
+ * Google authentication flow.
+ */
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import LoginView from '../views/LoginView';
@@ -24,7 +30,7 @@ describe('LoginView', () => {
   beforeEach(() => {
     // Clear mock history before each test
     (signInWithPopup as jest.Mock).mockClear();
-    (GoogleAuthProvider as jest.Mock).mockClear();
+    (GoogleAuthProvider as unknown as jest.Mock).mockClear();
   });
 
   it('should call signInWithPopup when the Google sign-in button is clicked', async () => {
@@ -32,7 +38,7 @@ describe('LoginView', () => {
     (signInWithPopup as jest.Mock).mockResolvedValue({
       /* mock user credential object */
     });
-    
+
     render(<LoginView />);
 
     // Act: Find the button and click it
@@ -43,7 +49,7 @@ describe('LoginView', () => {
     await waitFor(() => {
         expect(signInWithPopup).toHaveBeenCalledTimes(1);
     });
-    
+
     // We expect it to be called with the auth instance and a provider instance
     expect(signInWithPopup).toHaveBeenCalledWith(auth, expect.any(Object));
     // Verify that we are creating a GoogleAuthProvider
@@ -55,9 +61,9 @@ describe('LoginView', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const mockError = new Error('Sign-in failed');
     (signInWithPopup as jest.Mock).mockRejectedValue(mockError);
-    
+
     render(<LoginView />);
-    
+
     // Act
     const googleButton = screen.getByText(/Sign in with Google/i);
     fireEvent.click(googleButton);
@@ -66,7 +72,7 @@ describe('LoginView', () => {
     await waitFor(() => {
         expect(consoleErrorSpy).toHaveBeenCalledWith("Google Sign-In failed", mockError);
     });
-    
+
     // Restore console.error
     consoleErrorSpy.mockRestore();
   });

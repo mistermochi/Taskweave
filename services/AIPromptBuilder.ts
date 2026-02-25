@@ -1,7 +1,19 @@
-
 import { TaskEntity } from '../types';
 
+/**
+ * Utility class for constructing complex prompts for the AI Service.
+ * It transforms raw application state (tasks, context) into structured
+ * instructions for the LLM.
+ */
 export class AIPromptBuilder {
+    /**
+     * Builds a prompt for calibrating the machine learning model (LinUCB).
+     * It instructs the AI to generate synthetic "success" scenarios based on the user's backlog.
+     *
+     * @param tasks - The user's current task list.
+     * @param armNames - The names of the available strategic "arms" the model can choose.
+     * @returns A multi-line string containing the prompt instructions.
+     */
     public static buildCalibrationPrompt(tasks: TaskEntity[], armNames: readonly string[]): string {
         const now = Date.now();
         const taskSummaries = tasks.map(t => {
@@ -37,6 +49,12 @@ export class AIPromptBuilder {
         `;
     }
 
+    /**
+     * Builds a prompt for the general-purpose productivity chatbot.
+     *
+     * @param context - Optional dynamic context (e.g., current task, energy level).
+     * @returns The persona and instruction prompt for the AI.
+     */
     public static buildChatPrompt(context?: any): string {
         return `You are Taskweave, a minimalist AI life coach.
             Tone: Calm, supportive, zen, concise.

@@ -1,5 +1,3 @@
-
-
 import { useMemo, useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { doc, setDoc, where } from 'firebase/firestore';
@@ -16,18 +14,29 @@ import { calculateSessionImpact } from '@/utils/energyUtils';
 import { SuggestionContext } from '@/types/scheduling';
 import { RecommendationEngine } from '@/services/RecommendationEngine';
 
+/**
+ * View Controller for the main Dashboard interface.
+ * Orchestrates task planning, AI recommendations, and energy tracking for the user's "Today" view.
+ *
+ * @returns State (plans, recommendations, energy levels) and Actions (save mood, complete task).
+ */
 export const useDashboardController = () => {
   const uid = useUserId();
-  const { tasks: activeTasks } = useTaskContext(); // This is now guaranteed to be only active tasks
+  const { tasks: activeTasks } = useTaskContext();
   const { vitals } = useVitalsContext();
   const { tags } = useReferenceContext();
   const energyModel = useEnergyModel();
   const taskService = TaskService.getInstance();
+
+  /** Current AI task recommendation with its reasoning. */
   const [recommendation, setRecommendation] = useState<{ taskId: string; reason: string; } | null>(null);
 
-  // New: Fetch completed tasks specifically for this controller
+  /** Real-time subscription to completed tasks for context generation. */
   const { data: completedTasks } = useFirestoreCollection<TaskEntity>('tasks', [where('status', '==', 'completed')]);
 
+  /**
+   * Effect that triggers the AI Recommendation Engine whenever relevant context changes.
+   */
   useEffect(() => {
     if (activeTasks.length === 0) {
       setRecommendation(null);
@@ -62,7 +71,11 @@ export const useDashboardController = () => {
     calculateRecommendation();
   }, [activeTasks, completedTasks, energyModel.currentEnergy, tags]);
   
-  // -- New "Suggest a Plan" Logic --
+  /**
+   * Complex calculation for the "Today's Plan" section.
+   * Partitions tasks based on focus state, assigned dates, and hard deadlines.
+   * Injects AI recommendations into the plan if not already present.
+   */
   const { suggestedPlan, overdueTasks, completedCount } = useMemo(() => {
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -73,40 +86,31 @@ export const useDashboardController = () => {
       return task.blockedBy.some(blockerId => tasks.some(t => t.id === blockerId));
     };
     
-    // 1. GATHER all tasks for today's plan: focused, assigned for today, or due today/overdue
     let planCandidates = activeTasks.filter(task => {
         if (isBlocked(task, activeTasks)) return false;
-
         const isAssignedToday = task.assignedDate && task.assignedDate >= startOfToday && task.assignedDate < endOfToday;
         const isDueTodayOrOverdue = task.dueDate && task.dueDate < endOfToday;
-        
         return task.isFocused || isAssignedToday || isDueTodayOrOverdue;
     });
 
-    // --- NEW: Inject AI recommendation from Inbox ---
     if (recommendation && recommendation.taskId) {
         const isAlreadyInPlan = planCandidates.some(t => t.id === recommendation.taskId);
         if (!isAlreadyInPlan) {
             const recommendedTask = activeTasks.find(t => t.id === recommendation.taskId);
-            // Ensure the recommended task is not blocked
             if (recommendedTask && !isBlocked(recommendedTask, activeTasks)) {
                 planCandidates.push(recommendedTask);
             }
         }
     }
 
-    // --- NEW PROACTIVE SUGGESTION LOGIC ---
-    // If the plan is STILL empty, find a good candidate from the inbox.
     if (planCandidates.length === 0) {
         const inboxTasks = activeTasks.filter(task => {
             if (isBlocked(task, activeTasks)) return false;
-            // A task is in the inbox if it's not scheduled for today or overdue
             const isScheduledOrOverdue = (task.assignedDate && task.assignedDate >= startOfToday && task.assignedDate < endOfToday) || (task.dueDate && task.dueDate < endOfToday);
             return !isScheduledOrOverdue;
         });
 
         if (inboxTasks.length > 0) {
-            // Find the best candidate: shortest duration, then newest.
             inboxTasks.sort((a, b) => {
                 const durationDiff = a.duration - b.duration;
                 if (durationDiff !== 0) return durationDiff;
@@ -119,30 +123,18 @@ export const useDashboardController = () => {
         }
     }
 
-    // 2. SORT the plan chronologically and by priority
     planCandidates.sort((a, b) => {
         if (a.isFocused) return -1;
         if (b.isFocused) return 1;
-
-        // Use assignedDate for user-planned items, fallback to dueDate for deadlines/events
         const aTime = a.assignedDate || a.dueDate || Infinity;
         const bTime = b.assignedDate || b.dueDate || Infinity;
-        
-        if (aTime !== bTime) {
-            return aTime - bTime;
-        }
-
-        // Fallback for items with identical times: higher energy first
+        if (aTime !== bTime) return aTime - bTime;
         const energyMap = { 'High': 3, 'Medium': 2, 'Low': 1 };
         const energyDiff = (energyMap[b.energy] || 2) - (energyMap[a.energy] || 2);
-        if (energyDiff !== 0) {
-            return energyDiff;
-        }
-
-        return (a.createdAt || 0) - (b.createdAt || 0); // oldest first as final tie-breaker
+        if (energyDiff !== 0) return energyDiff;
+        return (a.createdAt || 0) - (b.createdAt || 0);
     });
 
-    // 3. IDENTIFY Overdue tasks that are NOT part of today's plan
     const planIds = new Set(planCandidates.map(t => t.id));
     const overdue = activeTasks.filter(task => {
         if (planIds.has(task.id)) return false;
@@ -157,7 +149,9 @@ export const useDashboardController = () => {
     };
   }, [activeTasks, completedTasks, recommendation]);
 
-  // -- Legacy Focus Intention --
+  /**
+   * Retrieves the most recent focus intention log for the current day.
+   */
   const latestFocus = useMemo(() => {
     const startOfDay = getStartOfDay();
     const todaysFocus = vitals
@@ -166,7 +160,9 @@ export const useDashboardController = () => {
     return todaysFocus.length > 0 ? (todaysFocus[0].value as string) : '';
   }, [vitals]);
 
-  // Actions
+  /**
+   * Saves a manual mood check-in and updates the user's energy profile.
+   */
   const saveMood = async (level: number) => {
     if (!uid) return;
     const context = await ContextService.getInstance().getSnapshot();
@@ -184,6 +180,9 @@ export const useDashboardController = () => {
     });
   };
 
+  /**
+   * Saves a daily focus intention.
+   */
   const saveFocus = async (text: string) => {
     if (!uid) return;
     const context = await ContextService.getInstance().getSnapshot();
@@ -197,26 +196,29 @@ export const useDashboardController = () => {
     });
   };
 
+  /**
+   * Finalizes a task from the dashboard.
+   * Calculates the biological impact (energy drain) and logs the completion
+   * to both the Task Database and the Learning Engine.
+   *
+   * @param task - The task being completed.
+   */
   const completeTask = async (task: TaskEntity): Promise<number | null> => {
       const durationSeconds = task.duration * 60;
-      // Assume Neutral mood for quick completes
       const delta = calculateSessionImpact(durationSeconds, durationSeconds, 'Neutral');
       const newEnergy = Math.max(0, Math.min(100, energyModel.currentEnergy + delta));
       
       const nextDate = await taskService.completeTask(task, durationSeconds, activeTasks);
       await taskService.logSessionCompletion(task, 'Neutral', 'Quick Complete', newEnergy);
 
-      // --- NEW LEARNING LOGIC ---
       try {
           const contextService = ContextService.getInstance();
           const userContext = await contextService.getSnapshot();
 
-          // Construct the context at the moment of completion
           const completionContext: SuggestionContext = {
               currentTime: new Date(),
               energy: energyModel.currentEnergy,
               availableMinutes: 60,
-              // The state of the world *before* this task was completed
               tasks: activeTasks.filter(t => t.id !== task.id), 
               tags: tags,
               completedTasks: completedTasks,
@@ -224,12 +226,10 @@ export const useDashboardController = () => {
               previousPatterns: [],
               userContext: userContext,
           };
-          // Log this organic choice to the learning engine
           await RecommendationEngine.getInstance().logOrganicSelection(task, completionContext);
       } catch (e) {
           console.error("Failed to log organic selection:", e);
       }
-      // --- END NEW LEARNING LOGIC ---
 
       return nextDate;
   };

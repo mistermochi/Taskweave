@@ -1,3 +1,9 @@
+/**
+ * @file Unit tests for natural language task parsing.
+ * Verifies the extraction of dates, durations, energy, and tags
+ * from user-entered strings.
+ */
+
 import { parseTaskInput } from '../utils/textParserUtils';
 
 describe('parseTaskInput', () => {

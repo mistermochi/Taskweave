@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '@/firebase';
@@ -6,14 +5,27 @@ import { collection, getDocs } from 'firebase/firestore';
 import { Loader2, Check, LogOut } from 'lucide-react';
 import { useEnvironment } from '@/context/EnvironmentContext';
 
+/**
+ * Component for global account actions and debug tools.
+ * Includes Logout functionality and data migration verification (development only).
+ *
+ * @component
+ */
 export const Actions: React.FC = () => {
   const { isDevelopment } = useEnvironment();
   const [isVerifying, setIsVerifying] = useState(false);
 
+  /**
+   * Logs the current user out of the application.
+   */
   const handleSignOut = async () => {
     await signOut(auth);
   };
 
+  /**
+   * DEBUG ONLY: Verifies that data has been successfully migrated from
+   * root-level collections to user-scoped sub-collections.
+   */
   const handleVerifyMigration = async () => {
     if (!auth.currentUser) {
         alert("User not found. Please sign in again.");
@@ -61,6 +73,7 @@ export const Actions: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-8">
+      {/* Debug Tools */}
       {isDevelopment && (
           <div className="text-center mb-4 p-4 rounded-xl bg-surface border border-border space-y-3">
               <span className="text-xxs font-mono uppercase tracking-widest text-secondary/40 bg-foreground/5 px-2 py-1 rounded">
@@ -79,6 +92,7 @@ export const Actions: React.FC = () => {
               </button>
           </div>
       )}
+      {/* Primary Actions */}
       <button
           onClick={handleSignOut}
           className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl border border-red-500/20 transition-colors"

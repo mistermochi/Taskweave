@@ -1,3 +1,9 @@
+/**
+ * @file Unit tests for QuickFocusModal.
+ * Verifies that the modal correctly allows users to create
+ * adhoc tasks and transition into focus mode.
+ */
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -8,6 +14,13 @@ import { TaskService } from '../services/TaskService';
 import { Tag } from '../types';
 
 // Mock dependencies
+
+// Global firebase mock to prevent init errors
+jest.mock('../firebase', () => ({
+  auth: {},
+  db: {},
+}));
+
 jest.mock('../context/ReferenceContext');
 jest.mock('../context/NavigationContext');
 jest.mock('../services/TaskService');

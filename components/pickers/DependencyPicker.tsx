@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -6,13 +5,23 @@ import { TaskEntity } from '@/types';
 import { Check } from 'lucide-react';
 import { PickerContainer } from './PickerContainer';
 
+/**
+ * Interface for DependencyPicker props.
+ */
 interface DependencyPickerProps {
+    /** List of all tasks for potential dependency matching. */
     allTasks: TaskEntity[];
+    /** ID of the task currently being edited (to prevent self-dependency). */
     currentTaskId: string;
+    /** Array of task IDs that are currently blocking this task. */
     selectedIds: string[];
+    /** Callback triggered when the dependency list is updated. */
     onIdsChange: (ids: string[]) => void;
 }
 
+/**
+ * Internal sub-component for rendering a group of potential blockers.
+ */
 const DependencySection: React.FC<{
     title: string;
     tasks: TaskEntity[];
@@ -38,12 +47,19 @@ const DependencySection: React.FC<{
     </div>
 );
 
+/**
+ * UI component for selecting task dependencies.
+ * It displays a list of active tasks that the current task is "blocked by".
+ *
+ * @component
+ */
 export const DependencyPicker: React.FC<DependencyPickerProps> = ({
     allTasks,
     currentTaskId,
     selectedIds,
     onIdsChange,
 }) => {
+    // Filter out the task itself to prevent circular dependencies.
     const otherTasks = allTasks.filter(t => t.id !== currentTaskId && t.status === 'active');
     
     const toggleId = (id: string) => {

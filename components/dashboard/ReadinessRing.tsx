@@ -1,10 +1,17 @@
-
 import React from 'react';
 
+/**
+ * A circular progress indicator that visualizes the user's biological readiness score.
+ * It changes color dynamically based on the score threshold (Red for low, Yellow for medium, Green for high).
+ *
+ * @component
+ * @param {number} score - The readiness score from 0 to 100.
+ */
 export const ReadinessRing = ({ score }: { score: number }) => {
   const radius = 18;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
+
   let colorClass = 'text-primary';
   if (score < 40) colorClass = 'text-red-400';
   else if (score < 70) colorClass = 'text-yellow-400';

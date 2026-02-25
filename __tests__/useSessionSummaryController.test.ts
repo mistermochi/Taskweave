@@ -1,4 +1,10 @@
 
+/**
+ * @file Unit tests for useSessionSummaryController.
+ * These tests verify the calculation of biological energy impact
+ * and the persistence of user reflections after a task.
+ */
+
 'use client';
 
 import { renderHook, act, waitFor } from '@testing-library/react';
@@ -8,6 +14,13 @@ import { TaskService } from '../services/TaskService';
 import { useEnergyModel } from '../hooks/useEnergyModel';
 
 // Mock dependencies
+
+// Global firebase mock to prevent init errors
+jest.mock('../firebase', () => ({
+  auth: {},
+  db: {},
+}));
+
 jest.mock('../hooks/useFirestore');
 jest.mock('../services/TaskService');
 jest.mock('../hooks/useEnergyModel');
@@ -86,7 +99,7 @@ describe('useSessionSummaryController', () => {
   it('should return null task if taskId is undefined', async () => {
     mockUseFirestoreDoc.mockReturnValue({ data: null, loading: false });
     const { result } = renderHook(() => useSessionSummaryController(undefined));
-    
+
     await waitFor(() => {
         expect(result.current.state.isLoading).toBe(false);
     });

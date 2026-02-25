@@ -1,3 +1,10 @@
+/**
+ * @file Unit tests for TaskService.
+ * These tests verify the core business logic for task management,
+ * including CRUD operations, status changes, recurring task logic,
+ * dependency management, and focus session persistence.
+ */
+
 /** @jest-environment node */
 import { TaskService } from '../services/TaskService';
 import { db } from '../firebase';
@@ -8,9 +15,20 @@ import { TaskEntity, RecurrenceConfig } from '../types';
 
 // --- Mocks ---
 
+// Mock crypto.randomUUID for Node environments
+if (typeof crypto === 'undefined') {
+  (global as any).crypto = {
+    randomUUID: () => '550e8400-e29b-41d4-a716-446655440000'
+  };
+} else if (!crypto.randomUUID) {
+  (crypto as any).randomUUID = () => '550e8400-e29b-41d4-a716-446655440000';
+}
+
 // Mock Firebase services
 jest.mock('firebase/app', () => ({
   initializeApp: jest.fn(),
+  getApps: jest.fn(() => []),
+  getApp: jest.fn(),
 }));
 
 jest.mock('firebase/auth', () => ({

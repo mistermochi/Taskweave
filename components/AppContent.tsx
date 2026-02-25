@@ -14,7 +14,7 @@ import DashboardView from '@/views/DashboardView';
 import TaskDatabaseView from '@/views/TaskDatabaseView';
 import { FocusPlayer } from '@/components/FocusPlayer';
 
-// Lazy load secondary views
+// Lazy load secondary views for better initial bundle size
 const TaskHistoryView = React.lazy(() => import('@/views/TaskHistoryView'));
 const ChatView = React.lazy(() => import('@/views/ChatView'));
 const BreathingView = React.lazy(() => import('@/views/BreathingView'));
@@ -22,15 +22,29 @@ const SensoryGroundingView = React.lazy(() => import('@/views/SensoryGroundingVi
 const InsightsView = React.lazy(() => import('@/views/InsightsView'));
 const SettingsView = React.lazy(() => import('@/views/SettingsView'));
 
+/**
+ * The main content switcher and view orchestrator for the application.
+ * It determines which top-level view to render based on the global
+ * `NavigationContext` and manages background processes like energy drain.
+ *
+ * @logic
+ * - Handles lazy-loading of secondary views with `Suspense`.
+ * - Automatically resumes an ongoing focus session if the user refreshes the app.
+ * - Triggers the `usePassiveDrain` hook to simulate biological energy loss.
+ * - Coordinates global modals (Summary, Quick Focus).
+ */
 export const AppContent = () => {
   const { currentView, activeTaskId, showDashboard, summaryTaskId, hideSummary, navigate, isQuickFocusModalOpen, closeQuickFocusModal, focusOnTask } = useNavigation();
   const { tasks, loading: tasksLoading } = useTaskContext();
   const { loading: referencesLoading } = useReferenceContext();
   const isLoading = tasksLoading || referencesLoading;
 
+  // Initialize passive energy drain simulation
   usePassiveDrain();
 
-  // Find and resume ongoing focus session when app loads
+  /**
+   * Resumes a focus session if one was active in Firestore but not yet in memory.
+   */
   useEffect(() => {
     if (!tasksLoading && !activeTaskId) {
       const focusedTask = tasks.find(t => t.isFocused);
@@ -40,16 +54,22 @@ export const AppContent = () => {
     }
   }, [tasks, tasksLoading, activeTaskId, focusOnTask]);
 
+  /**
+   * Cleans up the active task state if the user navigates away from the dashboard
+   * and the previously focused task is now complete.
+   */
   useEffect(() => {
-      // When returning to dashboard, if the previously active task is now complete, clear it.
       if (currentView === ViewName.DASHBOARD && activeTaskId) {
           const task = tasks.find(t => t.id === activeTaskId);
           if (task?.status === 'completed') {
-              showDashboard(); // This will reset the activeTaskId in the context
+              showDashboard();
           }
       }
   }, [currentView, activeTaskId, tasks, showDashboard]);
 
+  /**
+   * Helper to select the correct view component based on the current state.
+   */
   const renderContent = () => {
     if (isLoading) {
       return <LoadingScreen text="Preparing Your Flow..." />;
@@ -72,8 +92,12 @@ export const AppContent = () => {
     }
   };
   
+  /**
+   * High-level view wrapper.
+   * Distinguishes between immersive fullscreen views (Breathing)
+   * and standard layout views.
+   */
   const renderView = () => {
-    // Standalone views that don't use AppLayout
     if ([ViewName.BREATHING, ViewName.SENSORY_GROUNDING].includes(currentView)) {
         switch (currentView) {
             case ViewName.BREATHING:
@@ -85,7 +109,6 @@ export const AppContent = () => {
         }
     }
     
-    // Views that are children of AppLayout
     return (
         <AppLayout>
             {renderContent()}

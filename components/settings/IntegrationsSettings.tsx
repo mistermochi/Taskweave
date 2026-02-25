@@ -4,25 +4,44 @@ import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Calendar, Plus, Loader2 } from 'lucide-react';
 import { useCalendarImportController } from '@/hooks/controllers/useCalendarImportController';
-import { UserSettings, TaskEntity } from '@/types'; // Import TaskEntity
+import { UserSettings, TaskEntity } from '@/types';
 import { GoogleCalendarService } from '@/services/GoogleCalendarService';
 import { CalendarMappingRow } from '@/components/CalendarMappingRow';
 import { useReferenceContext } from '@/context/ReferenceContext';
 import { CalendarImportModal } from '@/components/CalendarImportModal';
 
+/**
+ * Interface for IntegrationsSettings props.
+ */
 interface IntegrationsSettingsProps {
+  /** The current user settings object. */
   settings: Partial<UserSettings>;
+  /** Callback to update settings in Firestore. */
   updateSettings: (newSettings: Partial<UserSettings>) => void;
+  /** Callback to display a notification to the user. */
   showToast: (message: string) => void;
-  tasks: TaskEntity[]; // Add tasks to props
+  /** List of all tasks (to check for duplicates during import). */
+  tasks: TaskEntity[];
 }
 
+/**
+ * Settings section for managing third-party integrations (e.g., Google Calendar).
+ * Handles the OAuth connection flow and the configuration of calendar-to-project mappings.
+ *
+ * @component
+ * @interaction
+ * - Triggers `GoogleCalendarService` to obtain access tokens.
+ * - Manages the visibility of the `CalendarImportModal`.
+ * - Allows users to toggle which specific calendars are active for synchronization.
+ */
 export const IntegrationsSettings: React.FC<IntegrationsSettingsProps> = ({ settings, updateSettings, showToast, tasks }) => {
-  // Pass tasks to controller
   const { state: calendarState, actions: calendarActions } = useCalendarImportController(settings, tasks);
   const { tags } = useReferenceContext();
   const calendars = settings.googleCalendars || [];
 
+  /**
+   * Initiates the connection to Google and fetches the list of available calendars.
+   */
   const handleConnectCalendar = async () => {
     const calendarService = GoogleCalendarService.getInstance();
     try {
@@ -74,6 +93,7 @@ export const IntegrationsSettings: React.FC<IntegrationsSettingsProps> = ({ sett
         </CardHeader>
         <CardContent className='pt-0'>
           <div className="space-y-2">
+            {/* Main Import Trigger */}
             <button
               onClick={calendarActions.startImport}
               disabled={calendarState.isLoading}
@@ -99,6 +119,7 @@ export const IntegrationsSettings: React.FC<IntegrationsSettingsProps> = ({ sett
               </div>
             )}
 
+            {/* Individual Calendar Configuration */}
             <div className="pt-2">
               <label className="text-xs text-secondary/80 font-bold uppercase tracking-wider">Calendar to Project Mapping</label>
               <div className="space-y-2 pt-2">
@@ -129,7 +150,7 @@ export const IntegrationsSettings: React.FC<IntegrationsSettingsProps> = ({ sett
         isOpen={calendarState.isOpen}
         events={calendarState.events}
         selectedIds={calendarState.selectedIds}
-        importedEventIds={calendarState.importedEventIds} // Pass new state
+        importedEventIds={calendarState.importedEventIds}
         onToggle={calendarActions.toggleSelection}
         onConfirm={handleConfirmImport}
         onCancel={calendarActions.cancelImport}

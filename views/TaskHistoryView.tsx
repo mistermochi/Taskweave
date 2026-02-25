@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -10,16 +9,26 @@ import { IconBadge } from '@/components/ui/IconBadge';
 import { EmptyState } from '@/components/ui/Feedback';
 import { useNavigation } from '@/context/NavigationContext';
 
+/**
+ * Interface for a task that has been finalized.
+ */
 interface CompletedTask extends TaskEntity {
+  /** Total time spent in seconds, if captured by a focus session. */
   actualDuration?: number;
 }
 
+/**
+ * Internal component for rendering a colored badge with custom styling.
+ */
 const Badge: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = 'bg-foreground/10 text-foreground' }) => (
     <span className={`px-3 py-1 rounded-full text-xxs font-bold uppercase tracking-widest border border-border ${color}`}>
         {children}
     </span>
 );
 
+/**
+ * Helper to format a Unix timestamp into human-readable date and time strings.
+ */
 const formatDateTime = (timestamp: number) => {
   const date = new Date(timestamp);
   const now = new Date();
@@ -35,6 +44,9 @@ const formatDateTime = (timestamp: number) => {
   return { dateStr, timeStr };
 };
 
+/**
+ * Internal component for rendering a single task row within the history list.
+ */
 const HistoryCard: React.FC<{ task: CompletedTask }> = ({ task }) => {
   const { dateStr, timeStr } = formatDateTime(task.completedAt || task.createdAt);
   const timeSpent = task.actualDuration ? `${Math.floor(task.actualDuration / 60)}m` : `${task.duration}m`;
@@ -68,11 +80,17 @@ const HistoryCard: React.FC<{ task: CompletedTask }> = ({ task }) => {
   );
 };
 
+/**
+ * View for inspecting completed and archived tasks.
+ * Useful for reviewing past performance and biological impact logs.
+ *
+ * @component
+ */
 export const TaskHistoryView: React.FC = () => {
   const { tasks } = useTaskContext();
   const { showDatabase } = useNavigation();
   
-  // Filter and sort client side
+  // Filter for completed items and sort by most recent completion time.
   const completedTasks = tasks
     .filter(t => t.status === 'completed')
     .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));

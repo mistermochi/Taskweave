@@ -5,17 +5,30 @@ import { useFirestoreCollection } from '@/hooks/useFirestore';
 import { Tag } from '@/types';
 import { TagService } from '@/services/TagService';
 
+/**
+ * Interface for the reference data state (Tags, Categories).
+ */
 interface ReferenceContextType {
+  /** Full list of category tags for the user. */
   tags: Tag[];
+  /** Loading state for the tags subscription. */
   loading: boolean;
 }
 
 const ReferenceContext = createContext<ReferenceContextType>({ tags: [], loading: true });
 
+/**
+ * Provider that maintains a real-time subscription to the user's tags.
+ * Also handles the "First-Run" logic to seed default tags if the user's
+ * list is empty.
+ */
 export const ReferenceProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const { data: tags, loading } = useFirestoreCollection<Tag>('tags');
 
-  // Initialize default tags if missing (moved from DataContext)
+  /**
+   * Seeding logic: Ensures every user has at least the default system tags
+   * (Work, Personal, etc) for a better initial experience.
+   */
   useEffect(() => {
     if (!loading && tags.length === 0) {
         TagService.getInstance().initializeDefaultsIfEmpty();
@@ -27,4 +40,7 @@ export const ReferenceProvider: React.FC<PropsWithChildren> = ({ children }) => 
   return <ReferenceContext.Provider value={value}>{children}</ReferenceContext.Provider>;
 };
 
+/**
+ * Hook to consume the reference/tag data context.
+ */
 export const useReferenceContext = () => useContext(ReferenceContext);

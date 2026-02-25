@@ -1,4 +1,10 @@
 
+/**
+ * @file Unit tests for useFocusSessionController.
+ * Verifies the logic for managing an active focus session, including
+ * timer state, pause/resume, and session completion.
+ */
+
 import { renderHook, act } from '@testing-library/react';
 import { useFocusSessionController } from '../hooks/controllers/useFocusSessionController';
 import { useTaskContext } from '../context/TaskContext';
@@ -94,7 +100,7 @@ describe('useFocusSessionController', () => {
       });
 
       renderHook(() => useFocusSessionController('task-1'));
-  
+
       // Should NOT be called again if it's already running
       expect(mockTaskService.startSession).not.toHaveBeenCalled();
     });
@@ -104,7 +110,7 @@ describe('useFocusSessionController', () => {
       tasks: [mockRunningTask],
       tasksMap: { 'task-1': mockRunningTask }
     });
-    
+
     const { result } = renderHook(() => useFocusSessionController('task-1'));
 
     act(() => {
@@ -150,10 +156,10 @@ describe('useFocusSessionController', () => {
     await act(async () => {
       await result.current.actions.completeSession();
     });
-    
+
     // Verify task completion was called
     expect(mockTaskService.completeTask).toHaveBeenCalledWith(mockTask, expect.any(Number), [mockTask]);
-    
+
     // Verify navigation was called
     expect(mockCompleteFocusSession).toHaveBeenCalledWith('task-1');
   });
@@ -177,14 +183,14 @@ describe('useFocusSessionController', () => {
     });
 
     const { result } = renderHook(() => useFocusSessionController('task-1'));
-    
+
     expect(result.current.state.timeLeft).toBe(1500);
 
     // Advance time by 5 seconds
     act(() => {
       jest.advanceTimersByTime(5000);
     });
-    
+
     // The hook's internal setInterval updates the state based on `calculateTaskTime`
     // `calculateTaskTime` uses Date.now(), which is controlled by fake timers.
     // elapsed = (startTime + 5000) - startTime = 5000ms = 5s.

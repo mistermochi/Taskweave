@@ -1,26 +1,41 @@
-
-
 import { Matrix } from "../utils/math";
 import { db } from "../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
-// The 13 Strategic Arms
+/**
+ * The 13 Strategic Arms (Categories of Recommendations).
+ * Each arm represents a different heuristic or strategy for choosing a task.
+ */
 export enum StrategyArm {
-  DEEP_FLOW = 0,      // High Energy, >30m
-  QUICK_SPARK = 1,    // High Energy, <20m
-  MOMENTUM = 2,       // Same Category as Last
-  PALETTE_CLEANSER = 3, // Diff Category as Last
-  THE_CRUSHER = 4,    // Nearest Due Date
-  LOW_GEAR = 5,       // Low Energy
-  SOMATIC_RESET = 6,  // Physical Wellbeing
-  COGNITIVE_RESET = 7, // Mental Wellbeing
-  NO_OP = 8,          // No Recommendation (Status Quo)
-  PULL_BACK = 9,      // Recommend Against (Capacity Warning)
-  ARCHAEOLOGIST = 10, // Stale tasks > 14 days
-  SNOWBALL = 11,      // Velocity Batching (Small after Small)
-  TWILIGHT_RITUAL = 12 // Low Energy in Evening
+  /** High energy required, long duration task. */
+  DEEP_FLOW = 0,
+  /** High energy required, short duration task. */
+  QUICK_SPARK = 1,
+  /** Same category as the most recently completed task. */
+  MOMENTUM = 2,
+  /** different category from the last task to prevent burnout. */
+  PALETTE_CLEANSER = 3,
+  /** Task with the nearest due date. */
+  THE_CRUSHER = 4,
+  /** Low energy task. */
+  LOW_GEAR = 5,
+  /** Physical movement or hydration. */
+  SOMATIC_RESET = 6,
+  /** Meditation or breathing exercise. */
+  COGNITIVE_RESET = 7,
+  /** No recommendation provided. */
+  NO_OP = 8,
+  /** Suggesting against starting new work (e.g., if overloaded). */
+  PULL_BACK = 9,
+  /** Old tasks (>14 days) without deadlines. */
+  ARCHAEOLOGIST = 10,
+  /** Multiple small tasks in a row. */
+  SNOWBALL = 11,
+  /** Winding down with low-effort tasks in the evening. */
+  TWILIGHT_RITUAL = 12
 }
 
+/** Human-readable names for the strategy arms. */
 export const ARM_NAMES = [
   "Deep Flow", "Quick Spark", "Momentum", "Palette Cleanser",
   "The Crusher", "Low Gear", "Somatic Reset", "Cognitive Reset",
@@ -28,40 +43,68 @@ export const ARM_NAMES = [
 ];
 
 const NUM_ARMS = 13;
-const NUM_FEATURES = 11; // Context Dimension
-const ALPHA = 0.5; // Exploration parameter
+const NUM_FEATURES = 11;
+const ALPHA = 0.5;
 
+/**
+ * Parameters for a single arm in the LinUCB model.
+ */
 interface ArmParams {
-  A: number[][]; // d*d matrix
-  b: number[];   // d vector
+  /** d x d matrix (where d = NUM_FEATURES). */
+  A: number[][];
+  /** d-dimensional vector. */
+  b: number[];
 }
 
+/**
+ * Service implementing the LinUCB (Linear Upper Confidence Bound) Multi-Armed Bandit algorithm.
+ * This is the core machine learning engine that personalizes task suggestions
+ * by learning from user feedback and context.
+ *
+ * @singleton Use `LinUCBService.getInstance()` to access the service.
+ */
 export class LinUCBService {
+  /** Singleton instance of the service. */
   private static instance: LinUCBService;
+  /** Parameters for all available strategy arms. */
   private arms: ArmParams[] = [];
+  /** Internal flag for lazy-loading status. */
   private isInitialized = false;
+  /** Current user ID for database persistence. */
   private userId: string | null = null;
+  /** Internal promise to handle concurrent load requests. */
   private loadPromise: Promise<void> | null = null;
 
+  /**
+   * Private constructor initializing the base model.
+   */
   private constructor() {
     this.resetModel();
   }
 
+  /**
+   * Returns the singleton instance of LinUCBService.
+   * @returns The LinUCBService instance.
+   */
   static getInstance(): LinUCBService {
     if (!this.instance) this.instance = new LinUCBService();
     return this.instance;
   }
 
+  /**
+   * Sets the user ID and triggers a reload of that user's specific model parameters.
+   */
   setUserId(uid: string) {
     if (this.userId !== uid) {
       this.userId = uid;
       this.isInitialized = false;
       this.loadPromise = null;
-      // We don't immediately load here, strictly lazy load on predict to save bandwidth
     }
   }
 
-  // Initialize empty model (Identity matrices)
+  /**
+   * Initializes or resets the model to its default state (identity matrices).
+   */
   public resetModel() {
     this.arms = [];
     for (let i = 0; i < NUM_ARMS; i++) {
@@ -73,10 +116,19 @@ export class LinUCBService {
     this.isInitialized = true;
   }
 
-  // Predict best arm given context vector x
-  // validArms: Indices of arms that are actually possible (masking)
+  /**
+   * Predicts the best strategy arm to suggest given a context vector.
+   *
+   * @param x - The context feature vector (dimension d=11).
+   * @param validArms - Subset of indices to consider (masking).
+   * @returns A promise resolving to the chosen arm index and its UCB score.
+   *
+   * @logic
+   * - Calculates the expected mean reward using Ridge Regression.
+   * - Calculates the confidence bound based on the model's uncertainty.
+   * - Selects the arm that maximizes (Expected Mean + Alpha * Confidence Bound).
+   */
   async predict(x: number[], validArms: number[]): Promise<{ arm: number; score: number }> {
-    // 1. Ensure Model is Loaded (Concurrency Safe)
     if (!this.isInitialized && this.userId) {
        if (!this.loadPromise) {
            this.loadPromise = this.loadModel();
@@ -90,24 +142,15 @@ export class LinUCBService {
     let maxUCB = -Infinity;
 
     for (const armIdx of validArms) {
-      // Safety check in case validArms contains index out of bounds
       if (!this.arms[armIdx]) continue;
 
       try {
           const { A, b } = this.arms[armIdx];
           
-          // Ridge Regression: theta = A^-1 * b
-          // GUARD: Matrix inversion can fail if singular
           const A_inv = Matrix.invert(A);
-          const theta = Matrix.dot(A_inv, b); // Result is vector (d)
-          
-          // Expected Mean: p = theta^T * x
+          const theta = Matrix.dot(A_inv, b);
           const p = Matrix.vectorDot(theta, x);
-          
-          // Confidence Interval: alpha * sqrt(x^T * A^-1 * x)
           const variance = Matrix.vectorDot(x, Matrix.dot(A_inv, x));
-          
-          // Guard against negative variance due to floating point drift
           const safeVariance = Math.max(0, variance);
           const cb = ALPHA * Math.sqrt(safeVariance);
           
@@ -119,12 +162,10 @@ export class LinUCBService {
           }
       } catch (e) {
           console.warn(`LinUCB Math Error on Arm ${armIdx}`, e);
-          // If math fails for this arm, skip it (treat score as -Infinity)
           continue;
       }
     }
 
-    // Fallback: If all calculations failed (rare), pick the first valid arm
     if (bestArm === -1 && validArms.length > 0) {
         return { arm: validArms[0], score: 0 };
     }
@@ -132,12 +173,16 @@ export class LinUCBService {
     return { arm: bestArm, score: maxUCB };
   }
 
-  // Update model with outcome
-  // r: Reward (0.0 to 1.0)
+  /**
+   * Updates the model parameters for a specific arm based on a reward signal.
+   *
+   * @param x - The context vector used for the prediction.
+   * @param armIdx - The index of the chosen arm.
+   * @param reward - The observed reward (e.g., 1.0 for completion, -0.5 for rejection).
+   */
   async update(x: number[], armIdx: number, reward: number) {
     if (armIdx < 0 || armIdx >= NUM_ARMS) return;
 
-    // Ensure initialization before update
     if (!this.isInitialized && this.userId) {
          if (!this.loadPromise) this.loadPromise = this.loadModel();
          await this.loadPromise;
@@ -145,51 +190,44 @@ export class LinUCBService {
 
     const { A, b } = this.arms[armIdx];
 
-    // A = A + x * x^T
     const outer = Matrix.outerProduct(x);
     this.arms[armIdx].A = Matrix.add(A, outer);
 
-    // b = b + r * x
     const weightedX = Matrix.scale(x, reward);
     this.arms[armIdx].b = Matrix.vecAdd(b, weightedX);
 
-    // Persist (Debounced in real app, immediate here for simplicity)
     await this.saveModel();
   }
 
-  // Batch Update for Offline Training / Calibration
+  /**
+   * Performs batch training on multiple context-arm-reward samples.
+   * Used for calibration and historical re-training.
+   */
   async batchTrain(samples: { x: number[], arm: number, reward: number }[]) {
-    // Ensure initialization before update
     if (!this.isInitialized && this.userId) {
          if (!this.loadPromise) this.loadPromise = this.loadModel();
          await this.loadPromise;
     }
 
-    // Update in-memory model for all samples
     for (const { x, arm, reward } of samples) {
         if (arm < 0 || arm >= NUM_ARMS) continue;
         
         const { A, b } = this.arms[arm];
-        
-        // A = A + x * x^T
         const outer = Matrix.outerProduct(x);
         this.arms[arm].A = Matrix.add(A, outer);
-
-        // b = b + r * x
         const weightedX = Matrix.scale(x, reward);
         this.arms[arm].b = Matrix.vecAdd(b, weightedX);
     }
 
-    // Save once at the end
     await this.saveModel();
   }
 
-  // --- Persistence ---
-
+  /**
+   * Persists the model parameters to Firestore.
+   */
   private async saveModel() {
     if (!this.userId) return;
     try {
-      // Flatten for storage
       const serialized = this.arms.map(arm => ({
         A: arm.A.flat(),
         b: arm.b
@@ -205,6 +243,9 @@ export class LinUCBService {
     }
   }
 
+  /**
+   * Loads the model parameters from Firestore.
+   */
   private async loadModel() {
     if (!this.userId) return;
     try {
@@ -214,20 +255,17 @@ export class LinUCBService {
         const raw = docData.data;
         const storedFeatures = docData.features || 0;
 
-        // Validation: If feature dimensions changed, we must reset to avoid math errors
         if (storedFeatures !== NUM_FEATURES) {
             console.warn("LinUCB dimension mismatch. Resetting model.");
             this.resetModel();
             return;
         }
         
-        // Map loaded data
         const loadedArms = raw.map((r: any) => ({
           A: this.unflatten(r.A, NUM_FEATURES),
           b: r.b
         }));
 
-        // Migration Check: If we added new arms since last save, pad the array
         if (loadedArms.length < NUM_ARMS) {
            const missingCount = NUM_ARMS - loadedArms.length;
            for (let i = 0; i < missingCount; i++) {
@@ -241,7 +279,7 @@ export class LinUCBService {
         this.arms = loadedArms;
         this.isInitialized = true;
       } else {
-        this.resetModel(); // New user
+        this.resetModel();
       }
     } catch (e) {
       console.warn("Failed to load LinUCB model, using default", e);
@@ -249,6 +287,9 @@ export class LinUCBService {
     }
   }
 
+  /**
+   * Converts a flat array back into a square matrix.
+   */
   private unflatten(arr: number[], size: number): number[][] {
     const res = [];
     for (let i = 0; i < size; i++) {

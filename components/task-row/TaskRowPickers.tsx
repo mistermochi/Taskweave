@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Hash, CalendarClock, Calendar, Repeat, Clock, Zap, Pause, GitBranch, Share2 } from 'lucide-react';
 import { TaskEntity, Tag, RecurrenceConfig, EnergyLevel } from '@/types';
@@ -11,17 +10,31 @@ import { RecurrencePicker as RecurrenceInlinePicker } from '@/components/pickers
 import { DependencyPicker } from '@/components/pickers/DependencyPicker';
 import { formatRecurrence } from '@/utils/timeUtils';
 
+/**
+ * Interface for TaskRowPickers props.
+ */
 interface TaskRowPickersProps {
+    /** The task entity being configured. */
     task: TaskEntity;
+    /** All tasks for dependency lookup. */
     allTasks: TaskEntity[];
+    /** All available user tags. */
     tags: Tag[];
+    /** The tag ID currently in the draft. */
     effectiveTagId: string;
+    /** The duration currently in the draft. */
     effectiveDuration: number;
+    /** The energy level currently in the draft. */
     effectiveEnergy: EnergyLevel;
+    /** The assigned date currently in the draft. */
     effectiveAssignedDate: number | undefined;
+    /** The due date currently in the draft. */
     effectiveDueDate: number | undefined;
+    /** The recurrence rules currently in the draft. */
     effectiveRecurrence: RecurrenceConfig | undefined;
+    /** Array of task IDs currently blocking this task. */
     effectiveBlockedBy: string[];
+    /** Callbacks for updating draft state. */
     onTagChange: (tagId: string) => void;
     onDurationChange: (duration: number) => void;
     onEnergyChange: (energy: EnergyLevel) => void;
@@ -29,15 +42,34 @@ interface TaskRowPickersProps {
     onDueDateChange: (date: number | undefined) => void;
     onRecurrenceChange: (recurrence: RecurrenceConfig | undefined) => void;
     onBlockedByChange: (ids: string[]) => void;
+    /** Whether the parent row is in edit mode. */
     isEditing: boolean;
+    /** Whether the task has passed its due date. */
     isOverdue: boolean;
+    /** Resolved display name for the current tag. */
     tagName: string;
+    /** Resolved color for the current tag. */
     tagColor: string;
+    /** Whether the task is the active focus target. */
     isFocused?: boolean;
+    /** Formatted timer display (e.g. "24:59"). */
     timeDisplay?: string | null;
+    /** Whether the focus timer is actively running. */
     isRunning?: boolean;
 }
 
+/**
+ * Orchestrator for all metadata pickers (chips) within a task row.
+ * In display mode, it shows a subset of metadata as simple icons/text.
+ * In edit mode, it transforms into a row of interactive buttons that open
+ * specialized flyout menus.
+ *
+ * @component
+ * @interaction
+ * - Manages the visibility of secondary attributes (Dates, Recurrence, Blockers).
+ * - Provides live timer feedback if the task is focused.
+ * - Displays inverse dependency info ("Blocking X tasks").
+ */
 export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({ 
     task,
     allTasks,
@@ -64,6 +96,9 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
     timeDisplay,
     isRunning
 }) => {
+    /**
+     * Identifies tasks that this specific task is currently blocking.
+     */
     const tasksBeingBlocked = useMemo(() => {
         if (!allTasks) return [];
         return allTasks.filter(t => t.blockedBy?.includes(task.id) && t.status !== 'completed');
@@ -82,34 +117,29 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
     const dependencyCount = effectiveBlockedBy?.length || 0;
 
     const tagChipButtonStyle = (isEditing && effectiveTagId) ? {
-        backgroundColor: `${tagColor}1A`, // ~10% opacity
-        borderColor: `${tagColor}33`, // ~20% opacity
+        backgroundColor: `${tagColor}1A`,
+        borderColor: `${tagColor}33`,
     } : undefined;
 
     return (
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            {/* Project Picker */}
             <Chip 
                 icon={Hash}
                 label={tagName}
                 isEditing={isEditing}
                 isActive={!!effectiveTagId}
-                
-                // For text color in both modes, use inline styles
                 iconColor={tagColor}
                 labelColor={tagColor}
-
-                // For bg/border in edit mode. These static classes are for the non-dynamic "Inbox" case.
                 bgClass={!effectiveTagId ? 'bg-foreground/5' : undefined}
                 borderClass={!effectiveTagId ? 'border-transparent' : undefined}
                 colorClass={!effectiveTagId ? 'text-secondary' : undefined}
-
-                // New prop for dynamic styling in edit mode
                 buttonStyle={tagChipButtonStyle}
-
                 flyoutContent={(close) => <TagPicker tags={tags} selectedTagId={effectiveTagId} onSelect={(id) => { onTagChange(id); close(); }} />}
             />
             {!isEditing && effectiveTagId && <span className="w-1 h-1 rounded-full bg-secondary/30"></span>}
 
+            {/* Scheduled Date Picker */}
             {(isEditing || effectiveAssignedDate) && (
                 <Chip 
                     icon={CalendarClock}
@@ -123,6 +153,7 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
                 />
             )}
 
+            {/* Due Date (Deadline) Picker */}
             {(isEditing || effectiveDueDate) && (
                 <Chip 
                     icon={Calendar}
@@ -136,6 +167,7 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
                 />
             )}
 
+            {/* Recurrence Config (Only visible if a due date is set) */}
             {isEditing && effectiveDueDate && (
                 <Chip 
                     icon={Repeat}
@@ -150,6 +182,7 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
             )}
             {!isEditing && effectiveRecurrence && <Repeat size={10} className="text-secondary/50" />}
 
+            {/* Duration Picker / Timer Feedback */}
             {isFocused && !isEditing && timeDisplay ? (
                 <div className={`flex items-center gap-1.5 text-[11px] font-medium ${isRunning ? 'text-primary' : 'text-secondary'}`}>
                     {isRunning ? (
@@ -169,6 +202,7 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
                 />
             )}
 
+            {/* Energy Level Picker */}
             <Chip 
                 icon={Zap}
                 label={effectiveEnergy === 'Medium' ? 'Med' : effectiveEnergy}
@@ -181,6 +215,7 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
                 flyoutContent={(close) => <EnergyPicker energy={effectiveEnergy} onChange={(e) => { onEnergyChange(e); close(); }} />}
             />
 
+            {/* Dependency (Blocker) Picker */}
             {(isEditing || dependencyCount > 0) && (
                 <Chip
                     icon={GitBranch}
@@ -201,6 +236,7 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
                 />
             )}
             
+            {/* Inverse Dependency Status */}
             {!isEditing && tasksBeingBlocked.length > 0 && (
                 <div 
                     className="flex items-center gap-1 text-[11px] text-blue-400 font-medium"

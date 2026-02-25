@@ -1,3 +1,9 @@
+/**
+ * @file Unit tests for SmileyScale component.
+ * Verifies that the interactive mood selector updates its state
+ * and triggers callbacks when a smiley is selected.
+ */
+
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SmileyScale } from '../components/dashboard/SmileyScale';
@@ -6,7 +12,7 @@ import { Laugh } from 'lucide-react'; // Import one of the icons to check for it
 describe('SmileyScale', () => {
   it('renders all 5 smiley options', () => {
     render(<SmileyScale value={3} onChange={() => {}} />);
-    
+
     // Find all buttons, which represent the smileys
     const smileyButtons = screen.getAllByRole('button');
     expect(smileyButtons).toHaveLength(5);
@@ -30,11 +36,11 @@ describe('SmileyScale', () => {
 
   it('applies active styles to the currently selected value', () => {
     const { container } = render(<SmileyScale value={4} onChange={() => {}} />);
-    
+
     // The 4th button (index 3) should have the 'scale-110' class indicating it's active
     const smileyButtons = screen.getAllByRole('button');
     expect(smileyButtons[3]).toHaveClass('scale-110');
-    
+
     // The 1st button (index 0) should have 'opacity-40' indicating it's inactive
     expect(smileyButtons[0]).toHaveClass('opacity-40');
   });

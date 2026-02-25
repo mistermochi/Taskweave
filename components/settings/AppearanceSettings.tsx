@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Sparkles, Sun, Moon } from 'lucide-react';
@@ -12,11 +11,22 @@ const THEME_COLORS = {
   pink: { name: 'Orchid', hsl: '330 85% 60%' },
 };
 
+/**
+ * Interface for AppearanceSettings props.
+ */
 interface AppearanceSettingsProps {
+  /** The current user settings object. */
   settings: Partial<UserSettings>;
+  /** Callback to update one or more settings. */
   updateSettings: (newSettings: Partial<UserSettings>) => void;
 }
 
+/**
+ * Settings section for customizing the application's visual style.
+ * Allows toggling between Light/Dark mode and selecting a brand accent color.
+ *
+ * @component
+ */
 export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ settings, updateSettings }) => {
   return (
     <Card>
@@ -31,17 +41,25 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ settings
       </CardHeader>
       <CardContent className='pt-0'>
         <div className="space-y-4">
+          {/* Theme Mode Toggle */}
           <div>
             <label className="text-xs text-secondary/80 font-bold uppercase tracking-wider">Mode</label>
             <div className="grid grid-cols-2 gap-2 mt-2">
-              <button onClick={() => updateSettings({ themeMode: 'light' })} className={`py-2 flex items-center justify-center gap-2 text-sm font-medium rounded-lg border transition-colors ${settings.themeMode === 'light' ? 'bg-foreground/10 text-foreground border-foreground/20' : 'text-secondary bg-surface-highlight border-border hover:border-foreground/20'}`}>
+              <button
+                onClick={() => updateSettings({ themeMode: 'light' })}
+                className={`py-2 flex items-center justify-center gap-2 text-sm font-medium rounded-lg border transition-colors ${settings.themeMode === 'light' ? 'bg-foreground/10 text-foreground border-foreground/20' : 'text-secondary bg-surface-highlight border-border hover:border-foreground/20'}`}
+              >
                 <Sun size={14} /> Light
               </button>
-              <button onClick={() => updateSettings({ themeMode: 'dark' })} className={`py-2 flex items-center justify-center gap-2 text-sm font-medium rounded-lg border transition-colors ${settings.themeMode === 'dark' ? 'bg-foreground/10 text-foreground border-foreground/20' : 'text-secondary bg-surface-highlight border-border hover:border-foreground/20'}`}>
+              <button
+                onClick={() => updateSettings({ themeMode: 'dark' })}
+                className={`py-2 flex items-center justify-center gap-2 text-sm font-medium rounded-lg border transition-colors ${settings.themeMode === 'dark' ? 'bg-foreground/10 text-foreground border-foreground/20' : 'text-secondary bg-surface-highlight border-border hover:border-foreground/20'}`}
+              >
                 <Moon size={14} /> Dark
               </button>
             </div>
           </div>
+          {/* Accent Color Picker */}
           <div>
             <label className="text-xs text-secondary/80 font-bold uppercase tracking-wider">Accent Color</label>
             <div className="flex flex-wrap gap-3 mt-2">
@@ -52,7 +70,10 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ settings
                   className="flex items-center gap-2"
                   title={value.name}
                 >
-                  <div style={{ backgroundColor: `hsl(${value.hsl})` }} className={`w-8 h-8 rounded-full border-2 transition-all ${settings.themeColor === key ? 'border-foreground scale-110' : 'border-transparent opacity-70 hover:opacity-100'}`} />
+                  <div
+                    style={{ backgroundColor: `hsl(${value.hsl})` }}
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${settings.themeColor === key ? 'border-foreground scale-110' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                  />
                 </button>
               ))}
             </div>

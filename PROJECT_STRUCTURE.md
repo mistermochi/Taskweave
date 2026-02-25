@@ -1,6 +1,6 @@
-# Project Structure: Focus Flow
+# Project Structure: Taskweave
 
-Focus Flow is a biometric-aware productivity system designed to adapt to user energy levels. It follows a modular architecture with a clear separation of concerns between data services, state management (context), and UI components.
+Taskweave is a biometric-aware productivity system designed to adapt to user energy levels. It follows a modular architecture with a clear separation of concerns between data services, state management (context), and UI components.
 
 ## Directory Overview
 

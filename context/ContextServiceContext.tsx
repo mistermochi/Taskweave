@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useMemo } from 'react';
 import { ContextService } from '../services/ContextService';
 import { useUserId } from '../hooks/useFirestore';

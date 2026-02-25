@@ -1,5 +1,11 @@
 
 
+/**
+ * @file Unit tests for TaskRow component.
+ * Verifies that task information is displayed correctly and that
+ * user interactions (complete, focus, edit) trigger the expected actions.
+ */
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';

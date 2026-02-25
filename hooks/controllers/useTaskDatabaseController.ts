@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTaskContext } from '@/context/TaskContext';
 import { useReferenceContext } from '@/context/ReferenceContext';
@@ -15,6 +13,15 @@ import { calculateSessionImpact } from '@/utils/energyUtils';
 import { getNextRecurrenceDate } from '@/utils/timeUtils';
 import { where } from 'firebase/firestore';
 
+/**
+ * View Controller for the Task Inventory (Database) interface.
+ * Handles the high-level logic for searching, filtering by tag hierarchies,
+ * grouping tasks into temporal sections (Overdue, Today, Upcoming, Inbox),
+ * and processing AI-driven task recommendations within the list.
+ *
+ * @param activeTagFilter - The ID of the currently selected tag for filtering.
+ * @returns State (grouped tasks, search state, recommendation) and Actions (CRUD operations, scheduling).
+ */
 export const useTaskDatabaseController = (activeTagFilter: string | null) => {
   const uid = useUserId();
   const { tasks: allActiveTasks } = useTaskContext();
@@ -22,17 +29,22 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
   const energyModel = useEnergyModel();
   
   const [searchQuery, setSearchQuery] = useState("");
+  /** Current AI-driven recommendation for the "Best Next Task" in the inventory. */
   const [recommendation, setRecommendation] = useState<{ taskId: string; reason: string; strategy: string } | null>(null);
   
   const { data: completedTasks } = useFirestoreCollection<TaskEntity>('tasks', [where('status', '==', 'completed')]);
   const taskService = TaskService.getInstance();
 
-  // Init Bandit
+  /**
+   * Initializes the machine learning engine with the current user's ID.
+   */
   useEffect(() => {
     if (uid) LinUCBService.getInstance().setUserId(uid);
   }, [uid]);
 
-  // Recalculate Recommendation (Debounced/Effect based)
+  /**
+   * Recalculates the recommended task whenever the task list or user energy changes.
+   */
   useEffect(() => {
     if (allActiveTasks.length === 0) {
       setRecommendation(null);
@@ -70,7 +82,10 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
     calculateRecommendation();
   }, [allActiveTasks, completedTasks, uid, energyModel.currentEnergy, tags]);
 
-  // Helper to find all child tag IDs recursively
+  /**
+   * Recursive helper to find all child and descendant tag IDs.
+   * Enables "cascading" filters where selecting a parent tag shows tasks from all sub-tags.
+   */
   const getDescendantTagIds = useCallback((rootId: string, allTags: Tag[]): Set<string> => {
       const descendants = new Set<string>();
       descendants.add(rootId);
@@ -87,9 +102,10 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
       return descendants;
   }, []);
 
-  // --- Filtering & Grouping Logic ---
+  /**
+   * Filters tasks based on search query and active tag (including sub-tags).
+   */
   const filteredTasks = useMemo(() => {
-      // The context now only provides active tasks.
       return allActiveTasks.filter(t => {
           if (searchQuery) {
             const lowerCaseQuery = searchQuery.toLowerCase();
@@ -106,6 +122,9 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
       });
   }, [allActiveTasks, searchQuery, activeTagFilter, tags, getDescendantTagIds]);
 
+  /**
+   * Partitions the filtered tasks into logical UI sections based on dates and status.
+   */
   const sections = useMemo(() => {
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -119,7 +138,6 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
         inbox: TaskEntity[];
     } = { overdue: [], today: [], upcoming: [], inbox: [] };
 
-    // Single pass to categorize all active tasks
     for (const task of filteredTasks) {
         if (task.isFocused || (task.assignedDate && task.assignedDate >= startOfToday && task.assignedDate < endOfToday)) {
             tempSections.today.push(task);
@@ -132,33 +150,28 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
         }
     }
     
-    // Sort each section for a consistent and logical UI
     tempSections.overdue.sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0));
     tempSections.today.sort((a, b) => ((b.isFocused ? 1 : 0) - (a.isFocused ? 1 : 0)) || ((a.assignedDate || 0) - (b.assignedDate || 0)));
     tempSections.upcoming.sort((a, b) => (a.assignedDate || a.dueDate || 0) - (b.assignedDate || b.dueDate || 0));
     
     tempSections.inbox.sort((a, b) => {
-        // 1. Primary: AI Recommendation
         const isARecommended = recommendation?.taskId === a.id;
         const isBRecommended = recommendation?.taskId === b.id;
         if (isARecommended) return -1;
         if (isBRecommended) return 1;
 
-        // 2. Secondary: Urgency (Due Date)
         const aHasDue = !!a.dueDate;
         const bHasDue = !!b.dueDate;
-        if (aHasDue && !bHasDue) return -1; // a is more urgent
-        if (!aHasDue && bHasDue) return 1;  // b is more urgent
+        if (aHasDue && !bHasDue) return -1;
+        if (!aHasDue && bHasDue) return 1;
         if (aHasDue && bHasDue) {
             const dueDateDiff = (a.dueDate || 0) - (b.dueDate || 0);
             if (dueDateDiff !== 0) return dueDateDiff;
         }
 
-        // 3. Tertiary: Duration
         const durationDiff = a.duration - b.duration;
         if (durationDiff !== 0) return durationDiff;
 
-        // 4. Quaternary: Recency
         return b.createdAt - a.createdAt;
     });
 
@@ -170,6 +183,9 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
       return {
           setSearchQuery,
           
+          /**
+           * Rejects the AI recommendation and logs the negative feedback to the learning engine.
+           */
           rejectRecommendation: async () => {
             if (!uid || !recommendation) return;
 
@@ -189,11 +205,12 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
             };
 
             await RecommendationEngine.getInstance().logRejection(context, recommendation.strategy);
-            
-            // Hide the recommendation after rejecting it.
             setRecommendation(null);
           },
 
+          /**
+           * Completes a task immediately without opening a timer session.
+           */
           quickCompleteTask: async (task: TaskEntity): Promise<number | null> => {
             if (!uid) return null;
             const durationSeconds = task.duration * 60;
@@ -207,6 +224,9 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
           
           uncompleteTask: (taskId: string) => taskService.uncompleteTask(taskId),
 
+          /**
+           * Schedules a task to be performed during the current day.
+           */
           scheduleForToday: async (task: TaskEntity) => {
               if (!uid) return;
               const now = new Date();
@@ -214,6 +234,9 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
               await taskService.updateTask(task.id, { assignedDate: today.getTime() });
           },
 
+          /**
+           * Creates a new task with optional metadata overrides.
+           */
           createTask: async (title: string, overrides?: Partial<TaskEntity>): Promise<number | null> => {
               if (!uid || !title.trim()) return null;
 

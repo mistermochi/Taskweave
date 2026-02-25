@@ -1,10 +1,16 @@
-
 'use client';
 
 import React from 'react';
 import { X, Wind } from 'lucide-react';
 import { useBreathingController } from '../hooks/controllers/useBreathingController';
 
+/**
+ * Interactive view for guided breathing exercises.
+ * It uses a visual expand/contract animation to guide the user's breath
+ * and helps stabilize their biological energy levels.
+ *
+ * @component
+ */
 export const BreathingView: React.FC = () => {
   const { state, actions } = useBreathingController();
   const { phase, text } = state;

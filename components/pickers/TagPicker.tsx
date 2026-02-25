@@ -1,19 +1,36 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tag } from '../../types';
 import { Check, ChevronRight, ChevronDown, Hash } from 'lucide-react';
 import { PickerContainer } from './PickerContainer';
 
+/**
+ * Interface for TagPicker props.
+ */
 interface TagPickerProps {
+  /** Full list of tags to display in the tree. */
   tags: Tag[];
+  /** The currently selected tag ID (empty string for Inbox). */
   selectedTagId: string;
+  /** Callback triggered when a tag is selected. */
   onSelect: (tagId: string) => void;
 }
 
+/**
+ * A hierarchical tree-based picker for selecting a task's project (Tag).
+ * It supports nested levels and includes an "Inbox" (no-tag) option.
+ *
+ * @component
+ * @interaction
+ * - Automatically expands the tree branches to reveal the currently selected tag on mount.
+ * - Allows toggling branch expansion without selecting a tag.
+ * - Displays a checkmark indicator for the active selection.
+ */
 export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSelect }) => {
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
 
-  // Auto-expand to show selected
+  /**
+   * Auto-expand to show selected tag in the hierarchy.
+   */
   useEffect(() => {
     if (selectedTagId) {
         const parentIds = new Set<string>();
@@ -34,6 +51,9 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
     setExpandedTags(newSet);
   };
 
+  /**
+   * Recursive function to render the tag tree branches.
+   */
   const renderTree = (parentId: string | null, depth: number = 0) => {
     const children = tags.filter(t => t.parentId === parentId).sort((a, b) => a.order - b.order);
     if (children.length === 0) return null;
@@ -79,7 +99,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
   return (
     <PickerContainer title="Set Project" className="w-48">
         <div className="max-h-64 overflow-y-auto no-scrollbar">
-            {/* Inbox Option */}
+            {/* Global Inbox Option */}
             <div className="flex items-center w-full hover:bg-foreground/10 rounded-lg transition-colors group/row select-none" onClick={() => onSelect('')}>
                 <div className="flex-1 flex items-center gap-2 py-1.5 pl-2 cursor-pointer">
                     <div className="w-4 h-4 rounded-full flex items-center justify-center bg-foreground/5 text-secondary"><Hash size={10} /></div>

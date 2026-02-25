@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef } from 'react';
@@ -11,11 +10,26 @@ import { TagPicker } from './pickers/TagPicker';
 import Flyout from './ui/Flyout';
 import { Category } from '@/types';
 
+/**
+ * Interface for QuickFocusModal props.
+ */
 interface QuickFocusModalProps {
+  /** Whether the modal is currently visible. */
   isOpen: boolean;
+  /** Callback to close the modal. */
   onClose: () => void;
 }
 
+/**
+ * Modal dialog for starting an unplanned, "adhoc" focus session.
+ * It allows the user to quickly name a task and pick a project without
+ * going through the full creation form.
+ *
+ * @component
+ * @interaction
+ * - Creates a new task with 0 duration, which triggers an "upward counting" timer mode.
+ * - Automatically transitions to the focused view for the new task upon creation.
+ */
 export const QuickFocusModal: React.FC<QuickFocusModalProps> = ({ isOpen, onClose }) => {
   const { tags } = useReferenceContext();
   const { focusOnTask } = useNavigation();
@@ -27,15 +41,17 @@ export const QuickFocusModal: React.FC<QuickFocusModalProps> = ({ isOpen, onClos
   const pickerTriggerRef = useRef<HTMLButtonElement>(null);
 
 
+  /**
+   * Creates the adhoc task and starts the focus session.
+   */
   const handleStartFocus = async () => {
     if (!title.trim()) return;
 
-    // Create a new task with 0 duration for upward counting timer
     const newTaskId = await TaskService.getInstance().addTask(
       title.trim(),
       categoryId,
-      0, // Duration 0
-      50, // Default medium energy
+      0,
+      50,
       '',
       undefined,
       undefined
@@ -43,7 +59,7 @@ export const QuickFocusModal: React.FC<QuickFocusModalProps> = ({ isOpen, onClos
 
     if (newTaskId) {
       onClose();
-      // Use a timeout to ensure modal is closed before focus player animates in
+      // Delay to allow modal exit animation to finish
       setTimeout(() => {
         focusOnTask(newTaskId);
       }, 100);
@@ -69,6 +85,7 @@ export const QuickFocusModal: React.FC<QuickFocusModalProps> = ({ isOpen, onClos
         </p>
 
         <div className="space-y-4">
+          {/* Task Title Input */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-widest text-secondary/50 mb-2">
               Task Title
@@ -83,6 +100,7 @@ export const QuickFocusModal: React.FC<QuickFocusModalProps> = ({ isOpen, onClos
               autoFocus
             />
           </div>
+          {/* Project/Tag Picker */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-widest text-secondary/50 mb-2">
               Project

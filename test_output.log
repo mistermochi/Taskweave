@@ -1,0 +1,8 @@
+Error: Jest: Failed to parse the TypeScript config file /app/jest.config.ts
+  Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'next' imported from /app/jest.config.ts
+    at readConfigFileAndSetRootDir (/home/jules/.nvm/versions/node/v22.22.0/lib/node_modules/jest/node_modules/jest-config/build/index.js:2274:13)
+    at async readInitialOptions (/home/jules/.nvm/versions/node/v22.22.0/lib/node_modules/jest/node_modules/jest-config/build/index.js:1147:13)
+    at async readConfig (/home/jules/.nvm/versions/node/v22.22.0/lib/node_modules/jest/node_modules/jest-config/build/index.js:918:7)
+    at async readConfigs (/home/jules/.nvm/versions/node/v22.22.0/lib/node_modules/jest/node_modules/jest-config/build/index.js:1168:26)
+    at async runCLI (/home/jules/.nvm/versions/node/v22.22.0/lib/node_modules/jest/node_modules/@jest/core/build/index.js:1407:7)
+    at async Object.run (/home/jules/.nvm/versions/node/v22.22.0/lib/node_modules/jest/node_modules/jest-cli/build/index.js:656:9)

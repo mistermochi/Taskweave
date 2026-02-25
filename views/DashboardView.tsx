@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -19,7 +18,10 @@ import { SmileyScale } from '@/components/dashboard/SmileyScale';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Card } from '@/components/ui/Card';
 
-// Sidebar content, now without stats
+/**
+ * Internal component for rendering the sidebar widgets on the dashboard.
+ * Encapsulates the energy readiness, mood scale, and quick action buttons.
+ */
 const DashboardSidebarContent = () => {
     const { state, actions } = useDashboardController();
     const { focusOnTask, startBreathing, startGrounding, showChat } = useNavigation();
@@ -79,6 +81,17 @@ const DashboardSidebarContent = () => {
     )
 }
 
+/**
+ * The primary landing view of the application.
+ * Displays the current focus intention, the suggested plan for today,
+ * and identifies overdue items. Integrates energy tracking and quick wellbeing tools.
+ *
+ * @component
+ * @interaction
+ * - Uses `useDashboardController` to orchestrate task logic and recommendations.
+ * - Synchronizes the daily focus intention with Firestore.
+ * - Handles task completion, undo, and archival from the main list.
+ */
 export const DashboardView: React.FC = () => {
   const { state, actions } = useDashboardController();
   const { focusOnTask, quickAddTask } = useNavigation();
@@ -86,7 +99,7 @@ export const DashboardView: React.FC = () => {
   const [intention, setIntention] = useState(state.latestFocus);
   const [toast, setToast] = useState({ visible: false, message: "", lastCompletedId: null as string | null });
 
-  // Sync state
+  // Sync intention state when the database updates
   useEffect(() => { setIntention(state.latestFocus); }, [state.latestFocus]);
 
   const handleIntentionBlur = () => {
@@ -100,6 +113,9 @@ export const DashboardView: React.FC = () => {
     }, 5000);
   };
 
+  /**
+   * Completes a task and shows a success toast with the next recurrence date if applicable.
+   */
   const handleComplete = async (task: TaskEntity) => {
       const nextDate = await actions.completeTask(task);
       if (nextDate) {
@@ -110,6 +126,9 @@ export const DashboardView: React.FC = () => {
       }
   };
 
+  /**
+   * Reverts the status of the most recently completed task.
+   */
   const handleUndo = () => {
     if (toast.lastCompletedId) {
       actions.updateTask(toast.lastCompletedId, { status: 'active', completedAt: null as any });
@@ -127,7 +146,6 @@ export const DashboardView: React.FC = () => {
       showToast("Task archived");
   };
 
-  // Date Logic
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
 
@@ -209,7 +227,7 @@ export const DashboardView: React.FC = () => {
                         </Page.Section>
                     )}
 
-                    {/* Quick Add Placeholder (Navigates to Inbox for creating) */}
+                    {/* Quick Add Placeholder */}
                     <button 
                         onClick={() => quickAddTask()}
                         className="w-full py-3 rounded-lg border border-border hover:bg-foreground/5 text-secondary hover:text-foreground transition-all flex items-center gap-2 px-3 group"

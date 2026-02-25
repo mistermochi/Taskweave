@@ -1,19 +1,33 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Zap, MapPin, Move, Battery } from 'lucide-react';
 import { UserSettings } from '@/hooks/useUserSettings';
 import { ContextService } from '@/services/ContextService';
 
+/**
+ * Interface for ContextSensorsSettings props.
+ */
 interface ContextSensorsSettingsProps {
+  /** The current user settings object. */
   settings: Partial<UserSettings>;
+  /** Callback to update one or more settings. */
   updateSettings: (newSettings: Partial<UserSettings>) => void;
 }
 
+/**
+ * Settings section for managing hardware sensor permissions and context detection.
+ * Allows the user to enable/disable location and motion tracking, which are used
+ * to provide personalized, environment-aware task suggestions.
+ *
+ * @component
+ */
 export const ContextSensorsSettings: React.FC<ContextSensorsSettingsProps> = ({ settings, updateSettings }) => {
   const [locationStatus, setLocationStatus] = useState<string>(settings.homeLat ? 'Home Location Set' : 'Unknown');
   const contextService = ContextService.getInstance();
 
+  /**
+   * Toggles the use of the Geolocation API.
+   */
   const toggleLocation = () => {
     const newState = !settings.useLocation;
     updateSettings({ useLocation: newState });
@@ -23,6 +37,10 @@ export const ContextSensorsSettings: React.FC<ContextSensorsSettingsProps> = ({ 
     }
   };
 
+  /**
+   * Toggles the use of the Device Motion API.
+   * Requests explicit browser permission if required (e.g., on iOS).
+   */
   const toggleMotion = async () => {
     const newState = !settings.useMotion;
     
@@ -38,6 +56,10 @@ export const ContextSensorsSettings: React.FC<ContextSensorsSettingsProps> = ({ 
     }
   };
 
+  /**
+   * Captures the user's current coordinates and saves them as the "Home" baseline
+   * for location-aware logic.
+   */
   const setHomeLocation = () => {
     if ('geolocation' in navigator) {
       setLocationStatus('Locating...');
@@ -72,7 +94,7 @@ export const ContextSensorsSettings: React.FC<ContextSensorsSettingsProps> = ({ 
       </CardHeader>
       <CardContent className='pt-0'>
         <div className="space-y-4">
-          {/* Location */}
+          {/* Location Toggle */}
           <div className="flex items-center justify-between p-3 bg-surface-highlight rounded-xl border border-border">
             <div className="flex items-center gap-3">
               <MapPin size={18} className={settings.useLocation ? "text-primary" : "text-secondary"} />
@@ -89,7 +111,7 @@ export const ContextSensorsSettings: React.FC<ContextSensorsSettingsProps> = ({ 
             </button>
           </div>
 
-          {/* Home Location */}
+          {/* Home Baseline Configuration */}
           {settings.useLocation && (
             <div className="flex items-center justify-between p-3 bg-surface-highlight rounded-xl border border-border">
               <div className="flex flex-col">
@@ -105,7 +127,7 @@ export const ContextSensorsSettings: React.FC<ContextSensorsSettingsProps> = ({ 
             </div>
           )}
 
-          {/* Motion */}
+          {/* Motion Toggle */}
           <div className="flex items-center justify-between p-3 bg-surface-highlight rounded-xl border border-border">
             <div className="flex items-center gap-3">
               <Move size={18} className={settings.useMotion ? "text-primary" : "text-secondary"} />
@@ -122,6 +144,7 @@ export const ContextSensorsSettings: React.FC<ContextSensorsSettingsProps> = ({ 
             </button>
           </div>
 
+          {/* Static Battery Status Indicator */}
           <div className="flex items-center justify-between p-3 bg-surface-highlight rounded-xl border border-border opacity-75">
             <div className="flex items-center gap-3">
               <Battery size={18} className="text-secondary" />

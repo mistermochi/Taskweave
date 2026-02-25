@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useVitalsContext } from '@/context/VitalsContext';
 import { useUserId } from '@/hooks/useFirestore';
@@ -7,6 +6,17 @@ import { doc, setDoc } from 'firebase/firestore';
 import { calculatePassiveDrain, normalizeEnergy } from '@/utils/energyUtils';
 import { getStartOfDay } from '@/utils/timeUtils';
 
+/**
+ * Hook that manages the simulation of "biological battery drain" when the user is inactive.
+ * It runs once upon application load/auth and calculates how much energy has been lost
+ * since the last app usage or the daily reset (4:00 AM).
+ *
+ * @interaction
+ * - On first run, checks if the last mood log was from a previous day.
+ * - If it's a new day, it performs a "Daily Reset" (starting from 100% energy at 4:00 AM).
+ * - If it's the same day, it applies the hourly passive drain rate.
+ * - Persists the calculated energy level back to Firestore as a new vital entry.
+ */
 export const usePassiveDrain = () => {
   const { vitals, loading } = useVitalsContext();
   const uid = useUserId();

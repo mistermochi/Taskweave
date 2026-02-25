@@ -5,21 +5,38 @@ import { Tag, TaskEntity } from '@/types';
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { TagService } from '@/services/TagService';
 
+/**
+ * Interface for TagEditPicker props.
+ */
 interface TagEditPickerProps {
+    /** The tag entity being edited. */
     tag: Tag;
+    /** All available tags for hierarchy context. */
     allTags: Tag[];
+    /** All available tasks for impact analysis (e.g. "x tasks will be affected"). */
     allTasks: TaskEntity[];
+    /** Callback triggered when the edit is saved. */
     onSave: (id: string, name: string, color: string) => void;
+    /** Callback to cancel editing. */
     onCancel: () => void;
 }
 
 const COLORS = ['#9333ea', '#d97706', '#16a34a', '#0284c7', '#db2777', '#dc2626', '#7c3aed', '#ca8a04'];
 
+/**
+ * UI component for modifying tag metadata (name, color) or deleting a tag.
+ * Includes a "Safe Delete" confirmation flow that warns about affected tasks.
+ *
+ * @component
+ */
 export const TagEditPicker: React.FC<TagEditPickerProps> = ({ tag, allTags, allTasks, onSave, onCancel }) => {
     const [name, setName] = useState(tag.name);
     const [color, setColor] = useState(tag.color);
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
+    /**
+     * Calculates how many items will be affected if this tag is deleted.
+     */
     const relatedCounts = useMemo(() => {
         const taskCount = allTasks.filter(t => t.category === tag.id).length;
         const subProjectCount = allTags.filter(t => t.parentId === tag.id).length;
@@ -41,7 +58,7 @@ export const TagEditPicker: React.FC<TagEditPickerProps> = ({ tag, allTags, allT
     const handleConfirmDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
         await TagService.getInstance().deleteTag(tag.id);
-        onCancel(); // Close picker on success
+        onCancel();
     };
 
     const handleCancelDelete = (e: React.MouseEvent) => {
@@ -88,6 +105,7 @@ export const TagEditPicker: React.FC<TagEditPickerProps> = ({ tag, allTags, allT
                     <Trash2 size={14} />
                 </button>
             </div>
+            {/* Title Input */}
             <input 
                 type="text" 
                 value={name}
@@ -96,6 +114,7 @@ export const TagEditPicker: React.FC<TagEditPickerProps> = ({ tag, allTags, allT
                 className="w-full bg-foreground/5 border border-border rounded-lg px-2 py-1.5 text-foreground text-sm focus:border-primary/50 outline-none mb-3"
                 autoFocus
             />
+            {/* Color Swatches */}
             <div className="grid grid-cols-4 gap-2 mb-3">
                 {COLORS.map(c => (
                     <button 
@@ -106,6 +125,7 @@ export const TagEditPicker: React.FC<TagEditPickerProps> = ({ tag, allTags, allT
                     />
                 ))}
             </div>
+            {/* Control Buttons */}
             <div className="flex items-center justify-end gap-2">
                 <button onClick={handleCancel} className="px-3 py-1.5 text-xs text-secondary font-bold hover:bg-foreground/10 rounded-md">Cancel</button>
                 <button onClick={handleSave} className="px-3 py-1.5 text-xs text-background font-bold bg-primary hover:bg-primary-dim rounded-md">Save</button>

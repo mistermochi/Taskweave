@@ -1,14 +1,28 @@
-
 import { TaskPattern, Category } from '../types/scheduling';
 import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { ContextService } from './ContextService';
 
+/**
+ * Service that analyzes historical activity logs to identify behavioral patterns.
+ * It provides insights into when the user is most productive, which categories
+ * they prefer, and how their energy levels correlate with task success.
+ */
 export class LearningEngine {
+  /** The Firestore collection where logs are stored. */
   private readonly COLLECTION = 'activityLogs';
+  /** Max number of historical patterns to keep in memory (currently unused). */
   private readonly MAX_PATTERNS = 50; 
+  /** Number of days to look back for pattern analysis. */
   private readonly LEARNING_WINDOW_DAYS = 30;
 
+  /**
+   * Records a task completion or decision event to Firestore for future analysis.
+   *
+   * @param context - The context in which the decision was made.
+   * @param userChoice - The category of task the user selected.
+   * @param success - Whether the task was successfully completed.
+   */
   async recordDecision(context: TaskPattern, userChoice: Category, success: boolean): Promise<void> {
     const uid = ContextService.getInstance().getUserId();
     if (!uid) return;
@@ -23,7 +37,6 @@ export class LearningEngine {
           userMood: `${userChoice} selected`,
           energyLevel: context.energyLevel,
           notes: `Task: ${context.taskCategory}, Success: ${success}, Time: ${context.timeOfDay}`,
-          // Store specific pattern data flat in 'data' for easier retrieval reconstruction
           taskCategory: context.taskCategory,
           timeOfDay: context.timeOfDay,
           dayOfWeek: context.dayOfWeek,
@@ -35,6 +48,11 @@ export class LearningEngine {
     }
   }
 
+  /**
+   * Retrieves the most recent behavior patterns from Firestore.
+   *
+   * @returns A promise resolving to an array of `TaskPattern` objects.
+   */
   async getLearnedPatterns(): Promise<TaskPattern[]> {
     const uid = ContextService.getInstance().getUserId();
     if (!uid) return [];
@@ -57,8 +75,6 @@ export class LearningEngine {
             const data = doc.data();
             const innerData = data.data || {};
             
-            // Reconstruct pattern from Firestore data
-            // Fallback values provided for legacy data integrity
             patterns.push({
                 taskCategory: (innerData.taskCategory as Category) || 'Work',
                 timeOfDay: innerData.timeOfDay !== undefined ? innerData.timeOfDay : new Date(data.timestamp).getHours(),
@@ -76,6 +92,9 @@ export class LearningEngine {
     }
   }
 
+  /**
+   * Calculates completion success rates for each task category.
+   */
   calculateCategoryPreferences(patterns: TaskPattern[]): { [key in Category]?: number } {
     const preferences: { [key in Category]?: number } = {};
     const categorySuccess: { [key in Category]?: { total: number; completed: number } } = {};
@@ -104,6 +123,9 @@ export class LearningEngine {
     return preferences;
   }
 
+  /**
+   * Identifies the most productive time blocks (Morning, Afternoon, Evening).
+   */
   calculateOptimalTimeSlots(patterns: TaskPattern[]): { morning: number; afternoon: number; evening: number } {
     const timeSlots = { morning: 0, afternoon: 0, evening: 0 };
     const slotCounts = { morning: 0, afternoon: 0, evening: 0 };
@@ -126,21 +148,22 @@ export class LearningEngine {
       }
     });
 
-    const successRates: typeof timeSlots = {
+    return {
       morning: slotCounts.morning > 0 ? timeSlots.morning / slotCounts.morning : 0,
       afternoon: slotCounts.afternoon > 0 ? timeSlots.afternoon / slotCounts.afternoon : 0,
       evening: slotCounts.evening > 0 ? timeSlots.evening / slotCounts.evening : 0
     };
-
-    return successRates;
   }
 
+  /**
+   * Determines preference for task durations.
+   */
   getTaskDurationPreferences(patterns: TaskPattern[]): { short: number; medium: number; long: number } {
     const durations = { short: 0, medium: 0, long: 0 };
     const durationCounts = { short: 0, medium: 0, long: 0 };
     
     patterns.forEach(pattern => {
-      const taskDuration = 30; // Implicit duration if not stored, could be improved by storing duration in activityLog
+      const taskDuration = 30; // Assumption for older logs
       
       let durationType: keyof typeof durations;
       if (taskDuration <= 15) {
@@ -157,15 +180,16 @@ export class LearningEngine {
       }
     });
 
-    const successRates: typeof durations = {
+    return {
       short: durationCounts.short > 0 ? durations.short / durationCounts.short : 0,
       medium: durationCounts.medium > 0 ? durations.medium / durationCounts.medium : 0,
       long: durationCounts.long > 0 ? durations.long / durationCounts.long : 0
     };
-
-    return successRates;
   }
 
+  /**
+   * Correlates task success with user energy levels.
+   */
   calculateEnergyAlignment(patterns: TaskPattern[]): { lowEnergy: number; mediumEnergy: number; highEnergy: number } {
     const energyLevels = { lowEnergy: 0, mediumEnergy: 0, highEnergy: 0 };
     const energyCounts = { lowEnergy: 0, mediumEnergy: 0, highEnergy: 0 };
@@ -187,15 +211,18 @@ export class LearningEngine {
       }
     });
 
-    const successRates: typeof energyLevels = {
+    return {
       lowEnergy: energyCounts.lowEnergy > 0 ? energyLevels.lowEnergy / energyCounts.lowEnergy : 0,
       mediumEnergy: energyCounts.mediumEnergy > 0 ? energyLevels.mediumEnergy / energyCounts.mediumEnergy : 0,
       highEnergy: energyCounts.highEnergy > 0 ? energyLevels.highEnergy / energyCounts.highEnergy : 0
     };
-
-    return successRates;
   }
 
+  /**
+   * Generates natural language insights based on learned behavior patterns.
+   *
+   * @returns A promise resolving to an array of insight strings.
+   */
   async generateInsights(): Promise<string[]> {
     const insights: string[] = [];
     const patterns = await this.getLearnedPatterns();

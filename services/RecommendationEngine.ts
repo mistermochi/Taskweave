@@ -1,41 +1,58 @@
-
 import { TaskEntity, Category, SuggestionContext, Suggestion, UserVital } from "@/types/scheduling";
 import { LinUCBService, StrategyArm, ARM_NAMES } from "./LinUCBService";
 import { AIService } from "./AIService";
 import { AIPromptBuilder } from "./AIPromptBuilder";
 import { normalizeEnergy } from "@/utils/energyUtils";
 
+/**
+ * High-level service that manages the generation of task and wellbeing suggestions.
+ * It integrates the `LinUCBService` (machine learning) with `AIService` (Gemini)
+ * and local heuristics to provide personalized recommendations.
+ *
+ * @singleton Use `RecommendationEngine.getInstance()` to access the service.
+ */
 export class RecommendationEngine {
+  /** Singleton instance of the engine. */
   private static instance: RecommendationEngine;
 
+  /**
+   * Returns the singleton instance of RecommendationEngine.
+   * @returns The RecommendationEngine instance.
+   */
   static getInstance(): RecommendationEngine {
     if (!this.instance) this.instance = new RecommendationEngine();
     return this.instance;
   }
 
-  // --- Calibration / Warm Start ---
-  // Uses Gemini to generate synthetic training data for the current task list
+  /**
+   * Performs a "warm start" calibration of the machine learning model.
+   * It uses the AI service to generate synthetic scenarios based on the user's current tasks
+   * and trains the LinUCB model on these scenarios.
+   *
+   * @param tasks - The user's actual task list to use as context for calibration.
+   * @returns A promise resolving to the number of synthetic samples trained.
+   *
+   * @logic
+   * 1. Fetches synthetic scenarios from `AIService.getCalibrationData`.
+   * 2. Maps each scenario to a context vector and strategy arm.
+   * 3. Performs batch training on the `LinUCBService`.
+   */
   async calibrate(tasks: TaskEntity[]): Promise<number> {
     const ai = AIService.getInstance();
     if (!ai.isAvailable()) throw new Error("AI Service not configured");
 
-    // 1. Get Synthetic Scenarios
     const scenarios = await ai.getCalibrationData(tasks);
     if (scenarios.length === 0) return 0;
 
-    // 2. Convert to Training Samples
     const samples: { x: number[], arm: number, reward: number }[] = [];
 
     for (const s of scenarios) {
-        // Find arm index
         const armIndex = ARM_NAMES.indexOf(s.strategy);
         if (armIndex === -1) continue;
 
-        // Construct synthetic context
         const mockDate = new Date();
         mockDate.setHours(s.hour, 0, 0, 0);
 
-        // Simulate "Last Task" if provided by AI to train Momentum/Palette Cleanser
         const mockCompleted: TaskEntity[] = [];
         if (s.lastCategory) {
             mockCompleted.push({
@@ -46,7 +63,7 @@ export class RecommendationEngine {
                 energy: 'Medium',
                 status: 'completed',
                 createdAt: Date.now(),
-                completedAt: mockDate.getTime() - (15 * 60000), // 15 mins ago
+                completedAt: mockDate.getTime() - (15 * 60000),
                 actualDuration: 30 * 60
             } as TaskEntity);
         }
@@ -65,7 +82,6 @@ export class RecommendationEngine {
 
         const x = this.buildContextVector(syntheticContext);
         
-        // Push sample with MAX reward (teaching the model this is "correct")
         samples.push({
             x,
             arm: armIndex,
@@ -73,12 +89,19 @@ export class RecommendationEngine {
         });
     }
 
-    // 3. Batch Train
     await LinUCBService.getInstance().batchTrain(samples);
     
     return samples.length;
   }
 
+  /**
+   * Resets the model and re-trains it by "replaying" the user's entire task history.
+   * This aligns the model with the user's organic behavior and historical success patterns.
+   *
+   * @param allTasks - All tasks (active and completed).
+   * @param allVitals - User wellness data (mood/energy logs).
+   * @returns A promise resolving to the number of historical events processed.
+   */
   async recalibrateFromHistory(allTasks: TaskEntity[], allVitals: UserVital[]): Promise<number> {
     const bandit = LinUCBService.getInstance();
     bandit.resetModel();
@@ -93,11 +116,10 @@ export class RecommendationEngine {
 
     let processedCount = 0;
     
-    // "Replay" history and learn from each organic completion
     for (const task of completedTasks) {
       const completionTime = task.completedAt!;
       
-      let energyAtTime = 75; // Default energy
+      let energyAtTime = 75;
       const priorVital = sortedVitals.findLast(v => v.timestamp < completionTime);
       if (priorVital) {
         energyAtTime = normalizeEnergy(priorVital.value as number);
@@ -105,12 +127,11 @@ export class RecommendationEngine {
 
       const previousCompletions = completedTasks.filter(t => t.completedAt! < completionTime);
       
-      // Reconstruct which tasks were 'active' at that specific moment in time
       const activeTasksAtTime = allTasks.filter(t => {
-        if (t.id === task.id) return false; // Exclude the task itself from its own context
-        if (t.createdAt > completionTime) return false; // Was not created yet
-        if (t.completedAt && t.completedAt < completionTime) return false; // Was already completed
-        if (t.archivedAt && t.archivedAt < completionTime) return false; // Was already archived
+        if (t.id === task.id) return false;
+        if (t.createdAt > completionTime) return false;
+        if (t.completedAt && t.completedAt < completionTime) return false;
+        if (t.archivedAt && t.archivedAt < completionTime) return false;
         return true;
       });
 
@@ -133,6 +154,12 @@ export class RecommendationEngine {
     return processedCount;
   }
 
+  /**
+   * Generates a personalized recommendation by querying the LinUCB bandit model.
+   *
+   * @param context - The current user and application context.
+   * @returns A promise resolving to the generated `Suggestion` and the name of the chosen strategy.
+   */
   async generateSuggestion(context: SuggestionContext): Promise<{ suggestion: Suggestion | null; strategy: string }> {
     const bandit = LinUCBService.getInstance();
     
@@ -160,46 +187,42 @@ export class RecommendationEngine {
     };
   }
 
-  // --- Feature Engineering ---
-  // Transforms complex app state into a fixed-length vector (d=11)
-  // Changed to public for use in Calibration
+  /**
+   * Transforms the complex `SuggestionContext` into a fixed-length numeric vector (d=11).
+   * This vector is the input for the LinUCB machine learning model.
+   *
+   * @param ctx - The suggestion context.
+   * @returns A number array representing the context features.
+   *
+   * @features
+   * 1. Bias (constant 1.0)
+   * 2. Time of day (normalized 0-1)
+   * 3. User energy (normalized 0-1)
+   * 4. Queue pressure (total duration of active tasks)
+   * 5. Urgency ratio (percentage of tasks near deadline)
+   * 6. Recency of last completion (decaying score)
+   * 7. Duration of last task (normalized)
+   * 8-11. Category of last task (One-hot encoded: Work, Wellbeing, Personal, Hobbies)
+   */
   public buildContextVector(ctx: SuggestionContext): number[] {
-    // 1. Bias
     const bias = 1.0;
-
-    // 2. Time (Normalized Hour 0-1)
     const hour = ctx.currentTime.getHours() / 24;
-
-    // 3. User Energy (0-1)
     const energy = ctx.energy / 100;
-
-    // 4. Queue Pressure
-    // Assuming 8 hours capacity (480 mins)
     const totalDuration = ctx.tasks.reduce((sum, t) => sum + t.duration, 0);
     const queuePressure = Math.min(1.0, totalDuration / 480);
-
-    // 5. Urgency Ratio
     const urgentCount = ctx.tasks.filter(t => t.dueDate && t.dueDate < Date.now() + 86400000).length;
     const urgencyRatio = ctx.tasks.length > 0 ? urgentCount / ctx.tasks.length : 0;
 
-    // 6-8. Last Task Data
-    let timeSinceLast = 1.0; // Default long time
+    let timeSinceLast = 1.0;
     let lastDuration = 0;
-    let lastCats = [0, 0, 0, 0]; // Work, Wellbeing, Personal, Hobbies
+    let lastCats = [0, 0, 0, 0];
 
     if (ctx.completedTasks.length > 0) {
-      // Sort desc
       const last = ctx.completedTasks.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))[0];
-      
-      // Time Since (Inverse decay: 1.0 = immediate, 0.0 = >4 hours ago)
       const msSince = Date.now() - (last.completedAt || 0);
       const hoursSince = msSince / (1000 * 60 * 60);
       timeSinceLast = Math.max(0, 1.0 - (hoursSince / 4));
-
-      // Duration (Normalized to 60m)
       lastDuration = Math.min(1.0, (last.actualDuration || last.duration * 60) / 3600);
-
-      // Category One-Hot
       if (last.category === 'Work') lastCats[0] = 1;
       else if (last.category === 'Wellbeing') lastCats[1] = 1;
       else if (last.category === 'Personal') lastCats[2] = 1;
@@ -218,66 +241,49 @@ export class RecommendationEngine {
     ];
   }
 
-  // --- Arm Validity ---
+  /**
+   * Filters the available strategic arms based on the current context.
+   * Ensures that a strategy is only suggested if there are tasks that match its criteria.
+   */
   private getValidStrategies(ctx: SuggestionContext): number[] {
     const allActiveTasks = ctx.tasks;
     const isBlocked = (task: TaskEntity): boolean => {
         if (!task.blockedBy || task.blockedBy.length === 0) return false;
         return task.blockedBy.some(blockerId => allActiveTasks.some(t => t.id === blockerId));
     };
-    const t = allActiveTasks.filter(t => !isBlocked(t)); // Use unblocked tasks
+    const t = allActiveTasks.filter(t => !isBlocked(t));
 
     const indices: number[] = [];
-    
-    // Safely get the most recent completed task
     const last = ctx.completedTasks.length > 0 
         ? [...ctx.completedTasks].sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))[0] 
         : null;
     const hour = ctx.currentTime.getHours();
 
-    // 1. DEEP FLOW: Needs High Energy task > 30m
     if (t.some(x => x.energy === 'High' && x.duration > 30)) indices.push(StrategyArm.DEEP_FLOW);
-
-    // 2. QUICK SPARK: High Energy but short
     if (t.some(x => x.energy === 'High' && x.duration <= 20)) indices.push(StrategyArm.QUICK_SPARK);
-
-    // 3. MOMENTUM: Same category as last
     if (last && t.some(x => x.category === last.category)) indices.push(StrategyArm.MOMENTUM);
-
-    // 4. PALETTE CLEANSER: Different category
     if (last && t.some(x => x.category !== last.category)) indices.push(StrategyArm.PALETTE_CLEANSER);
-
-    // 5. THE CRUSHER: Urgent tasks
     if (t.some(x => x.dueDate && x.dueDate < Date.now() + 86400000)) indices.push(StrategyArm.THE_CRUSHER);
-
-    // 6. LOW GEAR: Low energy tasks
     if (t.some(x => x.energy === 'Low')) indices.push(StrategyArm.LOW_GEAR);
 
-    // 7 & 8. RESETS: Always valid (can always suggest a break)
     indices.push(StrategyArm.SOMATIC_RESET);
     indices.push(StrategyArm.COGNITIVE_RESET);
-
-    // 9. NO_OP: Always valid (The "Do Nothing" baseline)
     indices.push(StrategyArm.NO_OP);
 
-    // 10. PULL_BACK: Valid if system is under stress
     const totalDuration = ctx.tasks.reduce((sum, task) => sum + task.duration, 0);
     if (totalDuration > 180 || ctx.energy < 40) {
         indices.push(StrategyArm.PULL_BACK);
     }
 
-    // 11. THE ARCHAEOLOGIST: Stale tasks (> 14 days old, no due date)
     const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
     if (t.some(x => x.createdAt < fourteenDaysAgo && !x.dueDate)) {
         indices.push(StrategyArm.ARCHAEOLOGIST);
     }
 
-    // 12. SNOWBALL: Velocity Batching (Small after Small)
     if (last && last.duration <= 15 && t.some(x => x.duration <= 15)) {
         indices.push(StrategyArm.SNOWBALL);
     }
 
-    // 13. TWILIGHT RITUAL: Evening (17:00 - 22:00) with Low Energy tasks
     if (hour >= 17 && hour < 22 && t.some(x => x.energy === 'Low')) {
         indices.push(StrategyArm.TWILIGHT_RITUAL);
     }
@@ -285,7 +291,10 @@ export class RecommendationEngine {
     return indices;
   }
 
-  // --- Strategy Resolution ---
+  /**
+   * Resolves a chosen strategic arm to a specific `Suggestion` object.
+   * Filters tasks that meet the arm's criteria and picks the "best" one.
+   */
   private resolveStrategy(arm: number, ctx: SuggestionContext): Suggestion | null {
     const allActiveTasks = ctx.tasks;
     const isBlocked = (task: TaskEntity): boolean => {
@@ -301,7 +310,6 @@ export class RecommendationEngine {
 
     switch (arm) {
       case StrategyArm.DEEP_FLOW:
-        // Filter: High Energy, Long. Sort: Priority/Urgency
         tasks = tasks.filter(t => t.energy === 'High' && t.duration > 30);
         chosenTask = this.pickBest(tasks);
         reason = "Deep Flow: Capitalize on your energy.";
@@ -328,7 +336,6 @@ export class RecommendationEngine {
 
       case StrategyArm.THE_CRUSHER:
         tasks = tasks.filter(t => t.dueDate && t.dueDate < Date.now() + 86400000);
-        // Sort specifically by due date here
         chosenTask = tasks.sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0))[0];
         reason = "The Crusher: Clear urgent items.";
         break;
@@ -350,11 +357,9 @@ export class RecommendationEngine {
         break;
 
       case StrategyArm.NO_OP:
-        // Algorithm explicitly suggests nothing
         return null;
 
       case StrategyArm.PULL_BACK:
-        // Algorithm warns against adding more
         type = 'wellbeing';
         reason = "Capacity Reached: Focus on current queue.";
         break;
@@ -362,7 +367,6 @@ export class RecommendationEngine {
       case StrategyArm.ARCHAEOLOGIST:
         const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
         tasks = tasks.filter(t => t.createdAt < fourteenDaysAgo && !t.dueDate);
-        // Pick oldest first
         chosenTask = tasks.sort((a, b) => a.createdAt - b.createdAt)[0]; 
         reason = "The Archaeologist: Clear stagnant items.";
         break;
@@ -396,8 +400,8 @@ export class RecommendationEngine {
 
     if (chosenTask) {
       return {
-        id: crypto.randomUUID(), // ID for the suggestion card
-        taskId: chosenTask.id,   // ID for the underlying task
+        id: crypto.randomUUID(),
+        taskId: chosenTask.id,
         type: 'task',
         title: chosenTask.title,
         reason,
@@ -412,8 +416,10 @@ export class RecommendationEngine {
     return null;
   }
 
-  // Optimized selection: O(N) scan instead of O(N log N) sort
-  // Picks the task with earliest due date, then most recent creation
+  /**
+   * Selects the most suitable task from a candidate list.
+   * Prioritizes tasks by earliest due date, followed by most recent creation date.
+   */
   private pickBest(tasks: TaskEntity[]): TaskEntity | null {
     if (tasks.length === 0) return null;
     
@@ -422,23 +428,18 @@ export class RecommendationEngine {
     for (let i = 1; i < tasks.length; i++) {
         const current = tasks[i];
         
-        // Criteria 1: Due Date (Ascending)
         if (current.dueDate && best.dueDate) {
             if (current.dueDate < best.dueDate) {
                 best = current;
                 continue;
             }
         } else if (current.dueDate && !best.dueDate) {
-            // Current has due date, best doesn't -> Current wins
             best = current;
             continue;
         } else if (!current.dueDate && best.dueDate) {
-            // Best has due date, current doesn't -> Best stays
             continue;
         }
 
-        // Criteria 2: Creation Date (Descending / LIFO for same urgency)
-        // Only if due date status is equal (both have it and are equal, or neither have it)
         if (current.createdAt > best.createdAt) {
             best = current;
         }
@@ -447,33 +448,37 @@ export class RecommendationEngine {
     return best;
   }
 
-  // Feedback Loop Entry Point
+  /**
+   * Feedback entry point for when a suggested strategy leads to a successful completion.
+   */
   async logCompletion(ctx: SuggestionContext, strategyName: string, success: boolean) {
     const armIdx = ARM_NAMES.indexOf(strategyName);
     if (armIdx === -1) return;
 
     const x = this.buildContextVector(ctx);
-    const reward = success ? 1.0 : -0.2; // Simple reward shaping
+    const reward = success ? 1.0 : -0.2;
     
     await LinUCBService.getInstance().update(x, armIdx, reward);
   }
 
-  // Log negative feedback when suggestion is ignored/skipped
+  /**
+   * Feedback entry point for when a suggestion is explicitly rejected or ignored by the user.
+   */
   async logRejection(ctx: SuggestionContext, strategyName: string) {
     const armIdx = ARM_NAMES.indexOf(strategyName);
     if (armIdx === -1) return;
 
     const x = this.buildContextVector(ctx);
-    // Stronger penalty for explicit rejection/ignore than just "not success"
-    // This helps the bandit learn faster to avoid bad suggestions
     const reward = -0.5; 
     
     await LinUCBService.getInstance().update(x, armIdx, reward);
   }
 
-  // Inverse Strategy Learning
-  // When a user manually picks a task, we find which strategies WOULD have suggested it
-  // and reward them. This solves cold start by learning from organic behavior.
+  /**
+   * Implementation of "Inverse Strategy Learning".
+   * When a user manually selects a task, this function identifies all strategies
+   * that *could* have suggested it and provides them with a positive reward.
+   */
   async logOrganicSelection(task: TaskEntity, context: SuggestionContext) {
     const validArms = this.getValidStrategies(context);
     const x = this.buildContextVector(context);
@@ -481,7 +486,6 @@ export class RecommendationEngine {
         ? [...context.completedTasks].sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))[0] 
         : null;
 
-    // Iterate through all valid arms and check if this task COULD have been generated by them
     for (const arm of validArms) {
       let matches = false;
 
@@ -499,7 +503,6 @@ export class RecommendationEngine {
           matches = !!last && task.category !== last.category;
           break;
         case StrategyArm.THE_CRUSHER:
-           // 24h urgency check
           matches = !!(task.dueDate && task.dueDate < Date.now() + 86400000);
           break;
         case StrategyArm.LOW_GEAR:
@@ -516,13 +519,11 @@ export class RecommendationEngine {
           const h = context.currentTime.getHours();
           matches = h >= 17 && h < 22 && task.energy === 'Low';
           break;
-        // Wellbeing / No-op strategies don't map to organic Task selection
         default:
           matches = false;
       }
 
       if (matches) {
-         // Positive reward for this strategy because it aligns with user choice
          await LinUCBService.getInstance().update(x, arm, 1.0);
       }
     }

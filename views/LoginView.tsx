@@ -4,14 +4,22 @@ import React from 'react';
 import { auth } from '@/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
+/**
+ * Landing and Authentication page.
+ * Provides a "Sign in with Google" flow and high-level marketing for the app.
+ *
+ * @component
+ */
 const LoginView = () => {
+    /**
+     * Triggers the Firebase Google OAuth popup.
+     */
     const handleGoogleSignIn = async () => {
         const provider = new GoogleAuthProvider();
         try {
             await signInWithPopup(auth, provider);
         } catch (error) {
             console.error("Google Sign-In failed", error);
-            // Optionally show an error to the user
         }
     };
 

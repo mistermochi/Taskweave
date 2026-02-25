@@ -1,25 +1,39 @@
-
 import React from 'react';
 import { User, BedDouble } from 'lucide-react';
 import { UserSettings } from '@/hooks/useUserSettings';
 
+/**
+ * Interface for TypicalScheduleSettings props.
+ */
 interface TypicalScheduleSettingsProps {
+  /** The current user settings object. */
   settings: Partial<UserSettings>;
+  /** Callback to update settings in Firestore. */
   updateSettings: (newSettings: Partial<UserSettings>) => void;
 }
 
 const hours = Array.from({ length: 24 }, (_, i) => i);
 
+/**
+ * Formats a 24-hour integer into a 12-hour AM/PM string.
+ */
 const formatHour = (h: number) => {
   const ampm = h >= 12 ? 'PM' : 'AM';
   const hour12 = h % 12 || 12;
   return `${hour12} ${ampm}`;
 };
 
+/**
+ * Settings section for configuring the user's daily time blocks.
+ * It manages start and end times for work and sleep, which are used by
+ * the recommendation engine to avoid suggesting intense tasks during rest hours.
+ *
+ * @component
+ */
 export const TypicalScheduleSettings: React.FC<TypicalScheduleSettingsProps> = ({ settings, updateSettings }) => {
   return (
     <div className="space-y-3">
-      {/* Work Schedule */}
+      {/* Work Schedule Configuration */}
       <div className="flex items-center gap-4 rounded-xl bg-surface p-3 border border-border hover:border-foreground/20 transition-colors">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-400/10 text-orange-400">
           <User size={20} />
@@ -52,7 +66,7 @@ export const TypicalScheduleSettings: React.FC<TypicalScheduleSettingsProps> = (
         </div>
       </div>
       
-      {/* Sleep Routine */}
+      {/* Sleep Routine Configuration */}
       <div className="flex items-center gap-4 rounded-xl bg-surface p-3 border border-border hover:border-foreground/20 transition-colors">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-400/10 text-blue-400">
           <BedDouble size={20} />

@@ -1,15 +1,29 @@
-
 import { db } from '../firebase';
 import { doc, updateDoc, deleteDoc, setDoc, writeBatch, collection, addDoc, getDoc } from 'firebase/firestore';
 import { Task, TaskEntity, Category, EnergyLevel, RecurrenceConfig } from '../types';
 import { ContextService } from './ContextService';
 import { getNextRecurrenceDate, calculateTaskTime } from '@/utils/timeUtils';
 
+/**
+ * Service for managing the lifecycle of tasks in Firestore.
+ * Handles CRUD operations, status changes, recurring task logic,
+ * dependency management, and focus session persistence.
+ *
+ * @singleton Use `TaskService.getInstance()` to access the service.
+ */
 export class TaskService {
+    /** Singleton instance of the service. */
     private static instance: TaskService;
 
+    /**
+     * Private constructor for singleton pattern.
+     */
     private constructor() { }
 
+    /**
+     * Returns the singleton instance of TaskService.
+     * @returns The TaskService instance.
+     */
     public static getInstance(): TaskService {
         if (!TaskService.instance) {
             TaskService.instance = new TaskService();
@@ -17,12 +31,24 @@ export class TaskService {
         return TaskService.instance;
     }
 
-    // --- Create ---
+    /**
+     * Creates a new task and persists it to Firestore.
+     *
+     * @param title - The title of the task.
+     * @param category - The ID of the associated tag.
+     * @param duration - Estimated duration in minutes.
+     * @param energy - Numeric energy value (will be normalized to High/Medium/Low).
+     * @param notes - Optional descriptive notes.
+     * @param dueDate - Unix timestamp for the task deadline.
+     * @param assignedDate - Unix timestamp for when the task is scheduled to be done.
+     * @param recurrence - Optional configuration for repeating tasks.
+     * @returns A promise resolving to the ID of the newly created task.
+     */
     public async addTask(
         title: string,
         category: Category,
         duration: number,
-        energy: number, // Raw energy value
+        energy: number,
         notes: string,
         dueDate: number | undefined,
         assignedDate: number | undefined,
@@ -70,7 +96,12 @@ export class TaskService {
         return newTaskId;
     }
 
-    // --- Update ---
+    /**
+     * Updates an existing task with new field values.
+     *
+     * @param taskId - The unique ID of the task to update.
+     * @param updates - Partial object containing the fields to update.
+     */
     public async updateTask(taskId: string, updates: Partial<TaskEntity>): Promise<void> {
         const uid = ContextService.getInstance().getUserId();
         if (!uid) return;
@@ -83,7 +114,10 @@ export class TaskService {
         });
     }
 
-    // --- State Changes ---
+    /**
+     * Archives a task, marking it as inactive and clearing focus/timer state.
+     * @param taskId - The ID of the task to archive.
+     */
     public async archiveTask(taskId: string): Promise<void> {
         await this.updateTask(taskId, {
             status: 'archived',
@@ -94,6 +128,10 @@ export class TaskService {
         });
     }
 
+    /**
+     * Restores a task from the archive to an active state.
+     * @param taskId - The ID of the task to restore.
+     */
     public async unarchiveTask(taskId: string): Promise<void> {
         await this.updateTask(taskId, {
             status: 'active',
@@ -101,6 +139,10 @@ export class TaskService {
         });
     }
     
+    /**
+     * Reverts a completed task back to an active state.
+     * @param taskId - The ID of the task to re-activate.
+     */
     public async uncompleteTask(taskId: string): Promise<void> {
         const uid = ContextService.getInstance().getUserId();
         if (!uid) return;
@@ -113,6 +155,10 @@ export class TaskService {
         });
     }
 
+    /**
+     * Permanently deletes a task from Firestore.
+     * @param taskId - The ID of the task to delete.
+     */
     public async deleteTask(taskId: string): Promise<void> {
         const uid = ContextService.getInstance().getUserId();
         if (!uid) return;
@@ -120,6 +166,18 @@ export class TaskService {
         await deleteDoc(taskRef);
     }
 
+    /**
+     * Finalizes a task session by marking it complete and potentially spawning a new recurring instance.
+     *
+     * @param task - The task entity being completed.
+     * @param actualSeconds - The total time spent in seconds.
+     * @param allActiveTasks - The current list of all active tasks (used for dependency unlocking).
+     * @returns A promise resolving to the due date of the next recurring instance, if applicable.
+     *
+     * @logic
+     * - Calculates the next occurrence if the task has a `recurrence` config.
+     * - Delegates to `completeTaskAndRespawn` for the atomic batch operation.
+     */
     public async completeTask(task: TaskEntity, actualSeconds: number, allActiveTasks: TaskEntity[]): Promise<number | null> {
         if (!task) return null;
 
@@ -149,6 +207,18 @@ export class TaskService {
         return await this.completeTaskAndRespawn(updatedTask as TaskEntity, nextTaskData, allActiveTasks);
     }
 
+    /**
+     * Internal atomic operation to update a completed task, create its next instance, and unlock dependencies.
+     *
+     * @param originalTask - The task being completed.
+     * @param nextTaskData - Metadata for the next recurring instance.
+     * @param allActiveTasks - Current task list for scanning dependencies.
+     *
+     * @interaction (Atomic Write Batch)
+     * 1. Updates original task status to 'completed'.
+     * 2. (Optional) Creates a new task document for the next recurrence.
+     * 3. (Optional) Removes the `blockedBy` reference from any tasks waiting on the original task.
+     */
     private async completeTaskAndRespawn(originalTask: TaskEntity, nextTaskData?: Omit<TaskEntity, 'id' | 'createdAt' | 'updatedAt'>, allActiveTasks?: TaskEntity[]): Promise<number | null> {
         const uid = ContextService.getInstance().getUserId();
         if (!uid) return null;
@@ -201,7 +271,13 @@ export class TaskService {
         return nextDueDate;
     }
     
-    // --- Focus Session Management ---
+    /**
+     * Starts a focus session for a task, ensuring all other task sessions are paused.
+     *
+     * @param taskId - ID of the task to start.
+     * @param remainingSeconds - Snapshot of the remaining time for the task.
+     * @param allActiveTasks - Current task list to identify and pause the previous active task.
+     */
     public async startSession(taskId: string, remainingSeconds: number, allActiveTasks: TaskEntity[]) {
         const uid = ContextService.getInstance().getUserId();
         if (!uid) return;
@@ -234,6 +310,11 @@ export class TaskService {
         await batch.commit();
     }
 
+    /**
+     * Pauses the timer for a task session.
+     * @param taskId - ID of the task to pause.
+     * @param remainingSeconds - The current countdown value to persist.
+     */
     public async pauseSession(taskId: string, remainingSeconds: number) {
         await this.updateTask(taskId, {
             remainingSeconds,
@@ -241,6 +322,11 @@ export class TaskService {
         });
     }
 
+    /**
+     * Stops the focus session and clears the focus flag for a task.
+     * @param taskId - ID of the task to stop.
+     * @param remainingSeconds - The current countdown value to persist.
+     */
     public async stopSession(taskId: string, remainingSeconds: number) {
         await this.updateTask(taskId, {
             remainingSeconds,
@@ -249,7 +335,19 @@ export class TaskService {
         });
     }
 
-    // --- Logging ---
+    /**
+     * Logs the completion details of a task session, including user mood and energy level.
+     *
+     * @param task - The completed task entity.
+     * @param mood - User-reported mood after task (e.g., "Energized").
+     * @param notes - User-provided notes about the session.
+     * @param newEnergyLevel - The user's energy level at the end of the session.
+     *
+     * @interaction
+     * - Updates the task document with mood and notes.
+     * - Adds a record to the `activityLogs` collection for analytics.
+     * - Creates a new `UserVital` entry for mood tracking.
+     */
     public async logSessionCompletion(task: TaskEntity, mood: string, notes: string, newEnergyLevel?: number): Promise<void> {
         const uid = ContextService.getInstance().getUserId();
         if (!uid) return;

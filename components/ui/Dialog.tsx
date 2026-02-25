@@ -1,15 +1,23 @@
-
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 
+/**
+ * Common props for Modal and Drawer components.
+ */
 interface BaseDialogProps {
+  /** Whether the dialog is currently visible. */
   isOpen: boolean;
+  /** Callback to trigger when the dialog wants to close. */
   onClose: () => void;
+  /** Dialog content. */
   children: React.ReactNode;
+  /** Optional custom CSS classes. */
   className?: string;
 }
 
-// --- Shared Backdrop ---
+/**
+ * Internal sub-component for the semi-transparent overlay behind dialogs.
+ */
 const Backdrop: React.FC<{ isOpen: boolean; onClick: () => void; className?: string }> = ({ isOpen, onClick, className = '' }) => (
   <div 
     className={`fixed inset-0 z-[60] bg-background/60 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'} ${className}`}
@@ -17,9 +25,11 @@ const Backdrop: React.FC<{ isOpen: boolean; onClick: () => void; className?: str
   />
 );
 
-// --- Modal Primitives ---
+/**
+ * Standard Modal Root.
+ * Centers content on the screen and applies a scale/fade animation.
+ */
 const ModalRoot: React.FC<BaseDialogProps> = ({ isOpen, onClose, children, className = '' }) => {
-  // We use local visible state to handle exit animations even if isOpen prop changes
   const [visible, setVisible] = useState(isOpen);
   
   useEffect(() => {
@@ -49,7 +59,10 @@ const ModalRoot: React.FC<BaseDialogProps> = ({ isOpen, onClose, children, class
   );
 };
 
-// --- Drawer Primitives ---
+/**
+ * Standard Drawer Root.
+ * Slides content in from the right edge of the screen.
+ */
 const DrawerRoot: React.FC<BaseDialogProps> = ({ isOpen, onClose, children, className = '' }) => {
   const [visible, setVisible] = useState(isOpen);
 
@@ -79,7 +92,10 @@ const DrawerRoot: React.FC<BaseDialogProps> = ({ isOpen, onClose, children, clas
   );
 };
 
-// --- Common Parts ---
+/**
+ * Standard header for modals and drawers.
+ * Includes a title and a close button.
+ */
 const Header: React.FC<{ title: React.ReactNode; onClose: () => void; actions?: React.ReactNode; className?: string }> = ({ title, onClose, actions, className = '' }) => (
   <header className={`px-6 py-4 flex items-center justify-between border-b border-border bg-surface/95 backdrop-blur-md shrink-0 ${className}`}>
     <div className="font-bold text-foreground text-sm uppercase tracking-wider truncate flex-1 pr-4">{title}</div>
@@ -92,17 +108,30 @@ const Header: React.FC<{ title: React.ReactNode; onClose: () => void; actions?: 
   </header>
 );
 
+/**
+ * Main scrollable content area for a dialog.
+ */
 const Content: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <main className={`flex-1 overflow-y-auto px-6 py-6 no-scrollbar ${className}`}>
     {children}
   </main>
 );
 
+/**
+ * Footer section for dialog actions (e.g., Save/Cancel).
+ */
 const Footer: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <footer className={`p-4 border-t border-border bg-surface/95 shrink-0 ${className}`}>
     {children}
   </footer>
 );
 
+/**
+ * Compound component for building standardized Modal dialogs.
+ */
 export const Modal = { Root: ModalRoot, Header, Content, Footer };
+
+/**
+ * Compound component for building standardized slide-out Drawers.
+ */
 export const Drawer = { Root: DrawerRoot, Header, Content, Footer };

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -14,6 +13,13 @@ import {
 import { TagTree } from '@/components/TagSidebar';
 import { TagService } from '@/services/TagService';
 
+/**
+ * Global navigation sidebar component.
+ * Displays user profile, primary view links (Day, Inbox, Insights),
+ * and an interactive project (Tag) tree.
+ *
+ * @component
+ */
 export const Sidebar: React.FC = () => {
     const { tasks } = useTaskContext();
     const { tags } = useReferenceContext();
@@ -35,6 +41,9 @@ export const Sidebar: React.FC = () => {
         await TagService.getInstance().createTag('New Project', null);
     };
 
+    /**
+     * Internal sub-component for rendering a single navigation link.
+     */
     const NavItem = ({ onClick, icon: Icon, label, isActive, count, colorClass = "text-secondary" }: { onClick: () => void, icon: LucideIcon, label: string, isActive: boolean, count?: number, colorClass?: string }) => {
         return (
           <button 
@@ -54,6 +63,7 @@ export const Sidebar: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full py-4">
+            {/* User Profile Area */}
             <div className="px-3 mb-4 flex items-center justify-between">
                 <div 
                     className="flex items-center gap-2 cursor-pointer hover:bg-foreground/5 p-1.5 -ml-1.5 rounded-lg transition-colors flex-1"
@@ -67,6 +77,7 @@ export const Sidebar: React.FC = () => {
                 </div>
             </div>
 
+            {/* Mobile Quick Add */}
             <div className="px-3 mb-4 md:hidden">
                 <button onClick={() => quickAddTask()} className="w-full flex items-center gap-2 text-primary font-bold py-2">
                     <div className="w-6 h-6 rounded-full bg-primary text-black flex items-center justify-center">
@@ -76,6 +87,7 @@ export const Sidebar: React.FC = () => {
                 </button>
             </div>
 
+            {/* Main Navigation Items */}
             <div className="px-2 mb-2">
                 <NavItem 
                     onClick={showDashboard}
@@ -105,6 +117,7 @@ export const Sidebar: React.FC = () => {
                 />
             </div>
 
+            {/* Project Tree Section */}
             <div className="mt-4 px-2 flex-1 overflow-hidden flex flex-col min-h-0">
                 <div className="flex items-center justify-between px-2 mb-2 text-secondary group">
                     <span className="text-xs font-bold uppercase tracking-wider group-hover:text-foreground transition-colors">Projects</span>
@@ -126,6 +139,7 @@ export const Sidebar: React.FC = () => {
                 </div>
             </div>
 
+            {/* Global Settings */}
             <div className="px-2 pt-2 mt-auto border-t border-border">
                 <NavItem 
                   onClick={showSettings} 

@@ -1,8 +1,10 @@
-
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
+/**
+ * Styling variants for the IconBadge component using Class Variance Authority.
+ */
 const iconBadgeVariants = cva(
   'rounded-full border flex items-center justify-center shrink-0',
   {
@@ -29,11 +31,22 @@ const iconBadgeVariants = cva(
   }
 );
 
+/**
+ * Interface for IconBadge props.
+ */
 interface IconBadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof iconBadgeVariants> {
+  /** The Lucide icon component to render. */
   icon: LucideIcon;
+  /** Optional custom CSS classes. */
   className?: string;
 }
 
+/**
+ * A decorative wrapper for icons, providing consistent padding, borders,
+ * and semantic background colors.
+ *
+ * @component
+ */
 export const IconBadge: React.FC<IconBadgeProps> = ({ icon: Icon, className, variant, size, ...props }) => {
   return (
     <div {...props} className={iconBadgeVariants({ variant, size, className })}>

@@ -1,18 +1,30 @@
-
 import { useMemo } from 'react';
 import { useVitalsContext } from '@/context/VitalsContext';
 import { normalizeEnergy, getMoodIndexFromEnergy } from '@/utils/energyUtils';
 import { getStartOfDay } from '@/utils/timeUtils';
 
+/**
+ * Interface representing the calculated energy model for the current day.
+ */
 export interface EnergyModel {
-  currentEnergy: number; // 0-100
-  moodIndex: number;     // 1-5
-  hasEntry: boolean;     // True if there is a log since 4 AM
+  /** Current energy level on a 0-100 scale. */
+  currentEnergy: number;
+  /** Simplified mood index on a 1-5 scale for UI elements. */
+  moodIndex: number;
+  /** Whether the user has logged any mood/energy today (since 4 AM). */
+  hasEntry: boolean;
+  /** Timestamp of the most recent energy log. */
   lastUpdated: number;
 }
 
+/**
+ * Hook that calculates and returns the user's current energy model.
+ * It processes raw vitals data from the context to determine today's
+ * energy trajectory.
+ *
+ * @returns The `EnergyModel` object containing normalized energy and mood status.
+ */
 export const useEnergyModel = (): EnergyModel => {
-  // Phase 2: Isolate subscription to only Vitals
   const { vitals } = useVitalsContext();
 
   const model = useMemo(() => {

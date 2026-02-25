@@ -1,6 +1,16 @@
-
 import { useState, useLayoutEffect, RefObject, useCallback } from 'react';
 
+/**
+ * Custom hook that calculates the optimal position for a flyout menu (like a popover or tooltip)
+ * relative to a trigger element. It ensures the flyout stays within the viewport and adapts
+ * to available space.
+ *
+ * @param triggerEl - The DOM element that triggers the flyout.
+ * @param contentRef - Ref to the flyout content element.
+ * @param isOpen - Whether the flyout is currently visible.
+ * @param position - The preferred side to show the flyout ('top', 'right', 'bottom', 'left').
+ * @returns An object with `top`, `left`, and `opacity` styles to apply to the flyout.
+ */
 export const useFlyoutPosition = (
   triggerEl: HTMLElement | null,
   contentRef: RefObject<HTMLDivElement>,
@@ -9,6 +19,10 @@ export const useFlyoutPosition = (
 ) => {
   const [style, setStyle] = useState<{ top?: number; left?: number; opacity: number }>({ opacity: 0 });
 
+  /**
+   * Core positioning logic.
+   * Calculates boundaries and chooses the best side based on space constraints.
+   */
   const calculatePosition = useCallback(() => {
     if (!triggerEl || !contentRef.current) return;
     
@@ -16,7 +30,7 @@ export const useFlyoutPosition = (
     const content = contentRef.current.getBoundingClientRect();
     const vpWidth = window.innerWidth;
     const vpHeight = window.innerHeight;
-    const m = 8; // margin
+    const m = 8; // Margin from edges
 
     const positions = {
         right: {
@@ -61,7 +75,7 @@ export const useFlyoutPosition = (
     
     let { top: t, left: l } = positions[finalPosition!];
     
-    // Final clamping to ensure it's always on screen
+    // Clamping to screen boundaries
     if (l < m) l = m;
     if (t < m) t = m;
     if (l + content.width > vpWidth - m) l = vpWidth - content.width - m;
@@ -72,19 +86,17 @@ export const useFlyoutPosition = (
 
   useLayoutEffect(() => {
     if (isOpen) {
-        // Initial calculation on open
         calculatePosition();
     } else {
         setStyle({ opacity: 0 });
     }
   }, [isOpen, calculatePosition]);
 
-  // Effect to handle content resizing while the flyout is open
+  // Handle content resizing
   useLayoutEffect(() => {
     const node = contentRef.current;
     if (!isOpen || !node) return;
 
-    // Use ResizeObserver to recalculate position when content size changes
     const observer = new ResizeObserver(() => {
         calculatePosition();
     });
@@ -96,11 +108,11 @@ export const useFlyoutPosition = (
     };
   }, [isOpen, contentRef, calculatePosition]);
   
-  // Effect to handle window scroll and resize
+  // Handle viewport changes (scroll/resize)
   useLayoutEffect(() => {
     if (!isOpen) return;
 
-    window.addEventListener('scroll', calculatePosition, true); // `true` for capture phase
+    window.addEventListener('scroll', calculatePosition, true);
     window.addEventListener('resize', calculatePosition);
 
     return () => {

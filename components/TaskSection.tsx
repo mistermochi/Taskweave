@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -6,32 +5,65 @@ import { ChevronRight, Plus } from 'lucide-react';
 import { TaskEntity, Tag } from '@/types';
 import { TaskRow } from '@/components/TaskRow';
 
+/**
+ * Interface for TaskSection props.
+ */
 interface TaskSectionProps {
+  /** Logical key for the section (e.g. 'today', 'inbox'). */
   sectionKey: 'overdue' | 'today' | 'upcoming' | 'inbox' | 'completed' | 'archived';
+  /** Display title for the section. */
   title: string;
+  /** List of tasks to render within this section. */
   tasks: TaskEntity[];
-  allTasks: TaskEntity[]; // All tasks for dependency picker
+  /** Full list of all active tasks for dependency resolution. */
+  allTasks: TaskEntity[];
+  /** All available user tags. */
   tags: Tag[];
+  /** Whether the section is currently expanded. */
   isExpanded: boolean;
+  /** Callback to toggle expansion state. */
   onToggle: () => void;
+  /** Key of the section where an inline add form is currently active. */
   addingToSection: string | null;
+  /** Callback to initiate inline adding in this section. */
   onStartAdding: () => void;
+  /** Callback to cancel inline adding. */
   onCancelAdding: () => void;
+  /** Callback to finalize task creation from an inline form. */
   onTaskCreate: (baseTask: TaskEntity, updates: Partial<TaskEntity>) => void;
+  /** Callback to complete a task. */
   onTaskComplete: (task: TaskEntity) => void;
+  /** Callback to reactivate a completed task. */
   onTaskUncomplete: (task: TaskEntity) => void;
+  /** Callback to focus on a task. */
   onTaskFocus: (task: TaskEntity) => void;
+  /** Optional callback to move a task into the 'Today' plan. */
   onTaskScheduleToday?: (task: TaskEntity) => void;
+  /** Callback to permanently delete a task. */
   onTaskDelete: (id: string) => void;
+  /** Callback to update task properties. */
   onTaskUpdate: (task: TaskEntity, updates: Partial<TaskEntity>) => void;
+  /** Optional callback to archive a task. */
   onTaskArchive?: (task: TaskEntity) => void;
+  /** Callback to restore a task from archive. */
   onTaskUnarchive: (task: TaskEntity) => void;
+  /** Current active tag filter ID. */
   activeTagId: string | null;
+  /** Optional CSS class for title coloring. */
   colorClass?: string;
+  /** Current AI recommendation to highlight. */
   recommendation?: { taskId: string; reason: string } | null;
+  /** Optional override for the item count display. */
   countOverride?: number;
 }
 
+/**
+ * A collapsible container for a group of tasks.
+ * It manages the display logic for different task states (Today vs Overdue)
+ * and handles the inline creation flow for its assigned section.
+ *
+ * @component
+ */
 export const TaskSection: React.FC<TaskSectionProps> = ({
   sectionKey,
   title,
@@ -61,11 +93,14 @@ export const TaskSection: React.FC<TaskSectionProps> = ({
   const displayCount = countOverride ?? tasks.length;
   const isPermanentSection = ['completed', 'archived'].includes(sectionKey);
 
-  // Hide section ONLY if it's not permanent, has no items, and isn't being added to.
+  // Hide empty sections unless they are 'permanent' (Completed/Archived) or currently being added to.
   if (displayCount === 0 && !isCreatable && !isPermanentSection && addingToSection !== sectionKey) {
     return null;
   }
 
+  /**
+   * Generates a template task with sensible defaults for the current section.
+   */
   const getGhostTask = (): TaskEntity => {
     let assignedDate: number | undefined = undefined;
     if (sectionKey === 'today') {
@@ -108,6 +143,7 @@ export const TaskSection: React.FC<TaskSectionProps> = ({
       </div>
       {isExpanded && (
         <div>
+          {/* Inline Add Form */}
           {isCreatable && addingToSection === sectionKey ? (
             <div className="animate-in fade-in duration-300 my-1">
               <TaskRow
@@ -121,7 +157,7 @@ export const TaskSection: React.FC<TaskSectionProps> = ({
                 onUpdate={onTaskCreate}
               />
             </div>
-          ) : isCreatable && tasks.length < 15 ? ( // Limit add button if list is too long
+          ) : isCreatable && tasks.length < 15 ? (
             <button
               onClick={onStartAdding}
               className="flex items-center gap-2 text-xs text-secondary hover:text-primary mb-2 py-1 px-2 hover:bg-foreground/5 rounded transition-colors group"
@@ -135,6 +171,7 @@ export const TaskSection: React.FC<TaskSectionProps> = ({
             </button>
           ) : null}
 
+          {/* Task List */}
           <div className={sectionKey === 'overdue' ? 'border-l border-red-500/20' : ''}>
             {tasks.map((task) => (
               <TaskRow

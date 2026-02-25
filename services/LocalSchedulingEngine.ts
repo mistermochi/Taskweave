@@ -1,9 +1,15 @@
-
 import { TaskEntity, Category, EnergyLevel, SuggestionContext, Suggestion, WellbeingActivity, TaskPattern } from '../types/scheduling';
 
+/**
+ * Heuristic-based scheduling engine that operates locally on the client.
+ * It provides immediate task and wellbeing suggestions by applying a set of
+ * business rules and filters to the user's current backlog and context.
+ */
 export class LocalSchedulingEngine {
+  /** Singleton instance of the engine. */
   private static instance: LocalSchedulingEngine;
 
+  /** Predefined list of wellbeing activities to suggest during breaks. */
   private readonly WELLBEING_ACTIVITIES: WellbeingActivity[] = [
     {
       id: 'stretch-1',
@@ -52,6 +58,10 @@ export class LocalSchedulingEngine {
     }
   ];
 
+  /**
+   * Returns the singleton instance of LocalSchedulingEngine.
+   * @returns The LocalSchedulingEngine instance.
+   */
   public static getInstance(): LocalSchedulingEngine {
     if (!LocalSchedulingEngine.instance) {
       LocalSchedulingEngine.instance = new LocalSchedulingEngine();
@@ -59,27 +69,30 @@ export class LocalSchedulingEngine {
     return LocalSchedulingEngine.instance;
   }
 
+  /**
+   * Generates a set of prioritized suggestions based on the provided context.
+   *
+   * @param context - The current user and application context.
+   * @returns An object containing the suggestions and a global confidence score.
+   *
+   * @logic
+   * 1. Filters tasks by urgency (deadlines).
+   * 2. Matches tasks to current energy levels.
+   * 3. Adjusts based on total backlog pressure (e.g., favoring short tasks if backlog is long).
+   * 4. Applies context-specific rules (location, battery, network).
+   * 5. Injects wellbeing breaks if energy is low or work blocks are long.
+   */
   generateSuggestions(context: SuggestionContext): { suggestions: Suggestion[]; confidence: number } {
     const suggestions: Suggestion[] = [];
     let totalConfidence = 0;
     let suggestionCount = 0;
 
-    // 1. Urgency-based filtering and scoring
     const tasks = this.getUrgencyFilteredTasks(context.tasks);
-    
-    // 2. Energy matching
     const energyAppropriate = this.getEnergyAppropriateTasks(tasks, context.energy);
-    
-    // 3. Backlog-aware scheduling (consider workload)
     const backlogAware = this.getBacklogAwareTasks(energyAppropriate, context.backlogCount);
-    
-    // 4. Pattern-based selection
     const patternOptimal = this.getPatternOptimalTasks(backlogAware, context.previousPatterns);
-
-    // 5. Context-based Scoring (NEW)
     const contextOptimal = this.applyContextRules(patternOptimal, context);
 
-    // Generate task suggestions (max 2 tasks)
     for (let i = 0; i < Math.min(2, contextOptimal.length); i++) {
       const task = contextOptimal[i];
       const suggestion: Suggestion = {
@@ -99,7 +112,6 @@ export class LocalSchedulingEngine {
       suggestionCount++;
     }
 
-    // 6. Only add wellbeing suggestion if no other suggestions were returned OR explicitly needed
     const shouldForceWellbeing = context.energy < 30 || (context.userContext?.device.batteryLevel && context.userContext.device.batteryLevel < 0.15 && !context.userContext.device.isCharging);
     
     if (suggestions.length === 0 || shouldForceWellbeing) {
@@ -114,11 +126,14 @@ export class LocalSchedulingEngine {
     suggestions.sort((a, b) => (b.priority * b.confidence) - (a.priority * a.confidence));
     
     return {
-      suggestions: suggestions.slice(0, 3), // Max 3 suggestions
+      suggestions: suggestions.slice(0, 3),
       confidence: suggestionCount > 0 ? totalConfidence / suggestionCount : 0
     };
   }
 
+  /**
+   * Applies location and hardware-aware rules to adjust task scores.
+   */
   private applyContextRules(tasks: TaskEntity[], context: SuggestionContext): TaskEntity[] {
     if (!context.userContext) return tasks;
 
@@ -127,25 +142,21 @@ export class LocalSchedulingEngine {
     return tasks.map(task => {
       let scoreModifier = 0;
 
-      // Rule 1: Work Hours / Location
       if (task.category === 'Work') {
         if (location.label === 'Work') scoreModifier += 20; 
         else if (location.label === 'Home' && !temporal.isWorkHours) scoreModifier -= 30; 
         else if (temporal.isWorkHours) scoreModifier += 10; 
       }
 
-      // Rule 2: Personal Time
       if (task.category === 'Personal' || task.category === 'Hobbies') {
         if (!temporal.isWorkHours) scoreModifier += 15;
         if (location.label === 'Work') scoreModifier -= 20;
       }
 
-      // Rule 3: Battery constraints
       if (device.batteryLevel !== undefined && device.batteryLevel < 0.2 && !device.isCharging) {
         if (task.duration > 20) scoreModifier -= 40;
       }
 
-      // Rule 4: Network Connectivity
       const isFastConnection = device.networkType === 'wifi' || device.effectiveType === '4g';
       const isSlowOrCellular = device.networkType === 'cellular' || 
                                (device.effectiveType && ['slow-2g', '2g', '3g'].includes(device.effectiveType));
@@ -169,6 +180,9 @@ export class LocalSchedulingEngine {
     }).sort((a, b) => (b.contextScore || 0) - (a.contextScore || 0));
   }
 
+  /**
+   * Sorts tasks by their proximity to hard deadlines.
+   */
   private getUrgencyFilteredTasks(tasks: TaskEntity[]): TaskEntity[] {
     const now = Date.now();
     const oneWeekFromNow = now + (7 * 24 * 60 * 60 * 1000);
@@ -189,6 +203,9 @@ export class LocalSchedulingEngine {
       .sort((a, b) => b.urgencyScore - a.urgencyScore);
   }
 
+  /**
+   * Filters out tasks that require significantly more energy than the user currently has.
+   */
   private getEnergyAppropriateTasks(tasks: TaskEntity[], userEnergy: number): TaskEntity[] {
     const energyTolerance = 20; 
     return tasks.filter(task => {
@@ -199,6 +216,9 @@ export class LocalSchedulingEngine {
     });
   }
 
+  /**
+   * Adjusts task selection based on the total number of items in the backlog.
+   */
   private getBacklogAwareTasks(tasks: TaskEntity[], backlogCount: number): TaskEntity[] {
     if (backlogCount > 10) {
       return tasks.filter(task => task.duration <= 30).sort((a, b) => a.duration - b.duration);
@@ -216,6 +236,9 @@ export class LocalSchedulingEngine {
     return tasks;
   }
 
+  /**
+   * Boosts tasks that align with the user's historical preferences for the current time.
+   */
   private getPatternOptimalTasks(tasks: TaskEntity[], patterns: TaskPattern[]): TaskEntity[] {
     if (patterns.length === 0) return tasks;
     const currentHour = new Date().getHours();
@@ -236,6 +259,9 @@ export class LocalSchedulingEngine {
     return tasks;
   }
 
+  /**
+   * Extracts the most frequent categories from a set of patterns.
+   */
   private getPreferredCategories(patterns: TaskPattern[]): Category[] {
     const categoryFrequency: { [key in Category]?: number } = {};
     patterns.forEach(pattern => {
@@ -249,6 +275,9 @@ export class LocalSchedulingEngine {
       .map(([category]) => category as Category);
   }
 
+  /**
+   * Randomly selects a wellbeing activity if enough time is available.
+   */
   private getWellbeingSuggestion(context: SuggestionContext, currentTaskTime: number): Suggestion | null {
     const availableTime = context.availableMinutes - currentTaskTime;
     if (availableTime >= 10) { 
@@ -270,6 +299,9 @@ export class LocalSchedulingEngine {
     return null;
   }
 
+  /**
+   * Generates a descriptive reason for why a specific task was suggested.
+   */
   private getTaskReason(task: TaskEntity & { urgencyScore?: number; categoryMatchScore?: number; contextScore?: number }, context: SuggestionContext): string {
     const reasons: string[] = [];
     const ctx = context.userContext;
@@ -287,12 +319,18 @@ export class LocalSchedulingEngine {
     return reasons.slice(0, 2).join(', ') || 'Good fit for now';
   }
 
+  /**
+   * Generates a reason for a wellbeing suggestion.
+   */
   private getWellbeingReason(activity: WellbeingActivity, context: SuggestionContext): string {
     if (context.energy < 40) return 'Recharge your energy';
     if (context.backlogCount > 8) return 'Mental reset';
     return 'Maintain focus';
   }
 
+  /**
+   * Calculates a final priority score (1-10) for a task.
+   */
   private calculateTaskPriority(task: TaskEntity & { urgencyScore?: number; categoryMatchScore?: number; contextScore?: number }, context: SuggestionContext): number {
     let priority = 5; 
     if (task.urgencyScore) priority += Math.min(5, task.urgencyScore / 20);
@@ -301,6 +339,9 @@ export class LocalSchedulingEngine {
     return Math.min(10, Math.max(1, priority));
   }
 
+  /**
+   * Calculates the engine's confidence (0-100%) in a particular suggestion.
+   */
   private calculateTaskConfidence(task: TaskEntity & { contextScore?: number }, context: SuggestionContext): number {
     let confidence = 50; 
     if (this.matchesEnergy(task.energy, context.energy)) confidence += 20;
@@ -309,11 +350,17 @@ export class LocalSchedulingEngine {
     return Math.min(100, confidence);
   }
 
+  /**
+   * Helper to check if a task's energy requirement is within tolerance of current user energy.
+   */
   private matchesEnergy(taskEnergy: EnergyLevel, userEnergy: number): boolean {
     const taskEnergyValue = this.getTaskEnergyValue(taskEnergy);
     return Math.abs(taskEnergyValue - userEnergy) <= 25;
   }
 
+  /**
+   * Converts qualitative energy levels to numeric values.
+   */
   private getTaskEnergyValue(energy: EnergyLevel): number {
     switch (energy) {
       case 'Low': return 25;

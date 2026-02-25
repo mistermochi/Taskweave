@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -9,13 +8,28 @@ import { ContextService } from '@/services/ContextService';
 import { useTaskContext } from '@/context/TaskContext';
 import { useNavigation } from '@/context/NavigationContext';
 
+/**
+ * Interface representing a single chat message in the conversation.
+ */
 interface Message {
+  /** Unique identifier for the message. */
   id: string;
+  /** Role of the message sender ('user' for the human, 'model' for the AI). */
   role: 'user' | 'model';
+  /** Text content of the message. */
   text: string;
+  /** Unix timestamp of when the message was sent. */
   timestamp: number;
 }
 
+/**
+ * Experimental view for interacting with the AI productivity coach (Aura).
+ * Allows users to ask for advice, reflect on their day, or get focus tips.
+ * The AI is context-aware and receives information about the user's
+ * current location, tasks, and biological energy.
+ *
+ * @component
+ */
 export const ChatView: React.FC = () => {
   const { settings } = useUserSettings();
   const { tasks } = useTaskContext();
@@ -33,8 +47,12 @@ export const ChatView: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const aiServiceRef = useRef(new AIService());
+  const aiServiceRef = useRef(AIService.getInstance());
 
+  /**
+   * Automatically scrolls the chat window to the bottom whenever a new
+   * message is added or the AI starts typing.
+   */
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -43,6 +61,11 @@ export const ChatView: React.FC = () => {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  /**
+   * Handles sending a user message to the AI.
+   * Gathers application context (location, tasks, movement) and sends it
+   * along with the message history to the `AIService`.
+   */
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
     
@@ -54,7 +77,6 @@ export const ChatView: React.FC = () => {
     setIsTyping(true);
 
     try {
-       // Gather Context
        const contextSnapshot = await ContextService.getInstance().getSnapshot();
        const activeTaskCount = tasks.filter(t => t.status === 'active').length;
        const completedCount = tasks.filter(t => t.status === 'completed').length;

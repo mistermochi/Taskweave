@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef } from 'react';
@@ -8,19 +7,38 @@ import { ChevronRight, ChevronDown, Edit2 } from 'lucide-react';
 import Flyout from '@/components/ui/Flyout';
 import { TagEditPicker } from '@/components/pickers/TagEditPicker';
 
+/**
+ * Interface for TagTree props.
+ */
 interface TagTreeProps {
+  /** Full list of tags from the database. */
   tags: Tag[];
+  /** Full list of tasks for calculating counts (future). */
   tasks: TaskEntity[];
+  /** The currently selected tag ID. */
   activeTagId: string | null;
+  /** Callback triggered when a tag is clicked. */
   onSelectTag: (tagId: string | null) => void;
+  /** Optional custom CSS classes. */
   className?: string;
 }
 
+/**
+ * A recursive, interactive tree component for managing hierarchical tags.
+ * Supports expanding/collapsing sub-tags, drag-and-drop re-parenting,
+ * and inline editing via a flyout.
+ *
+ * @component
+ */
 export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSelectTag, className = '' }) => {
+  /** Set of IDs for tags that are currently expanded. */
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  /** ID of the tag currently being dragged. */
   const [draggedTagId, setDraggedTagId] = useState<string | null>(null);
   
+  /** The tag currently being modified in the edit flyout. */
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
+  /** Reference to the button that triggered the edit flyout. */
   const triggerElRef = useRef<HTMLElement | null>(null);
 
 
@@ -32,6 +50,9 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
     setExpanded(newSet);
   };
 
+  /**
+   * Initializes the native HTML drag event.
+   */
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedTagId(id);
     e.dataTransfer.setData('text/plain', id);
@@ -43,6 +64,9 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
     e.dataTransfer.dropEffect = 'move';
   };
 
+  /**
+   * Handles the drop event to move a tag to a new parent.
+   */
   const handleDrop = async (e: React.DragEvent, targetId: string | null) => {
     e.preventDefault();
     const sourceId = e.dataTransfer.getData('text/plain');
@@ -62,6 +86,9 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
     setEditingTag(null);
   };
 
+  /**
+   * Recursive function to generate the tree structure from the flat tag list.
+   */
   const buildTree = (parentId: string | null) => {
     return tags
       .filter(t => t.parentId === parentId)
@@ -127,7 +154,7 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
 
   return (
     <div className={`overflow-y-auto no-scrollbar ${className}`}>
-        {/* Root Drop Zone */}
+        {/* Root Drop Zone: Allows dragging tags back to the top level */}
         <div 
             className="mb-1 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-secondary/30 border-2 border-dashed border-transparent hover:border-border rounded-lg transition-colors"
             onDragOver={handleDragOver}

@@ -4,6 +4,10 @@ import { useUserId } from '../hooks/useFirestore';
 
 const ContextServiceContext = createContext<ContextService | null>(null);
 
+/**
+ * Hook to consume the environmental context service within the React tree.
+ * @throws Error if used outside of `ContextServiceProvider`.
+ */
 export const useContextService = (): ContextService => {
     const context = useContext(ContextServiceContext);
     if (!context) {
@@ -12,15 +16,20 @@ export const useContextService = (): ContextService => {
     return context;
 };
 
-interface ContextServiceProviderProps {
-    children: React.ReactNode;
-}
-
-export const ContextServiceProvider: React.FC<ContextServiceProviderProps> = ({ children }) => {
+/**
+ * Provider that bridges the `ContextService` (singleton/logic) with the React component tree.
+ * It ensures the service is aware of the current authenticated user and provides
+ * a stable reference for consumers.
+ */
+export const ContextServiceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const userId = useUserId();
     
+    /**
+     * Memoized service instance to prevent unnecessary re-initializations.
+     * Updates the user context whenever the authenticated UID changes.
+     */
     const service = useMemo(() => {
-        const svc = new ContextService();
+        const svc = ContextService.getInstance();
         svc.setUserId(userId);
         return svc;
     }, [userId]);

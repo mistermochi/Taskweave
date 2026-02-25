@@ -1,5 +1,8 @@
 import React from 'react';
 
+/**
+ * Basic Card component for grouping related content.
+ */
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -12,6 +15,9 @@ const Card = React.forwardRef<
 ));
 Card.displayName = 'Card';
 
+/**
+ * Header section for a Card, typically containing a title and description.
+ */
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -24,6 +30,9 @@ const CardHeader = React.forwardRef<
 ));
 CardHeader.displayName = 'CardHeader';
 
+/**
+ * Main body section for a Card.
+ */
 const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -32,6 +41,9 @@ const CardContent = React.forwardRef<
 ));
 CardContent.displayName = 'CardContent';
 
+/**
+ * Standardized title style for Cards.
+ */
 const CardTitle = React.forwardRef<
   HTMLHeadingElement,
   React.HTMLAttributes<HTMLHeadingElement>
@@ -44,6 +56,9 @@ const CardTitle = React.forwardRef<
 ));
 CardTitle.displayName = 'CardTitle';
 
+/**
+ * Standardized description/subtitle style for Cards.
+ */
 const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
@@ -56,4 +71,8 @@ const CardDescription = React.forwardRef<
 ));
 CardDescription.displayName = 'CardDescription';
 
+/**
+ * Compound component for building consistent UI cards.
+ * Use as `<Card>`, `<CardHeader>`, etc.
+ */
 export { Card, CardHeader, CardContent, CardTitle, CardDescription };

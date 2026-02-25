@@ -1,15 +1,28 @@
-
 import { TaskEntity, RecurrenceConfig } from '../types';
 
+/**
+ * Interface representing the real-time state of a task timer.
+ */
 export interface TaskTimeMetrics {
+  /** The total estimated duration of the task in seconds. */
   totalSeconds: number;
+  /** Total time elapsed since the task was first started. */
   elapsed: number;
+  /** Remaining time in the countdown. */
   remaining: number;
-  progress: number; // 0 to 1
+  /** Percentage of completion (0 to 1). */
+  progress: number;
+  /** Whether the task has exceeded its estimated duration. */
   isOvertime: boolean;
+  /** Current state of the timer. */
   status: 'idle' | 'running' | 'paused';
 }
 
+/**
+ * Formats a number of seconds into a MM:SS string.
+ * @param seconds - Total seconds to format.
+ * @returns A string like "25:00" or "+02:15" if overtime.
+ */
 export const formatTimer = (seconds: number): string => {
   const isNegative = seconds < 0;
   const absSeconds = Math.abs(seconds);
@@ -19,6 +32,12 @@ export const formatTimer = (seconds: number): string => {
   return `${sign}${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
+/**
+ * Calculates current timer metrics for a task based on its persistence fields.
+ *
+ * @param task - The task entity to calculate metrics for.
+ * @returns A `TaskTimeMetrics` object.
+ */
 export const calculateTaskTime = (task: TaskEntity | null): TaskTimeMetrics => {
   if (!task) {
     return { 
@@ -74,7 +93,10 @@ export const calculateTaskTime = (task: TaskEntity | null): TaskTimeMetrics => {
   };
 };
 
-// Returns the timestamp for 4:00 AM of the current "functional" day.
+/**
+ * Returns the timestamp for the start of the "functional" day (defaulting to 4:00 AM).
+ * If the current time is before 4:00 AM, it returns 4:00 AM of the previous calendar day.
+ */
 export const getStartOfDay = (now: number | Date = Date.now()): number => {
   const date = new Date(now);
   if (date.getHours() < 4) date.setDate(date.getDate() - 1);
@@ -82,6 +104,10 @@ export const getStartOfDay = (now: number | Date = Date.now()): number => {
   return date.getTime();
 };
 
+/**
+ * Adjusts a recurrence configuration to match a new anchor date.
+ * Used when a user manually moves a recurring task.
+ */
 export const syncRecurrenceToNewDate = (
   oldConfig: RecurrenceConfig, 
   newDateTimestamp: number
@@ -104,8 +130,13 @@ export const syncRecurrenceToNewDate = (
   return newConfig;
 };
 
-// --- Recurrence Math ---
-
+/**
+ * Calculates the next occurrence timestamp for a recurring task.
+ *
+ * @param baseDateTimestamp - The anchor date for the next calculation.
+ * @param config - The recurrence rules.
+ * @returns Unix timestamp of the next occurrence.
+ */
 export const getNextRecurrenceDate = (baseDateTimestamp: number | undefined, config: RecurrenceConfig): number => {
   const now = new Date();
   const base = baseDateTimestamp ? new Date(baseDateTimestamp) : now;
@@ -191,12 +222,14 @@ export const getNextRecurrenceDate = (baseDateTimestamp: number | undefined, con
   return nextDate.getTime();
 };
 
+/**
+ * Generates a human-readable description of a recurrence rule.
+ */
 export const formatRecurrence = (config: RecurrenceConfig | undefined, baseDate: Date = new Date()): string => {
   if (!config) return "Does not repeat";
   
   const interval = config.interval || 1;
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const fullDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const ordinals = ['1st', '2nd', '3rd', '4th', 'Last'];
 
   if (config.frequency === 'daily') {

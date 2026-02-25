@@ -9,6 +9,14 @@ import { useTaskContext } from '@/context/TaskContext';
 import { useReferenceContext } from '@/context/ReferenceContext';
 import { useNavigation } from '@/context/NavigationContext';
 
+/**
+ * View Controller for the Scheduling/Recommendation interface.
+ * Coordinates multiple engines (Local Heuristics, Machine Learning, and AI) to
+ * provide prioritized suggestions for the user's next action.
+ *
+ * @param onNavigate - Optional handler for cross-view navigation (e.g. going to Breathing).
+ * @returns State (suggestions, loading, energy) and Actions (generate, accept, refresh, skip).
+ */
 export const useSchedulingController = (onNavigate?: NavigationHandler) => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,10 +32,12 @@ export const useSchedulingController = (onNavigate?: NavigationHandler) => {
   const { tasks: allTasks } = useTaskContext();
   const { tags } = useReferenceContext();
 
+  /** Extracts only active tasks for recommendation context. */
   const activeTasks = useMemo(() => 
     allTasks.filter(t => t.status === 'active'),
   [allTasks]);
 
+  /** Extracts completed tasks for historical context. */
   const completedTasks = useMemo(() => 
     allTasks.filter(t => t.status === 'completed'),
   [allTasks]);
@@ -35,6 +45,11 @@ export const useSchedulingController = (onNavigate?: NavigationHandler) => {
   const backlogCount = activeTasks.length;
   const userEnergy = currentEnergy;
 
+  /**
+   * Generates a new set of suggestions.
+   * Pulls data from environmental sensors and historical behavior logs
+   * to build a comprehensive `SuggestionContext` for the engines.
+   */
   const generateSuggestions = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -74,6 +89,13 @@ export const useSchedulingController = (onNavigate?: NavigationHandler) => {
     }
   }, [activeTasks, backlogCount, userEnergy, generateSuggestions]);
 
+  /**
+   * Handles the user's decision to act on a suggestion.
+   * If a task, it sets it as the active focus.
+   * If a wellbeing activity, it navigates to the relevant tool.
+   *
+   * @param suggestionId - The unique ID of the accepted suggestion.
+   */
   const acceptSuggestion = useCallback(async (suggestionId: string) => {
     const suggestion = suggestions.find(s => s.id === suggestionId);
     if (!suggestion) return;
@@ -97,12 +119,18 @@ export const useSchedulingController = (onNavigate?: NavigationHandler) => {
     generateSuggestions();
   }, [generateSuggestions]);
 
+  /**
+   * Removes the top suggestion and shifts the list.
+   */
   const skipSuggestion = useCallback(() => {
     if (suggestions.length > 0) {
       setSuggestions(suggestions.slice(1));
     }
   }, [suggestions]);
 
+  /**
+   * Updates the local energy state for simulation/adjustment.
+   */
   const updateEnergy = useCallback((newEnergy: number) => {
     setCurrentEnergy(newEnergy);
   }, []);

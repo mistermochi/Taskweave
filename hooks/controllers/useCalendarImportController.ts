@@ -1,10 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { GoogleCalendarService } from '@/services/GoogleCalendarService';
 import { TaskService } from '@/services/TaskService';
 import { TagService } from '@/services/TagService';
-import { Tag, UserSettings, TaskEntity } from '@/types'; // Import TaskEntity
+import { Tag, UserSettings, TaskEntity } from '@/types';
 
+/**
+ * Interface representing a standardized calendar event structure.
+ */
 export interface CalendarEvent {
     id: string;
     summary: string;
@@ -18,12 +20,21 @@ export interface CalendarEvent {
     calendarId: string; 
 }
 
-export const useCalendarImportController = (settings: Partial<UserSettings>, allTasks: TaskEntity[]) => { // Accept allTasks
+/**
+ * View Controller for the Google Calendar Import workflow.
+ * Manages the OAuth flow, event fetching, selection, and mapping to application tasks.
+ *
+ * @param settings - Current user settings (to retrieve enabled calendars and project mappings).
+ * @param allTasks - Current application tasks (to detect duplicate imports).
+ * @returns State (loading status, events) and Actions (start, toggle, confirm, cancel).
+ */
+export const useCalendarImportController = (settings: Partial<UserSettings>, allTasks: TaskEntity[]) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-    const [importedEventIds, setImportedEventIds] = useState<Set<string>>(new Set()); // New state
+    /** Set of IDs for events already successfully imported as tasks. */
+    const [importedEventIds, setImportedEventIds] = useState<Set<string>>(new Set());
     const [error, setError] = useState<string | null>(null);
     const [tags, setTags] = useState<Tag[]>([]);
 
@@ -36,11 +47,13 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
         fetchTags();
     }, []);
 
+    /**
+     * Initiates the OAuth flow and fetches upcoming events from the user's enabled calendars.
+     */
     const startImport = async () => {
         setIsLoading(true);
         setError(null);
         
-        // Build a set of already imported event IDs
         const alreadyImported = new Set(allTasks.map(t => t.googleCalendarEventId).filter(Boolean) as string[]);
         setImportedEventIds(alreadyImported);
 
@@ -58,8 +71,8 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
             
             if (token) {
                 const fetched = await service.fetchUpcomingEvents(token, calendarIds);
-                const validEvents = fetched.filter((e: any) => e.status !== 'cancelled').map(e => ({...e, calendarId: e.organizer.email})); // Add calendarId
-                setupEvents(validEvents, alreadyImported); // Pass alreadyImported
+                const validEvents = fetched.filter((e: any) => e.status !== 'cancelled').map(e => ({...e, calendarId: e.organizer.email}));
+                setupEvents(validEvents, alreadyImported);
                 setIsOpen(true);
             } else {
                 throw new Error("No token received");
@@ -68,12 +81,13 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
             const error = e as Error;
             console.error("Import failed:", error);
             
+            // Fallback to Demo/Mock data if Auth fails (e.g. during dev/testing)
             if (error.message === 'DOMAIN_NOT_AUTHORIZED' || error.message === 'GOOGLE_AUTH_NOT_ENABLED' || error.message === 'POPUP_CLOSED') {
                 setError("Demo Mode (Auth Config Missing)");
                 const mocks = service.getMockEvents() as CalendarEvent[];
                 const mockEventsWithIds = mocks.map((e, i) => ({ ...e, calendarId: i % 2 === 0 ? 'primary' : 'work@example.com' }));
                 const filteredMocks = mockEventsWithIds.filter(e => calendarIds.includes(e.calendarId));
-                setupEvents(filteredMocks, alreadyImported); // Pass alreadyImported
+                setupEvents(filteredMocks, alreadyImported);
                 setIsOpen(true);
             } else {
                 setError(error.message || "Failed to connect");
@@ -83,13 +97,18 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
         }
     };
 
+    /**
+     * Populates the internal event list and pre-selects new items.
+     */
     const setupEvents = (fetchedEvents: CalendarEvent[], alreadyImported: Set<string>) => {
         setEvents(fetchedEvents);
-        // Pre-select only events that have not been imported yet
         const allNewIds = new Set(fetchedEvents.map((e) => e.id).filter(id => !alreadyImported.has(id)));
         setSelectedIds(allNewIds);
     };
 
+    /**
+     * Toggles the selection status of a specific event ID.
+     */
     const toggleSelection = (id: string) => {
         const newSet = new Set(selectedIds);
         if (newSet.has(id)) newSet.delete(id);
@@ -97,6 +116,12 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
         setSelectedIds(newSet);
     };
 
+    /**
+     * Finalizes the import by converting selected events into tasks.
+     * Maps calendar fields (title, desc, duration) to task entities.
+     *
+     * @param onSuccess - Callback containing the count of imported tasks.
+     */
     const confirmImport = async (onSuccess: (count: number) => void) => {
         const taskService = TaskService.getInstance();
         const eventsToImport = events.filter(e => selectedIds.has(e.id));
@@ -165,6 +190,9 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
         setIsOpen(false);
     };
 
+    /**
+     * Resets the import state.
+     */
     const cancelImport = () => {
         setIsOpen(false);
         setEvents([]);
@@ -178,7 +206,7 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
             events,
             selectedIds,
             error,
-            importedEventIds // Expose the new state
+            importedEventIds
         },
         actions: {
             startImport,

@@ -10,13 +10,27 @@ import LoginView from '@/views/LoginView';
 import { AppProvider } from '@/context/AppProvider';
 import { AppContent } from '@/components/AppContent';
 
+/**
+ * The main entry page for the Focus Flow application.
+ * It handles the top-level application lifecycle, including:
+ * - Service Worker registration for PWA capabilities.
+ * - Firebase Authentication state monitoring.
+ * - One-time data migration for versioning and user-scoping.
+ * - User profile synchronization on login.
+ *
+ * @logic
+ * This component acts as the application's "Bootstrapper". It ensures all
+ * required data and sensors are initialized before rendering the `AppContent`.
+ */
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingText, setLoadingText] = useState('Initializing...');
 
   useEffect(() => {
-    // --- PWA Service Worker Registration ---
+    /**
+     * Registers the Service Worker for offline and PWA support.
+     */
     const registerSW = async () => {
       if ('serviceWorker' in navigator) {
         try {
@@ -30,7 +44,6 @@ export default function HomePage() {
       }
     };
     
-    // Register immediately
     registerSW();
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -41,7 +54,11 @@ export default function HomePage() {
             const settingsSnap = await getDoc(settingsRef);
             const currentSettings = settingsSnap.data() || {};
 
-            // --- ONE-TIME DATA MIGRATION ---
+            /**
+             * ONE-TIME DATA MIGRATION Logic.
+             * If the user hasn't been migrated to the scoped structure,
+             * it moves global tasks/tags into their specific user document.
+             */
             if (!currentSettings.migration_v1_complete) {
                 setLoadingText('Migrating data...');
                 try {
@@ -62,18 +79,20 @@ export default function HomePage() {
                         }
                     }
 
-                    // Mark migration as complete
                     batch.set(settingsRef, { migration_v1_complete: true }, { merge: true });
                     
                     await batch.commit();
                     console.log("Data migration complete.");
                 } catch (e) {
                     console.error("Data migration failed:", e);
-                    // Don't block the user if migration fails, but log it.
                 }
             }
 
-            // --- Sync Profile on Login ---
+            /**
+             * Profile Synchronization.
+             * Updates the user's display name and photo from their Google Auth profile
+             * if they haven't set a custom one yet.
+             */
             try {
                 const updates: Record<string, unknown> = {};
                 const newName = user.displayName?.split(' ')[0];

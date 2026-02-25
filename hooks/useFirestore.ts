@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -12,7 +11,12 @@ import {
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '@/firebase';
 
-// Hook to ensure we have a user ID before querying
+/**
+ * Hook to retrieve the current authenticated Firebase user ID.
+ * Automatically updates when the auth state changes.
+ *
+ * @returns The UID string or null if not authenticated.
+ */
 export const useUserId = () => {
   const [uid, setUid] = useState<string | null>(null);
   
@@ -26,7 +30,18 @@ export const useUserId = () => {
   return uid;
 };
 
-// Generic hook to fetch a user-specific collection in real-time
+/**
+ * Generic hook for subscribing to a Firestore sub-collection for the current user.
+ *
+ * @template T - The type of the data stored in the collection.
+ * @param collectionName - The name of the collection under the user document.
+ * @param constraints - Array of Firestore query constraints (orderBy, where, etc).
+ * @param enabled - Whether the subscription should be active.
+ * @returns Object containing the data array and loading state.
+ *
+ * @example
+ * const { data: tasks } = useFirestoreCollection<TaskEntity>('tasks', [orderBy('createdAt')]);
+ */
 export function useFirestoreCollection<T>(
   collectionName: string, 
   constraints: QueryConstraint[] = [],
@@ -46,12 +61,11 @@ export function useFirestoreCollection<T>(
   useEffect(() => {
     if (!uid || !enabled) {
       setLoading(false);
-      setData([]); // Clear data if not enabled or no user
+      setData([]);
       return;
     }
 
     setLoading(true);
-    // Path: users/{uid}/{collectionName}
     const collectionRef = collection(db, 'users', uid, collectionName);
     const q = query(collectionRef, ...constraintsRef.current);
 
@@ -73,7 +87,14 @@ export function useFirestoreCollection<T>(
   return { data, loading };
 }
 
-// Generic hook to fetch a single user-specific document
+/**
+ * Generic hook for subscribing to a single Firestore document for the current user.
+ *
+ * @template T - The type of the document data.
+ * @param collectionName - The name of the parent sub-collection.
+ * @param docId - The unique ID of the document to fetch.
+ * @returns Object containing the document data or null, and loading state.
+ */
 export function useFirestoreDoc<T>(collectionName: string, docId: string | undefined): { data: T | null; loading: boolean } {
   const uid = useUserId();
   const [data, setData] = useState<T | null>(null);
@@ -87,7 +108,6 @@ export function useFirestoreDoc<T>(collectionName: string, docId: string | undef
     }
 
     setLoading(true);
-    // Path: users/{uid}/{collectionName}/{docId}
     const docRef = doc(db, 'users', uid, collectionName, docId);
     
     const unsubscribe = onSnapshot(docRef, (docSnap) => {

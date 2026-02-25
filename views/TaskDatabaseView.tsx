@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -14,15 +12,25 @@ import { useNavigation } from '@/context/NavigationContext';
 import { TaskSection } from '@/components/TaskSection';
 import { useTaskContext } from '@/context/TaskContext';
 
-interface TaskDatabaseViewProps {}
-
-export const TaskDatabaseView: React.FC<TaskDatabaseViewProps> = () => {
+/**
+ * View for managing the full inventory of tasks.
+ * It provides a structured interface for organizing tasks into temporal sections
+ * (Today, Overdue, Upcoming, Inbox) and historical sections (Completed, Archived).
+ * Supports complex filtering, searching, and AI-driven task recommendations.
+ *
+ * @component
+ * @interaction
+ * - Lazily loads historical data (Completed/Archived) only when the section is expanded.
+ * - Handles inline task creation across all sections.
+ * - Synchronizes with `NavigationContext` to respond to external filtering/adding requests.
+ */
+export const TaskDatabaseView: React.FC = () => {
   const { activeTagId, autoCreateSection, clearAutoCreate, focusOnTask } = useNavigation();
   const { state, actions } = useTaskDatabaseController(activeTagId);
   const { tasks: allTasks } = useTaskContext();
   const [toast, setToast] = useState({ visible: false, message: "", lastCompletedId: null as string | null });
   
-  // Section Expansion State
+  /** State tracking which sections are expanded in the UI. */
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
       'overdue': true,
       'today': true,
@@ -32,22 +40,29 @@ export const TaskDatabaseView: React.FC<TaskDatabaseViewProps> = () => {
       'archived': false
   });
 
-  // --- LAZY LOADING FOR HISTORICAL DATA ---
+  /**
+   * LAZY LOADING: Completed history.
+   * Enabled flag ensures we don't fetch hundreds of documents until the user asks.
+   */
   const { data: completedTasks } = useFirestoreCollection<TaskEntity>(
     'tasks',
     [where('status', '==', 'completed'), orderBy('completedAt', 'desc')],
-    expandedSections.completed // This query is only enabled when the section is expanded
+    expandedSections.completed
   );
+
+  /** LAZY LOADING: Archived history. */
   const { data: archivedTasks } = useFirestoreCollection<TaskEntity>(
     'tasks',
     [where('status', '==', 'archived'), orderBy('archivedAt', 'desc')],
-    expandedSections.archived // This query is only enabled when the section is expanded
+    expandedSections.archived
   );
 
-  // Adding State
+  /** Name of the section where an inline add form is currently visible. */
   const [addingToSection, setAddingToSection] = useState<string | null>(null);
 
-  // Handle external create request
+  /**
+   * Responds to navigation-level requests to open the add form in a specific section.
+   */
   useEffect(() => {
       if (autoCreateSection) {
           setAddingToSection(autoCreateSection);
@@ -67,8 +82,6 @@ export const TaskDatabaseView: React.FC<TaskDatabaseViewProps> = () => {
     }, 5000);
   };
 
-  // --- Memoized Callbacks for TaskRow/TaskSection ---
-  
   const handleComplete = useCallback(async (task: TaskEntity) => {
     const nextDate = await actions.quickCompleteTask(task);
     if (nextDate) {
@@ -114,6 +127,9 @@ export const TaskDatabaseView: React.FC<TaskDatabaseViewProps> = () => {
       actions.updateTask(task.id, updates);
   }, [actions]);
 
+  /**
+   * Finalizes the inline creation flow.
+   */
   const handleCreateFromRow = async (baseTask: TaskEntity, updates: Partial<TaskEntity>) => {
       const merged = { ...baseTask, ...updates };
       const nextDate = await actions.createTask(merged.title, {
@@ -135,12 +151,9 @@ export const TaskDatabaseView: React.FC<TaskDatabaseViewProps> = () => {
       setAddingToSection(null);
   };
 
-  const handleReject = useCallback(() => {
-      actions.rejectRecommendation();
-      showToast("Suggestion dismissed. We'll learn from this.");
-  }, [actions]);
-
   const { sections, tags, recommendation } = state;
+
+  /** Props bundled for the TaskSection components. */
   const sectionProps = {
     allTasks: allTasks,
     tags: tags,

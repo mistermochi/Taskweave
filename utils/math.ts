@@ -1,6 +1,16 @@
+/**
+ * Math utilities for matrix operations and vector calculations.
+ * Primarily used by the Recommendation and Learning engines for
+ * linear algebra operations (e.g., LinUCB).
+ */
 
 export class Matrix {
-  // Multiply Matrix x Vector
+  /**
+   * Performs Matrix-Vector multiplication.
+   * @param A - The matrix (m x n).
+   * @param x - The vector (n).
+   * @returns The resulting vector (m).
+   */
   static dot(A: number[][], x: number[]): number[] {
     const m = A.length;
     const n = A[0].length;
@@ -13,17 +23,31 @@ export class Matrix {
     return res;
   }
 
-  // Vector Dot Product
+  /**
+   * Calculates the dot product of two vectors.
+   * @param a - First vector.
+   * @param b - Second vector.
+   * @returns The scalar dot product.
+   */
   static vectorDot(a: number[], b: number[]): number {
     return a.reduce((sum, val, i) => sum + val * b[i], 0);
   }
 
-  // Matrix Addition
+  /**
+   * Performs element-wise matrix addition.
+   * @param A - First matrix.
+   * @param B - Second matrix.
+   * @returns The sum matrix.
+   */
   static add(A: number[][], B: number[][]): number[][] {
     return A.map((row, i) => row.map((val, j) => val + B[i][j]));
   }
 
-  // Outer Product (x * x^T)
+  /**
+   * Calculates the outer product of a vector with itself (x * x^T).
+   * @param x - The input vector.
+   * @returns The resulting square matrix.
+   */
   static outerProduct(x: number[]): number[][] {
     const n = x.length;
     const res = Array.from({ length: n }, () => new Array(n).fill(0));
@@ -35,25 +59,45 @@ export class Matrix {
     return res;
   }
 
-  // Multiply Vector by Scalar
+  /**
+   * Multiplies a vector by a scalar.
+   * @param x - The vector.
+   * @param s - The scalar.
+   * @returns The scaled vector.
+   */
   static scale(x: number[], s: number): number[] {
     return x.map(val => val * s);
   }
 
-  // Add Vectors
+  /**
+   * Performs element-wise vector addition.
+   * @param a - First vector.
+   * @param b - Second vector.
+   * @returns The sum vector.
+   */
   static vecAdd(a: number[], b: number[]): number[] {
     return a.map((val, i) => val + b[i]);
   }
 
-  // Identity Matrix
+  /**
+   * Generates an Identity Matrix of size n.
+   * @param n - The dimension of the matrix.
+   * @returns An n x n identity matrix.
+   */
   static identity(n: number): number[][] {
     const res = Array.from({ length: n }, () => new Array(n).fill(0));
     for (let i = 0; i < n; i++) res[i][i] = 1;
     return res;
   }
 
-  // Matrix Inversion (Gaussian Elimination)
-  // Suitable for small d (d=11)
+  /**
+   * Inverts a square matrix using Gaussian Elimination.
+   * Note: This implementation is suitable for small dimensions (e.g., d=11).
+   *
+   * @param A - The matrix to invert.
+   * @returns The inverted matrix.
+   * @throws Error if the matrix is singular and cannot be inverted.
+   */
   static invert(A: number[][]): number[][] {
     const n = A.length;
     // Create augmented matrix [A | I]
@@ -68,7 +112,7 @@ export class Matrix {
       [aug[i], aug[pivot]] = [aug[pivot], aug[i]];
 
       const div = aug[i][i];
-      if (Math.abs(div) < 1e-10) throw new Error("Matrix is singular"); // Should not happen with Ridge Regression (alpha > 0)
+      if (Math.abs(div) < 1e-10) throw new Error("Matrix is singular");
 
       for (let j = 0; j < 2 * n; j++) aug[i][j] /= div;
 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -7,13 +6,30 @@ import { ChevronDown, Check } from 'lucide-react';
 import { formatRecurrence } from '@/utils/timeUtils';
 import { PickerContainer } from './PickerContainer';
 
+/**
+ * Interface for RecurrencePicker props.
+ */
 interface RecurrencePickerProps {
+  /** Current recurrence configuration. */
   value: RecurrenceConfig | undefined;
+  /** Callback triggered when the configuration is updated. */
   onChange: (config: RecurrenceConfig | undefined) => void;
-  baseDate?: Date; // To show "Monthly on day 27" context
-  standalone?: boolean; // If true, renders the UI directly without the trigger button
+  /** Anchor date for relative calculations (e.g. "Every 2nd Tuesday"). */
+  baseDate?: Date;
+  /** Whether to render the full UI immediately without a trigger button. */
+  standalone?: boolean;
 }
 
+/**
+ * Complex UI component for configuring recurring task rules.
+ * Supports daily, weekly (multi-day), and monthly (date-based or relative) frequencies.
+ *
+ * @component
+ * @interaction
+ * - Synchronizes internal state with the anchor `baseDate` for sensible defaults.
+ * - Provides specific sub-menus for weekly (day grid) and monthly (relative/fixed) rules.
+ * - Triggers `onChange` on every meaningful selection.
+ */
 export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({ 
     value, 
     onChange, 
@@ -30,7 +46,6 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
   const [weekOfMonth, setWeekOfMonth] = useState<number>(1); // 1-5
   const [dayOfWeek, setDayOfWeek] = useState<number>(1); // For Monthly Relative
 
-  // Sync internal state when value changes
   useEffect(() => {
     if (value) {
       setFrequency(value.frequency);
@@ -40,7 +55,6 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
       if (value.weekOfMonth) setWeekOfMonth(value.weekOfMonth);
       if (value.weekDays && value.weekDays.length > 0) setDayOfWeek(value.weekDays[0]);
     } else {
-      // Defaults based on baseDate
       setWeekDays([baseDate.getDay()]);
       setDayOfWeek(baseDate.getDay());
       const nth = Math.ceil(baseDate.getDate() / 7);
@@ -48,6 +62,9 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
     }
   }, [value, baseDate]);
 
+  /**
+   * Helper to commit a change to the parent component.
+   */
   const commitChange = (override?: Partial<RecurrenceConfig>) => {
     const config: RecurrenceConfig = {
       frequency,
@@ -68,13 +85,12 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
     }
     
     const finalConfig = { ...config, ...override };
-
-    // A weekly recurrence with no selected days is not a valid recurrence.
-    // Instead of setting it to undefined here (which causes a state loop),
-    // we pass the invalid config up. The parent (TaskRow) will interpret it on save.
     onChange(finalConfig);
   };
 
+  /**
+   * Toggles a day of the week for weekly recurrence.
+   */
   const toggleWeekDay = (day: number) => {
     const newDays = weekDays.includes(day) 
       ? weekDays.filter(d => d !== day) 
@@ -151,7 +167,7 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
           </div>
        </div>
 
-       {/* Weekly Specifics */}
+       {/* Weekly Specifics (Day Grid) */}
        {frequency === 'weekly' && (
          <div className="flex justify-between">
             {['S','M','T','W','T','F','S'].map((label, idx) => {
@@ -171,7 +187,7 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
          </div>
        )}
 
-       {/* Monthly Specifics */}
+       {/* Monthly Specifics (Fixed vs Relative) */}
        {frequency === 'monthly' && (
          <div className="flex flex-col gap-1.5">
             <button 

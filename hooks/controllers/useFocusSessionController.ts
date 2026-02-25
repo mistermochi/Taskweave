@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useUserId } from '@/hooks/useFirestore';
 import { useTaskContext } from '@/context/TaskContext';
@@ -7,6 +6,14 @@ import { calculateTaskTime, formatTimer } from '@/utils/timeUtils';
 import { useNavigation } from '@/context/NavigationContext';
 import { TaskEntity } from '@/types';
 
+/**
+ * View Controller for an active Focus Session.
+ * Manages the transition from a running timer to the post-session summary,
+ * handles auto-start logic, and coordinates with the Task Service for persistence.
+ *
+ * @param taskId - The unique ID of the task being focused on.
+ * @returns State (active task, time left, formatted display) and Actions (toggle, complete, stop).
+ */
 export const useFocusSessionController = (taskId: string | undefined) => {
   const uid = useUserId();
   const { tasks } = useTaskContext();
@@ -21,6 +28,10 @@ export const useFocusSessionController = (taskId: string | undefined) => {
 
   const taskService = TaskService.getInstance();
 
+  /**
+   * Auto-start logic: Automatically begins the focus session
+   * the first time the view is mounted with a valid task ID.
+   */
   useEffect(() => {
     if (task && uid && !hasAutoStarted) {
       if (!isActive) {
@@ -30,6 +41,11 @@ export const useFocusSessionController = (taskId: string | undefined) => {
     }
   }, [task, uid, hasAutoStarted, isActive, metrics.remaining, taskService, tasks]);
 
+  /**
+   * Local animation loop for the timer.
+   * Updates every second to provide smooth UI feedback while relying on
+   * `calculateTaskTime` for accuracy.
+   */
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
     
@@ -48,6 +64,9 @@ export const useFocusSessionController = (taskId: string | undefined) => {
     };
   }, [isActive, task]);
 
+  /**
+   * Toggles between Start and Pause for the current focus session.
+   */
   const toggleTimer = () => {
     if (!task || !uid) return;
 
@@ -58,12 +77,18 @@ export const useFocusSessionController = (taskId: string | undefined) => {
     }
   };
 
+  /**
+   * Stops the session and returns to the previous view without completing the task.
+   */
   const stopCurrentSession = () => {
     if (!task || !uid) return;
     taskService.stopSession(task.id, timeLeft);
     clearFocusSession();
   };
 
+  /**
+   * Pauses the timer and navigates to the breathing exercise view.
+   */
   const handleBreathing = () => {
     if (isActive && task) {
        taskService.pauseSession(task.id, timeLeft);
@@ -71,6 +96,9 @@ export const useFocusSessionController = (taskId: string | undefined) => {
     startBreathing();
   };
 
+  /**
+   * Marks the task as completed and transitions to the Reflection (Session Summary) view.
+   */
   const completeSession = async () => {
     if (task && uid) {
         const totalSeconds = task.duration * 60;

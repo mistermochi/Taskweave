@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -7,11 +6,18 @@ import { Zap, Clock, Target, Activity, Layers, Wind, Smile, AlignLeft, MapPin, B
 import { useInsightsController } from '@/hooks/controllers/useInsightsController';
 import { Page } from '@/components/layout/Page';
 
+/**
+ * Interface for InsightsView props.
+ */
 interface InsightsViewProps {
+  /** Callback for handling navigation to other views. */
   onNavigate: NavigationHandler;
 }
 
-// --- Helper Components for Log ---
+/**
+ * Internal component for rendering a single entry in the Vital Log list.
+ * It dynamically chooses an icon and color based on the vital type and metadata.
+ */
 const VitalLogItem: React.FC<{ vital: UserVital, onClick: (v: UserVital) => void }> = ({ vital, onClick }) => {
     const formatTime = (timestamp: number) => {
         return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -56,7 +62,6 @@ const VitalLogItem: React.FC<{ vital: UserVital, onClick: (v: UserVital) => void
                 content = `Energy Level: ${val}%`;
                 label = 'Energy Update';
             } else {
-                // Legacy 1-5 scale
                 Icon = Smile;
                 colorClass = 'text-yellow-400';
                 bgClass = 'bg-yellow-400/10';
@@ -113,6 +118,10 @@ const VitalLogItem: React.FC<{ vital: UserVital, onClick: (v: UserVital) => void
     );
 };
 
+/**
+ * Modal that displays the environmental snapshot (location, battery, network)
+ * captured at the moment a vital log was created.
+ */
 const VitalContextModal = ({ vital, onClose }: { vital: UserVital | null, onClose: () => void }) => {
   if (!vital || !vital.context) return null;
   const ctx = vital.context;
@@ -127,7 +136,6 @@ const VitalContextModal = ({ vital, onClose }: { vital: UserVital | null, onClos
          </div>
 
          <div className="p-4 space-y-4">
-             {/* Location */}
              <div className="flex items-center justify-between p-3 bg-foreground/5 rounded-xl border border-border">
                 <div className="flex items-center gap-3">
                    <div className="p-2 bg-foreground/5 rounded-full text-secondary"><MapPin size={16} /></div>
@@ -138,7 +146,6 @@ const VitalContextModal = ({ vital, onClose }: { vital: UserVital | null, onClos
                 </div>
              </div>
              
-             {/* Device Grid */}
              <div className="grid grid-cols-2 gap-3">
                  <div className="p-3 bg-foreground/5 rounded-xl border border-border">
                     <div className="flex items-center gap-2 mb-2">
@@ -161,13 +168,11 @@ const VitalContextModal = ({ vital, onClose }: { vital: UserVital | null, onClos
                  </div>
              </div>
 
-             {/* Timestamp & Activity */}
              <div className="flex justify-between items-center px-2 pt-2 text-xs text-secondary/50 font-medium">
                 <span>{new Date(vital.timestamp).toLocaleString()}</span>
                 <span>{ctx.activity.motionIntensity}</span>
              </div>
              
-             {/* Extra Metadata (e.g. Drain Amount) */}
              {vital.metadata?.drainAmount && (
                  <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl text-xs text-orange-300">
                      Passive Drain: -{vital.metadata.drainAmount} energy over {Number(vital.metadata.hoursSinceLast).toFixed(1)}h
@@ -179,6 +184,13 @@ const VitalContextModal = ({ vital, onClose }: { vital: UserVital | null, onClos
   );
 };
 
+/**
+ * Analytics dashboard displaying productivity and wellness trends.
+ * Includes visual orbits for task distribution, high-level metrics (Peak Flow, Top Focus),
+ * and a deep vital event log for inspecting context.
+ *
+ * @component
+ */
 export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
   const { state } = useInsightsController();
   const [selectedVital, setSelectedVital] = useState<UserVital | null>(null);

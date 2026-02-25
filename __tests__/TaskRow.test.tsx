@@ -130,20 +130,22 @@ describe('TaskRow - UI Interaction Tests', () => {
     duration: 30,
     energy: 'Medium',
     category: 'tag-work',
+    blockedBy: [],
     createdAt: Date.now(),
     updatedAt: Date.now(),
-  } as TaskEntity;
+  };
 
   const mockTaskWithoutDate: TaskEntity = {
     id: 'task-2',
     title: 'A task with no date',
     status: 'active',
     duration: 30,
-    energy: 'tag-work',
+    energy: 'Medium',
     category: 'Work',
+    blockedBy: [],
     createdAt: Date.now(),
     updatedAt: Date.now(),
-  } as TaskEntity;
+  };
 
   const mockTags: Tag[] = [
     { id: 'tag-work', name: 'Work', color: '#c084fc', parentId: null, order: 0 },

@@ -30,7 +30,7 @@ describe('LoginView', () => {
   beforeEach(() => {
     // Clear mock history before each test
     (signInWithPopup as jest.Mock).mockClear();
-    (GoogleAuthProvider as jest.Mock).mockClear();
+    (GoogleAuthProvider as unknown as jest.Mock).mockClear();
   });
 
   it('should call signInWithPopup when the Google sign-in button is clicked', async () => {

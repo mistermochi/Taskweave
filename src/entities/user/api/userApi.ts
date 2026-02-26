@@ -1,6 +1,6 @@
-import { doc, onSnapshot, setDoc, updateDoc, DocumentData } from 'firebase/firestore';
-import { db } from '../firebase';
-import { UserSettings } from '@/types';
+import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import { db } from '@/firebase';
+import { UserSettings } from '../model/types';
 
 /**
  * Default global settings for a new user.
@@ -18,15 +18,15 @@ const DEFAULT_SETTINGS: Omit<UserSettings, 'homeLat' | 'homeLng' | 'photoURL' | 
 };
 
 /**
- * Service for managing user-specific configuration and preferences in Firestore.
+ * API for managing user-specific configuration and preferences in Firestore.
  * Implements a subscription model to allow other services and components to react
  * to settings changes in real-time.
  *
- * @singleton Use `UserConfigService.getInstance()` to access the service.
+ * @singleton Use `userApi` singleton instance to access functionality.
  */
-export class UserConfigService {
+export class UserApi {
     /** Singleton instance of the service. */
-    private static instance: UserConfigService;
+    private static instance: UserApi;
     /** Cached current user settings. */
     private settings: UserSettings = DEFAULT_SETTINGS as UserSettings;
     /** Current authenticated user ID. */
@@ -44,14 +44,14 @@ export class UserConfigService {
     }
 
     /**
-     * Returns the singleton instance of UserConfigService.
-     * @returns The UserConfigService instance.
+     * Returns the singleton instance of UserApi.
+     * @returns The UserApi instance.
      */
-    public static getInstance(): UserConfigService {
-        if (!UserConfigService.instance) {
-            UserConfigService.instance = new UserConfigService();
+    public static getInstance(): UserApi {
+        if (!UserApi.instance) {
+            UserApi.instance = new UserApi();
         }
-        return UserConfigService.instance;
+        return UserApi.instance;
     }
 
     /**
@@ -59,10 +59,6 @@ export class UserConfigService {
      * If a user logs out, it cleans up the listener and resets to defaults.
      *
      * @param uid - The Firebase user ID or null.
-     *
-     * @interaction
-     * - Listens to `users/{uid}/settings/general` in Firestore.
-     * - Automatically creates the settings document with defaults if it doesn't exist.
      */
     public setUserId(uid: string | null) {
         if (this.userId === uid) return;
@@ -106,7 +102,7 @@ export class UserConfigService {
      */
     public async updateSettings(updates: Partial<UserSettings>) {
         if (!this.userId) return;
-        const ref = doc(db, this.userId, 'settings', 'general');
+        const ref = doc(db, 'users', this.userId, 'settings', 'general');
         await setDoc(ref, updates, { merge: true });
     }
     
@@ -118,7 +114,7 @@ export class UserConfigService {
      */
     public async updateCalendarMapping(calendarId: string, projectId: string): Promise<void> {
         if (!this.userId) return;
-        const ref = doc(db, this.userId, 'settings', 'general');
+        const ref = doc(db, 'users', this.userId, 'settings', 'general');
         await updateDoc(ref, { [`calendarProjectMapping.${calendarId}`]: projectId });
     }
 
@@ -137,3 +133,8 @@ export class UserConfigService {
         };
     }
 }
+
+/**
+ * Singleton instance of the UserApi.
+ */
+export const userApi = UserApi.getInstance();

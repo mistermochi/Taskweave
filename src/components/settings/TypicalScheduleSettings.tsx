@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, BedDouble } from 'lucide-react';
-import { UserSettings } from '@/hooks/useUserSettings';
+import { UserSettings } from '@/entities/user';
 
 /**
  * Interface for TypicalScheduleSettings props.

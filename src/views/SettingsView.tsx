@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useUserSettings } from '@/hooks/useUserSettings';
+import { useUserSettings } from '@/entities/user';
 import { Page } from '@/components/layout/Page';
 import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
 import { IntegrationsSettings } from '@/components/settings/IntegrationsSettings';

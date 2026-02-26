@@ -1,6 +1,6 @@
 'use client';
 import { useEffect } from 'react';
-import { useUserSettings } from '@/hooks/useUserSettings';
+import { useUserSettings } from '@/entities/user';
 
 /**
  * Mapping of theme names to their corresponding HSL variable values.

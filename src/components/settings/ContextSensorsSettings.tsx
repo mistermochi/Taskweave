@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Zap, MapPin, Move, Battery } from 'lucide-react';
-import { UserSettings } from '@/hooks/useUserSettings';
+import { UserSettings } from '@/entities/user';
 import { contextApi } from '@/entities/context';
 
 /**

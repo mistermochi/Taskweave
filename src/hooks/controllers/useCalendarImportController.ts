@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { GoogleCalendarService } from '@/services/GoogleCalendarService';
 import { TaskService } from '@/services/TaskService';
 import { tagApi, Tag } from '@/entities/tag';
-import { UserSettings, TaskEntity } from '@/types';
+import { UserSettings } from '@/entities/user';
+import { TaskEntity } from '@/types';
 
 /**
  * Interface representing a standardized calendar event structure.

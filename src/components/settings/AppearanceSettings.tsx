@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Sparkles, Sun, Moon } from 'lucide-react';
-import { UserSettings } from '@/hooks/useUserSettings';
+import { UserSettings } from '@/entities/user';
 
 const THEME_COLORS = {
   green: { name: 'Mantis', hsl: '149 80% 46%' },

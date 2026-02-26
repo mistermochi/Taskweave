@@ -1,7 +1,7 @@
 import { DeviceService } from '@/services/DeviceService';
 import { LocationService } from '@/services/LocationService';
 import { MotionService } from '@/services/MotionService';
-import { UserConfigService } from '@/services/UserConfigService';
+import { userApi } from '@/entities/user';
 import { ContextSnapshot } from '../model/types';
 
 /**
@@ -13,8 +13,6 @@ import { ContextSnapshot } from '../model/types';
 export class ContextApi {
     /** Singleton instance of the service. */
     private static instance: ContextApi;
-    /** Reference to the User Configuration service. */
-    private userConfigService: UserConfigService;
     /** Reference to the Device hardware service. */
     private deviceService: DeviceService;
     /** Reference to the Geo-location service. */
@@ -28,7 +26,6 @@ export class ContextApi {
      * Private constructor initializing dependency services.
      */
     constructor() {
-        this.userConfigService = UserConfigService.getInstance();
         this.deviceService = DeviceService.getInstance();
         this.locationService = LocationService.getInstance();
         this.motionService = MotionService.getInstance();
@@ -51,7 +48,7 @@ export class ContextApi {
      */
     public setUserId(uid: string | null) {
         this.userId = uid;
-        this.userConfigService.setUserId(uid);
+        userApi.setUserId(uid);
     }
     
     /**
@@ -73,7 +70,7 @@ export class ContextApi {
      * 4. Returns the combined object.
      */
     public async getSnapshot(): Promise<ContextSnapshot> {
-        const config = this.userConfigService.getConfig();
+        const config = userApi.getConfig();
         const now = new Date();
         const hour = now.getHours();
         const day = now.getDay();
@@ -106,7 +103,7 @@ export class ContextApi {
      * Helper to retrieve the current user configuration.
      */
     public getConfig() {
-        return this.userConfigService.getConfig();
+        return userApi.getConfig();
     }
 
     /**

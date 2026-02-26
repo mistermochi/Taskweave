@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { auth } from '@/firebase';
-import { UserSettings } from '@/hooks/useUserSettings';
+import { UserSettings } from '@/entities/user';
 
 /**
  * Interface for ProfileSettings props.

@@ -1,6 +1,5 @@
 import { ContextSnapshot } from '@/entities/context';
-import { UserConfigService } from './UserConfigService';
-import { UserSettings } from '@/types';
+import { UserSettings, userApi } from '@/entities/user';
 
 /**
  * Service for detecting device motion and activity intensity.
@@ -31,7 +30,7 @@ export class MotionService {
      * the motion listener reactively.
      */
     private constructor() {
-        this.configUnsubscribe = UserConfigService.getInstance().subscribe(this.updateMotionListener);
+        this.configUnsubscribe = userApi.subscribe(this.updateMotionListener);
     }
 
     /**
@@ -67,7 +66,7 @@ export class MotionService {
 
         const handlePermission = async (granted: boolean) => {
             if (granted) {
-                await UserConfigService.getInstance().updateSettings({ useMotion: true });
+                await userApi.updateSettings({ useMotion: true });
             }
             return granted;
         }

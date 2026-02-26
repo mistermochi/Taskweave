@@ -1,5 +1,5 @@
 import { ContextSnapshot } from '@/entities/context';
-import { UserSettings } from '@/types';
+import { UserSettings } from '@/entities/user';
 
 /**
  * Service for retrieving and processing the user's geographic location.

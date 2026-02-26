@@ -7,7 +7,8 @@ import { Modal } from '@/components/ui/Dialog';
 import { EmptyState } from '@/components/ui/Feedback';
 import { TaskRow } from '@/components/TaskRow';
 import { Tag } from '@/entities/tag';
-import { TaskEntity, UserSettings, EnergyLevel } from '@/types';
+import { UserSettings } from '@/entities/user';
+import { TaskEntity, EnergyLevel } from '@/types';
 
 /**
  * Interface for CalendarImportModal props.

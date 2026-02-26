@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, MoreVertical, Send, User, Sparkles, Loader2 } from 'lucide-react';
 import { AIService } from '@/services/AIService';
-import { useUserSettings } from '@/hooks/useUserSettings';
+import { useUserSettings } from '@/entities/user';
 import { contextApi } from '@/entities/context';
 import { useTaskContext } from '@/context/TaskContext';
 import { useNavigation } from '@/context/NavigationContext';

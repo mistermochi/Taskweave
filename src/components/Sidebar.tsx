@@ -4,7 +4,7 @@ import React from 'react';
 import { ViewName } from '@/types';
 import { useTaskContext } from '@/context/TaskContext';
 import { useReferenceContext } from '@/context/ReferenceContext';
-import { useUserSettings } from '@/hooks/useUserSettings';
+import { useUserSettings } from '@/entities/user';
 import { useNavigation } from '@/context/NavigationContext';
 import { 
   Inbox, Sun, Settings, Plus, 

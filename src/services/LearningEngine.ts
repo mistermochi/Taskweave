@@ -1,7 +1,7 @@
 import { TaskPattern, Category } from '../types/scheduling';
 import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { ContextService } from './ContextService';
+import { contextApi } from '@/entities/context';
 
 /**
  * Service that analyzes historical activity logs to identify behavioral patterns.
@@ -24,7 +24,7 @@ export class LearningEngine {
    * @param success - Whether the task was successfully completed.
    */
   async recordDecision(context: TaskPattern, userChoice: Category, success: boolean): Promise<void> {
-    const uid = ContextService.getInstance().getUserId();
+    const uid = contextApi.getUserId();
     if (!uid) return;
 
     try {
@@ -54,7 +54,7 @@ export class LearningEngine {
    * @returns A promise resolving to an array of `TaskPattern` objects.
    */
   async getLearnedPatterns(): Promise<TaskPattern[]> {
-    const uid = ContextService.getInstance().getUserId();
+    const uid = contextApi.getUserId();
     if (!uid) return [];
 
     const thirtyDaysAgo = Date.now() - (this.LEARNING_WINDOW_DAYS * 24 * 60 * 60 * 1000);

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useUserId } from '@/hooks/useFirestore';
 import { db } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { ContextService } from '@/services/ContextService';
+import { contextApi } from '@/entities/context';
 import { useNavigation } from '@/context/NavigationContext';
 
 /**
@@ -59,7 +59,7 @@ export const useBreathingController = () => {
     
     // Log if duration is meaningful (> 5 seconds) and user exists
     if (durationSeconds > 5 && uid) {
-      const context = await ContextService.getInstance().getSnapshot();
+      const context = await contextApi.getSnapshot();
       const id = crypto.randomUUID();
 
       await setDoc(doc(db, 'users', uid, 'vitals', id), {

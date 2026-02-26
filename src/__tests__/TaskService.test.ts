@@ -8,7 +8,7 @@
 /** @jest-environment node */
 import { TaskService } from '../services/TaskService';
 import { db } from '../firebase';
-import { ContextService } from '../services/ContextService';
+import { contextApi } from '../entities/context';
 import { doc, setDoc, updateDoc, deleteDoc, writeBatch, collection, addDoc } from 'firebase/firestore';
 import { getNextRecurrenceDate } from '../utils/timeUtils';
 import { TaskEntity, RecurrenceConfig } from '../types';
@@ -47,13 +47,11 @@ jest.mock('firebase/firestore', () => ({
   addDoc: jest.fn(),
 }));
 
-// Mock ContextService to provide a consistent user ID
-jest.mock('../services/ContextService', () => ({
-  ContextService: {
-    getInstance: () => ({
-      getUserId: () => 'test-uid',
-      getSnapshot: jest.fn().mockResolvedValue({}), // For logSessionCompletion
-    }),
+// Mock contextApi to provide a consistent user ID
+jest.mock('../entities/context', () => ({
+  contextApi: {
+    getUserId: () => 'test-uid',
+    getSnapshot: jest.fn().mockResolvedValue({}), // For logSessionCompletion
   },
 }));
 

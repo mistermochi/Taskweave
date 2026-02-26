@@ -5,7 +5,7 @@ import { TaskEntity } from "@/types";
 import { Category, Tag } from "@/entities/tag";
 import { RecommendationEngine } from '@/services/RecommendationEngine';
 import { LinUCBService } from '@/services/LinUCBService';
-import { ContextService } from '@/services/ContextService';
+import { contextApi } from '@/entities/context';
 import { SuggestionContext } from '@/types/scheduling';
 import { TaskService } from '@/services/TaskService';
 import { useUserId, useFirestoreCollection } from '@/hooks/useFirestore';
@@ -54,8 +54,7 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
     const calculateRecommendation = async () => {
       try {
         const engine = RecommendationEngine.getInstance();
-        const contextService = ContextService.getInstance();
-        const userContext = await contextService.getSnapshot();
+        const userContext = await contextApi.getSnapshot();
         const context: SuggestionContext = {
           currentTime: new Date(),
           energy: energyModel.currentEnergy, 
@@ -190,8 +189,7 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
           rejectRecommendation: async () => {
             if (!uid || !recommendation) return;
 
-            const contextService = ContextService.getInstance();
-            const userContext = await contextService.getSnapshot();
+            const userContext = await contextApi.getSnapshot();
             
             const context: SuggestionContext = {
               currentTime: new Date(),

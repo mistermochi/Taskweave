@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useMemo, PropsWithChildren } from 'react';
 import { orderBy, limit } from 'firebase/firestore';
 import { useFirestoreCollection } from '@/hooks/useFirestore';
-import { UserVital } from '@/types';
+import { UserVital } from '@/entities/vital';
 
 /**
  * Interface for the user vitals state (Energy, Mood, Focus).

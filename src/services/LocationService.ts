@@ -1,4 +1,4 @@
-import { ContextSnapshot } from '../types';
+import { ContextSnapshot } from '@/entities/context';
 import { UserSettings } from '@/types';
 
 /**

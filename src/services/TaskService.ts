@@ -2,7 +2,8 @@ import { db } from '../firebase';
 import { doc, updateDoc, deleteDoc, setDoc, writeBatch, collection, addDoc, getDoc } from 'firebase/firestore';
 import { Task, TaskEntity, EnergyLevel, RecurrenceConfig } from '../types';
 import { Category } from '../entities/tag';
-import { ContextService } from './ContextService';
+import { contextApi } from '@/entities/context';
+import { UserVital } from '@/entities/vital';
 import { getNextRecurrenceDate, calculateTaskTime } from '@/utils/timeUtils';
 
 /**
@@ -55,7 +56,7 @@ export class TaskService {
         assignedDate: number | undefined,
         recurrence?: RecurrenceConfig
     ): Promise<string> {
-        const uid = ContextService.getInstance().getUserId();
+        const uid = contextApi.getUserId();
         if (!uid || !title.trim()) return "";
 
         const energyLevel: EnergyLevel = energy > 75 ? 'High' : energy < 40 ? 'Low' : 'Medium';
@@ -104,7 +105,7 @@ export class TaskService {
      * @param updates - Partial object containing the fields to update.
      */
     public async updateTask(taskId: string, updates: Partial<TaskEntity>): Promise<void> {
-        const uid = ContextService.getInstance().getUserId();
+        const uid = contextApi.getUserId();
         if (!uid) return;
 
         const taskRef = doc(db, 'users', uid, 'tasks', taskId);
@@ -145,7 +146,7 @@ export class TaskService {
      * @param taskId - The ID of the task to re-activate.
      */
     public async uncompleteTask(taskId: string): Promise<void> {
-        const uid = ContextService.getInstance().getUserId();
+        const uid = contextApi.getUserId();
         if (!uid) return;
 
         const taskRef = doc(db, 'users', uid, 'tasks', taskId);
@@ -161,7 +162,7 @@ export class TaskService {
      * @param taskId - The ID of the task to delete.
      */
     public async deleteTask(taskId: string): Promise<void> {
-        const uid = ContextService.getInstance().getUserId();
+        const uid = contextApi.getUserId();
         if (!uid) return;
         const taskRef = doc(db, 'users', uid, 'tasks', taskId);
         await deleteDoc(taskRef);
@@ -221,7 +222,7 @@ export class TaskService {
      * 3. (Optional) Removes the `blockedBy` reference from any tasks waiting on the original task.
      */
     private async completeTaskAndRespawn(originalTask: TaskEntity, nextTaskData?: Omit<TaskEntity, 'id' | 'createdAt' | 'updatedAt'>, allActiveTasks?: TaskEntity[]): Promise<number | null> {
-        const uid = ContextService.getInstance().getUserId();
+        const uid = contextApi.getUserId();
         if (!uid) return null;
 
         const batch = writeBatch(db);
@@ -280,7 +281,7 @@ export class TaskService {
      * @param allActiveTasks - Current task list to identify and pause the previous active task.
      */
     public async startSession(taskId: string, remainingSeconds: number, allActiveTasks: TaskEntity[]) {
-        const uid = ContextService.getInstance().getUserId();
+        const uid = contextApi.getUserId();
         if (!uid) return;
     
         const batch = writeBatch(db);
@@ -350,7 +351,7 @@ export class TaskService {
      * - Creates a new `UserVital` entry for mood tracking.
      */
     public async logSessionCompletion(task: TaskEntity, mood: string, notes: string, newEnergyLevel?: number): Promise<void> {
-        const uid = ContextService.getInstance().getUserId();
+        const uid = contextApi.getUserId();
         if (!uid) return;
         
         const timestamp = Date.now();
@@ -374,7 +375,7 @@ export class TaskService {
         });
 
         if (typeof newEnergyLevel === 'number') {
-            const context = await ContextService.getInstance().getSnapshot();
+            const context = await contextApi.getSnapshot();
             const vitalId = crypto.randomUUID();
             const vitalRef = doc(db, 'users', uid, 'vitals', vitalId);
             await setDoc(vitalRef, {

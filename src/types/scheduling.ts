@@ -5,12 +5,16 @@
  */
 
 // Import from parent types directory
-import { TaskEntity, EnergyLevel, ContextSnapshot, UserVital } from '@/types';
+import { TaskEntity, EnergyLevel } from '@/types';
 import { Category, Tag } from '@/entities/tag';
+import { ContextSnapshot } from '@/entities/context';
+import { UserVital } from '@/entities/vital';
 
 // Re-export for convenience
-export type { TaskEntity, EnergyLevel, ContextSnapshot, UserVital } from '@/types';
+export type { TaskEntity, EnergyLevel } from '@/types';
 export type { Category, Tag } from '@/entities/tag';
+export type { ContextSnapshot } from '@/entities/context';
+export type { UserVital } from '@/entities/vital';
 
 // Types for AI Scheduling System
 

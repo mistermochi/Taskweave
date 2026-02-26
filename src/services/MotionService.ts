@@ -1,4 +1,4 @@
-import { ContextSnapshot } from '../types';
+import { ContextSnapshot } from '@/entities/context';
 import { UserConfigService } from './UserConfigService';
 import { UserSettings } from '@/types';
 

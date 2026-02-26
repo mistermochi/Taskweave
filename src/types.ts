@@ -97,44 +97,7 @@ export interface ActivityLog {
   };
 }
 
-export interface ContextSnapshot {
-  location: {
-    lat?: number;
-    lng?: number;
-    label: 'Home' | 'Work' | 'Transit' | 'Remote' | 'Unknown';
-    isExact: boolean;
-  };
-  environment: {
-    isDaytime: boolean;
-    weatherCondition?: string; 
-  };
-  device: {
-    batteryLevel?: number; // 0.0 - 1.0
-    isCharging?: boolean;
-    isOnline: boolean;
-    networkType?: string;    // 'wifi', 'cellular', 'ethernet', 'none'
-    effectiveType?: string;  // 'slow-2g', '2g', '3g', '4g'
-  };
-  activity: {
-    isMoving: boolean; // Derived from devicemotion
-    motionIntensity: 'Stationary' | 'Light' | 'Moderate' | 'Active';
-  };
-  temporal: {
-    hour: number;
-    dayOfWeek: number;
-    isWorkHours: boolean; // Based on simple 9-5 rule or settings
-  };
-}
-
-// --- NEW ENTITY: User Vitals ---
-export interface UserVital {
-  id: string;
-  timestamp: number;
-  type: 'mood' | 'focus' | 'journal' | 'breathe';
-  value: string | number; // Stores mood score (1-5), focus text, journal text, or breathe duration
-  metadata?: any;         // Optional extra data
-  context?: ContextSnapshot; // Context at the time of recording
-}
+// ContextSnapshot and UserVital moved to their respective FSD entities
 
 export interface Habit {
   id: string;

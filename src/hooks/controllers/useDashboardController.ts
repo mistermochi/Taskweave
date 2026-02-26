@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { db } from '@/firebase';
 import { doc, setDoc, where } from 'firebase/firestore';
 import { useUserId, useFirestoreCollection } from '@/hooks/useFirestore';
-import { ContextService } from "@/services/ContextService";
+import { contextApi } from "@/entities/context";
 import { useTaskContext } from '@/context/TaskContext';
 import { useVitalsContext } from '@/context/VitalsContext';
 import { useReferenceContext } from '@/context/ReferenceContext';
@@ -45,8 +45,8 @@ export const useDashboardController = () => {
     const calculateRecommendation = async () => {
       try {
         const engine = RecommendationEngine.getInstance();
-        const contextService = ContextService.getInstance();
-        const userContext = await contextService.getSnapshot();
+         // contextService consolidated
+        const userContext = await contextApi.getSnapshot();
         const context: SuggestionContext = {
           currentTime: new Date(),
           energy: energyModel.currentEnergy, 
@@ -165,7 +165,7 @@ export const useDashboardController = () => {
    */
   const saveMood = async (level: number) => {
     if (!uid) return;
-    const context = await ContextService.getInstance().getSnapshot();
+    const context = await contextApi.getSnapshot();
     const id = crypto.randomUUID();
     const energyMap = [0, 20, 40, 60, 80, 100];
     const energyValue = energyMap[level] || 60;
@@ -185,7 +185,7 @@ export const useDashboardController = () => {
    */
   const saveFocus = async (text: string) => {
     if (!uid) return;
-    const context = await ContextService.getInstance().getSnapshot();
+    const context = await contextApi.getSnapshot();
     const id = crypto.randomUUID();
     await setDoc(doc(db, 'users', uid, 'vitals', id), {
       id,
@@ -212,8 +212,8 @@ export const useDashboardController = () => {
       await taskService.logSessionCompletion(task, 'Neutral', 'Quick Complete', newEnergy);
 
       try {
-          const contextService = ContextService.getInstance();
-          const userContext = await contextService.getSnapshot();
+           // contextService consolidated
+          const userContext = await contextApi.getSnapshot();
 
           const completionContext: SuggestionContext = {
               currentTime: new Date(),

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { auth, db } from '@/firebase'; 
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from 'firebase/firestore';
-import { ContextService } from '@/services/ContextService';
+import { contextApi } from '@/entities/context';
 import { LoadingScreen } from '@/components/ui/Feedback';
 import LoginView from '@/views/LoginView';
 import { AppProvider } from '@/context/AppProvider';
@@ -48,7 +48,7 @@ export default function HomePage() {
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
-            ContextService.getInstance().setUserId(user.uid);
+            contextApi.setUserId(user.uid);
 
             const settingsRef = doc(db, 'users', user.uid, 'settings', 'general');
             const settingsSnap = await getDoc(settingsRef);
@@ -113,7 +113,7 @@ export default function HomePage() {
 
             setUser(user);
         } else {
-            ContextService.getInstance().setUserId(null);
+            contextApi.setUserId(null);
             setUser(null);
         }
         setLoading(false);

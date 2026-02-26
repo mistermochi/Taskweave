@@ -1,18 +1,18 @@
-import { ContextSnapshot } from '../types';
-import { DeviceService } from './DeviceService';
-import { LocationService } from './LocationService';
-import { MotionService } from './MotionService';
-import { UserConfigService } from './UserConfigService';
+import { DeviceService } from '@/services/DeviceService';
+import { LocationService } from '@/services/LocationService';
+import { MotionService } from '@/services/MotionService';
+import { UserConfigService } from '@/services/UserConfigService';
+import { ContextSnapshot } from '../model/types';
 
 /**
- * Orchestrator service that aggregates various environmental and device context signals.
+ * Orchestrator API that aggregates various environmental and device context signals.
  * It combines location, motion, device status, and temporal information into a unified `ContextSnapshot`.
  *
- * @singleton Use `ContextService.getInstance()` to access the service.
+ * @singleton Use `contextApi` singleton instance to access functionality.
  */
-export class ContextService {
+export class ContextApi {
     /** Singleton instance of the service. */
-    private static instance: ContextService;
+    private static instance: ContextApi;
     /** Reference to the User Configuration service. */
     private userConfigService: UserConfigService;
     /** Reference to the Device hardware service. */
@@ -35,14 +35,14 @@ export class ContextService {
     }
 
     /**
-     * Returns the singleton instance of ContextService.
-     * @returns The ContextService instance.
+     * Returns the singleton instance of ContextApi.
+     * @returns The ContextApi instance.
      */
-    public static getInstance(): ContextService {
-        if (!ContextService.instance) {
-            ContextService.instance = new ContextService();
+    public static getInstance(): ContextApi {
+        if (!ContextApi.instance) {
+            ContextApi.instance = new ContextApi();
         }
-        return ContextService.instance;
+        return ContextApi.instance;
     }
 
     /**
@@ -117,3 +117,8 @@ export class ContextService {
         return await this.motionService.requestMotionPermission();
     }
 }
+
+/**
+ * Singleton instance of the contextApi.
+ */
+export const contextApi = ContextApi.getInstance();

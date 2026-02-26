@@ -3,7 +3,7 @@ import { Suggestion, SuggestionContext } from '@/types/scheduling';
 import { LocalSchedulingEngine } from '@/services/LocalSchedulingEngine';
 import { AIService } from '@/services/AIService';
 import { LearningEngine } from '@/services/LearningEngine';
-import { ContextService } from '@/services/ContextService';
+import { contextApi } from '@/entities/context';
 import { ViewName, NavigationHandler } from '@/types';
 import { useTaskContext } from '@/context/TaskContext';
 import { useReferenceContext } from '@/context/ReferenceContext';
@@ -26,7 +26,7 @@ export const useSchedulingController = (onNavigate?: NavigationHandler) => {
   const localEngine = useMemo(() => LocalSchedulingEngine.getInstance(), []);
   const learningEngine = useMemo(() => new LearningEngine(), []);
   const aiService = useMemo(() => new AIService(), []);
-  const contextService = ContextService.getInstance();
+   // contextService consolidated
   const { focusOnTask } = useNavigation();
   
   const { tasks: allTasks } = useTaskContext();
@@ -57,7 +57,7 @@ export const useSchedulingController = (onNavigate?: NavigationHandler) => {
     try {
       const currentTime = new Date();
       const availableMinutes = 120;
-      const userContext = await contextService.getSnapshot();
+      const userContext = await contextApi.getSnapshot();
       const previousPatterns = await learningEngine.getLearnedPatterns();
 
       const context: SuggestionContext = {
@@ -81,7 +81,7 @@ export const useSchedulingController = (onNavigate?: NavigationHandler) => {
       setIsLoading(false);
       console.error('Scheduling error:', err);
     }
-  }, [activeTasks, completedTasks, backlogCount, userEnergy, learningEngine, localEngine, contextService, tags]);
+  }, [activeTasks, completedTasks, backlogCount, userEnergy, learningEngine, localEngine, tags]);
 
   useEffect(() => {
     if (activeTasks.length > 0) {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Zap, MapPin, Move, Battery } from 'lucide-react';
 import { UserSettings } from '@/hooks/useUserSettings';
-import { ContextService } from '@/services/ContextService';
+import { contextApi } from '@/entities/context';
 
 /**
  * Interface for ContextSensorsSettings props.
@@ -23,7 +23,6 @@ interface ContextSensorsSettingsProps {
  */
 export const ContextSensorsSettings: React.FC<ContextSensorsSettingsProps> = ({ settings, updateSettings }) => {
   const [locationStatus, setLocationStatus] = useState<string>(settings.homeLat ? 'Home Location Set' : 'Unknown');
-  const contextService = ContextService.getInstance();
 
   /**
    * Toggles the use of the Geolocation API.
@@ -45,7 +44,7 @@ export const ContextSensorsSettings: React.FC<ContextSensorsSettingsProps> = ({ 
     const newState = !settings.useMotion;
     
     if (newState) {
-        const granted = await contextService.requestMotionPermission();
+        const granted = await contextApi.requestMotionPermission();
         if (granted) {
             updateSettings({ useMotion: true });
         } else {

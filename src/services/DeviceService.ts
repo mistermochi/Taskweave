@@ -1,4 +1,4 @@
-import { ContextSnapshot } from '../types';
+import { ContextSnapshot } from '@/entities/context';
 
 /**
  * Service for interacting with device-specific hardware features and sensors.

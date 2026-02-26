@@ -1,7 +1,7 @@
 import { db } from '@/firebase';
 import { doc, setDoc, updateDoc, collection, writeBatch, getDocs, query, where } from 'firebase/firestore';
 import { Tag } from '../model/types';
-import { ContextService } from '@/services/ContextService';
+import { contextApi } from '@/entities/context';
 
 /**
  * API for managing user tags (categories) in Firestore.
@@ -38,7 +38,7 @@ export class TagApi {
    * @returns A promise resolving to an array of `Tag` objects.
    */
   public async getTags(): Promise<Tag[]> {
-    const uid = ContextService.getInstance().getUserId();
+    const uid = contextApi.getUserId();
     if (!uid) return [];
 
     const q = query(collection(db, 'users', uid, 'tags'));
@@ -50,7 +50,7 @@ export class TagApi {
    * Seeds the user's account with a default set of tags if no tags currently exist.
    */
   public async initializeDefaultsIfEmpty() {
-    const uid = ContextService.getInstance().getUserId();
+    const uid = contextApi.getUserId();
     if (!uid) return;
     
     const q = query(collection(db, 'users', uid, 'tags'));
@@ -84,7 +84,7 @@ export class TagApi {
    * @returns A promise resolving to the unique ID of the newly created tag.
    */
   public async createTag(name: string, parentId: string | null = null): Promise<string> {
-    const uid = ContextService.getInstance().getUserId();
+    const uid = contextApi.getUserId();
     if (!uid) return "";
 
     const newTagId = crypto.randomUUID();
@@ -111,7 +111,7 @@ export class TagApi {
    * @param updates - Partial object containing the fields to update.
    */
   public async updateTag(tagId: string, updates: Partial<Tag>) {
-    const uid = ContextService.getInstance().getUserId();
+    const uid = contextApi.getUserId();
     if (!uid) return;
 
     const tagRef = doc(db, 'users', uid, 'tags', tagId);
@@ -126,7 +126,7 @@ export class TagApi {
    */
   public async moveTag(tagId: string, newParentId: string | null) {
     if (tagId === newParentId) return;
-    const uid = ContextService.getInstance().getUserId();
+    const uid = contextApi.getUserId();
     if (!uid) return;
 
     const tagRef = doc(db, 'users', uid, 'tags', tagId);
@@ -139,7 +139,7 @@ export class TagApi {
    * @param tagId - The unique ID of the tag to delete.
    */
   public async deleteTag(tagId: string) {
-    const uid = ContextService.getInstance().getUserId();
+    const uid = contextApi.getUserId();
     if (!uid) return;
     
     const batch = writeBatch(db);

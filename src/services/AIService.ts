@@ -60,6 +60,7 @@ export class AIService {
     public async sendChatMessage(
         history: { role: 'user' | 'model'; text: string }[],
         message: string,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         context?: any
     ): Promise<string> {
         if (!this.ai) return "AI Service not available.";

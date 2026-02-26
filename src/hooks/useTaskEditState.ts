@@ -110,6 +110,7 @@ export const useTaskEditState = (
         },
         setDrafts: (updater) => {
             if (typeof updater === 'function') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const newDrafts = (updater as any)({ title: titleDraft, notes: notesDraft, tag: tagDraft, duration: durationDraft, energy: energyDraft, dueDate: dueDateDraft, assignedDate: assignedDateDraft, recurrence: recurrenceDraft, blockedBy: blockedByDraft });
                 setTitleDraft(newDrafts.title);
                 setNotesDraft(newDrafts.notes);

@@ -261,6 +261,7 @@ export class LinUCBService {
             return;
         }
         
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const loadedArms = raw.map((r: any) => ({
           A: this.unflatten(r.A, NUM_FEATURES),
           b: r.b

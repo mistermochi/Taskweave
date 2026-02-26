@@ -17,6 +17,7 @@ export class MotionService {
     /** The magnitude of the last detected acceleration vector. */
     private lastMotionValue = 0;
     /** Timeout to reset motion state to stationary after inactivity. */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private motionTimeout: any = null;
     /** Throttle timestamp for motion events. */
     private lastMotionCheck = 0;
@@ -71,8 +72,10 @@ export class MotionService {
             return granted;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
             try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const response = await (DeviceMotionEvent as any).requestPermission();
                 return await handlePermission(response === 'granted');
             } catch (e) {

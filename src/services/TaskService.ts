@@ -357,6 +357,7 @@ export class TaskService {
         const timestamp = Date.now();
 
         await this.updateTask(task.id, {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             completionMood: mood as any,
             completionNotes: notes,
         });

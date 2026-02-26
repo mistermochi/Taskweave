@@ -56,7 +56,8 @@ describe('useTaskDatabaseController - Task Section Logic', () => {
   const focusedTask: TaskEntity = { id: 'task-focused', title: 'Currently Focused Task', status: 'active', isFocused: true, duration: 30, energy: 'Medium', category: 'Work', createdAt: Date.now() } as TaskEntity;
   // This task is BOTH overdue AND assigned to today. It should ONLY appear in 'today'.
   const overdueAndAssignedTodayTask: TaskEntity = { id: 'task-overdue-and-today', title: 'Overdue but planned for today', status: 'active', dueDate: startOfToday - 86400000, assignedDate: startOfToday + 7200000, duration: 30, energy: 'Medium', category: 'Work', createdAt: Date.now() } as TaskEntity;
-  const completedTask: TaskEntity = { id: 'task-completed', title: 'Finished task', status: 'completed', completedAt: startOfToday - 1, duration: 30, energy: 'Medium', category: 'Work', createdAt: Date.now() } as TaskEntity;
+  // Ensure different createdAt for stable sorting in tests
+  const completedTask: TaskEntity = { id: 'task-completed', title: 'Finished task', status: 'completed', completedAt: startOfToday - 1, duration: 30, energy: 'Medium', category: 'Work', createdAt: Date.now() - 1000 } as TaskEntity;
 
   const allMockTasks = [
       overdueTask,

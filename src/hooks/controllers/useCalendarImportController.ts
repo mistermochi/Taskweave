@@ -70,6 +70,7 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
             
             if (token) {
                 const fetched = await service.fetchUpcomingEvents(token, calendarIds);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const validEvents = fetched.filter((e: any) => e.status !== 'cancelled').map(e => ({...e, calendarId: e.organizer.email}));
                 setupEvents(validEvents, alreadyImported);
                 setIsOpen(true);

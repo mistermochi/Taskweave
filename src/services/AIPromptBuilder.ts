@@ -55,6 +55,7 @@ export class AIPromptBuilder {
      * @param context - Optional dynamic context (e.g., current task, energy level).
      * @returns The persona and instruction prompt for the AI.
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public static buildChatPrompt(context?: any): string {
         return `You are Taskweave, a minimalist AI life coach.
             Tone: Calm, supportive, zen, concise.

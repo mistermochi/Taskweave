@@ -36,8 +36,10 @@ export class DeviceService {
         let isCharging = true;
         const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (typeof navigator !== 'undefined' && 'getBattery' in (navigator as any)) {
             try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const battery: any = await (navigator as any).getBattery();
                 batteryLevel = battery.level;
                 isCharging = battery.charging;
@@ -49,7 +51,9 @@ export class DeviceService {
         let networkType: string | undefined;
         let effectiveType: string | undefined;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (typeof navigator !== 'undefined' && (navigator as any).connection) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const conn = (navigator as any).connection;
             networkType = conn.type;
             effectiveType = conn.effectiveType;

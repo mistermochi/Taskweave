@@ -17,10 +17,12 @@ import { TaskEntity, RecurrenceConfig } from '../types';
 
 // Mock crypto.randomUUID for Node environments
 if (typeof crypto === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (global as any).crypto = {
     randomUUID: () => '550e8400-e29b-41d4-a716-446655440000'
   };
 } else if (!crypto.randomUUID) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (crypto as any).randomUUID = () => '550e8400-e29b-41d4-a716-446655440000';
 }
 

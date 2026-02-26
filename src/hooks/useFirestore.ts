@@ -51,9 +51,11 @@ export function useFirestoreCollection<T>(
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(enabled);
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const constraintsStr = JSON.stringify(constraints.map(c => (c as any)._queryOptions || c.type));
   const constraintsRef = useRef(constraints);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (constraintsStr !== JSON.stringify(constraintsRef.current.map(c => (c as any)._queryOptions || c.type))) {
     constraintsRef.current = constraints;
   }

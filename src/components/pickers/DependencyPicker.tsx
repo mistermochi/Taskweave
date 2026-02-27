@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
 import { Check } from 'lucide-react';
 import { PickerContainer } from './PickerContainer';
 

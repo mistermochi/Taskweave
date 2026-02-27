@@ -1,4 +1,4 @@
-import { db } from '@/firebase';
+import { db } from '@/shared/api/firebase';
 import { doc, setDoc, updateDoc, collection, writeBatch, getDocs, query, where } from 'firebase/firestore';
 import { Tag } from '../model/types';
 import { contextApi } from '@/entities/context';

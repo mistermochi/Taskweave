@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { 
+  getFirestore,
   collection, 
   query, 
   onSnapshot, 
   QueryConstraint,
   doc
 } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { db, auth } from '@/firebase';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 /**
  * Hook to retrieve the current authenticated Firebase user ID.
@@ -21,6 +21,7 @@ export const useUserId = () => {
   const [uid, setUid] = useState<string | null>(null);
   
   useEffect(() => {
+    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUid(user ? user.uid : null);
     });
@@ -68,6 +69,7 @@ export function useFirestoreCollection<T>(
     }
 
     setLoading(true);
+    const db = getFirestore();
     const collectionRef = collection(db, 'users', uid, collectionName);
     const q = query(collectionRef, ...constraintsRef.current);
 
@@ -110,6 +112,7 @@ export function useFirestoreDoc<T>(collectionName: string, docId: string | undef
     }
 
     setLoading(true);
+    const db = getFirestore();
     const docRef = doc(db, 'users', uid, collectionName, docId);
     
     const unsubscribe = onSnapshot(docRef, (docSnap) => {

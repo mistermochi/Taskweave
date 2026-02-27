@@ -2,10 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import { useUserId, useFirestoreDoc } from '@/hooks/useFirestore';
-import { TaskService } from '@/services/TaskService';
-import { calculateSessionImpact } from '@/utils/energyUtils';
+import { taskApi } from '@/entities/task';
+import { calculateSessionImpact } from '@/shared/lib/energyUtils';
 import { useEnergyModel } from '@/hooks/useEnergyModel';
-import { TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
 
 /**
  * View Controller for the post-task Reflection (Session Summary) interface.
@@ -55,7 +55,7 @@ export const useSessionSummaryController = (taskId: string | undefined) => {
    */
   const finishSession = async () => {
     if (task && uid) {
-        await TaskService.getInstance().logSessionCompletion(task, mood, notes, projectedEnergy);
+        await taskApi.logSessionCompletion(task, mood, notes, projectedEnergy);
     }
   };
 

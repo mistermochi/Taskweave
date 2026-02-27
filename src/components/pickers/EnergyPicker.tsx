@@ -1,5 +1,5 @@
 import React from 'react';
-import { EnergyLevel } from '../../types';
+import { EnergyLevel } from '@/entities/task';
 import { Check } from 'lucide-react';
 import { PickerContainer } from './PickerContainer';
 

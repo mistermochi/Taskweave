@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { TaskEntity } from '../types';
-import { calculateTaskTime, formatTimer } from '../utils/timeUtils';
+import { TaskEntity } from '../model/types';
+import { calculateTaskTime, formatTimer } from '@/shared/lib/timeUtils';
 
 /**
  * Interface representing the state of a task timer hook.

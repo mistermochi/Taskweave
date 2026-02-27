@@ -5,7 +5,7 @@
  * tags, and dates from a single line of text.
  */
 
-import { EnergyLevel, RecurrenceConfig } from '../types';
+import { EnergyLevel, RecurrenceConfig } from '@/entities/task';
 
 /**
  * Result of the natural language parsing operation.

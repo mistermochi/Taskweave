@@ -1,17 +1,17 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTaskContext } from '@/context/TaskContext';
 import { useReferenceContext } from '@/context/ReferenceContext';
-import { TaskEntity } from "@/types";
+import { TaskEntity } from "@/entities/task";
 import { Category, Tag } from "@/entities/tag";
 import { RecommendationEngine } from '@/services/RecommendationEngine';
 import { LinUCBService } from '@/services/LinUCBService';
 import { contextApi } from '@/entities/context';
 import { SuggestionContext } from '@/types/scheduling';
-import { TaskService } from '@/services/TaskService';
+import { taskApi } from '@/entities/task';
 import { useUserId, useFirestoreCollection } from '@/hooks/useFirestore';
 import { useEnergyModel } from '@/hooks/useEnergyModel';
-import { calculateSessionImpact } from '@/utils/energyUtils';
-import { getNextRecurrenceDate } from '@/utils/timeUtils';
+import { calculateSessionImpact } from '@/shared/lib/energyUtils';
+import { getNextRecurrenceDate } from '@/shared/lib/timeUtils';
 import { where } from 'firebase/firestore';
 
 /**
@@ -34,7 +34,7 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
   const [recommendation, setRecommendation] = useState<{ taskId: string; reason: string; strategy: string } | null>(null);
   
   const { data: completedTasks } = useFirestoreCollection<TaskEntity>('tasks', [where('status', '==', 'completed')]);
-  const taskService = TaskService.getInstance();
+  const taskService = taskApi;
 
   /**
    * Initializes the machine learning engine with the current user's ID.

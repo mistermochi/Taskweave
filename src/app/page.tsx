@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react';
-import { auth, db } from '@/firebase'; 
+import { auth, db } from '@/shared/api/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from 'firebase/firestore';
 import { contextApi } from '@/entities/context';
-import { LoadingScreen } from '@/components/ui/Feedback';
+import { LoadingScreen } from '@/shared/ui/Feedback';
 import LoginView from '@/views/LoginView';
 import { AppProvider } from '@/context/AppProvider';
 import { AppContent } from '@/components/AppContent';

@@ -2,9 +2,9 @@
 
 import React, { useState, useRef } from 'react';
 import { Tag, tagApi } from '@/entities/tag';
-import { TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
 import { ChevronRight, ChevronDown, Edit2 } from 'lucide-react';
-import Flyout from '@/components/ui/Flyout';
+import Flyout from '@/shared/ui/Flyout';
 import { TagEditPicker } from '@/components/pickers/TagEditPicker';
 
 /**

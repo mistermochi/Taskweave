@@ -1,5 +1,4 @@
 
-
 /**
  * @file Unit tests for TaskRow component.
  * Verifies that task information is displayed correctly and that
@@ -9,8 +8,15 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { TaskRow } from '../components/TaskRow';
-import { TaskEntity } from '../types';
+
+// Mock firebase before anything else
+jest.mock('@/shared/api/firebase', () => ({
+  auth: {},
+  db: {},
+}));
+
+import { TaskRow } from '@/entities/task';
+import { TaskEntity } from '@/entities/task';
 import { Tag } from '../entities/tag';
 
 // Mock window.matchMedia for Jest

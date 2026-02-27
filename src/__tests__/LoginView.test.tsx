@@ -7,7 +7,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import LoginView from '../views/LoginView';
-import { auth } from '../firebase'; // We'll mock this
+import { auth } from '@/shared/api/firebase'; // We'll mock this
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 // Mock the entire firebase/auth module
@@ -18,7 +18,7 @@ jest.mock('firebase/auth', () => ({
 }));
 
 // Mock the firebase module that exports the auth instance
-jest.mock('../firebase', () => ({
+jest.mock('@/shared/api/firebase', () => ({
   auth: {
     // This is a placeholder object. The actual instance doesn't matter
     // because we are mocking the functions that use it.

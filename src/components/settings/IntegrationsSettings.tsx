@@ -1,14 +1,15 @@
 'use client';
 
 import React from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/shared/ui/Card';
 import { Calendar, Plus, Loader2 } from 'lucide-react';
 import { useCalendarImportController } from '@/hooks/controllers/useCalendarImportController';
-import { UserSettings, TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
+import { UserSettings } from '@/types';
 import { GoogleCalendarService } from '@/services/GoogleCalendarService';
-import { CalendarMappingRow } from '@/components/CalendarMappingRow';
+import { CalendarMappingRow } from '@/features/import-calendar/CalendarMappingRow';
 import { useReferenceContext } from '@/context/ReferenceContext';
-import { CalendarImportModal } from '@/components/CalendarImportModal';
+import { CalendarImportModal } from '@/features/import-calendar/CalendarImportModal';
 
 /**
  * Interface for IntegrationsSettings props.

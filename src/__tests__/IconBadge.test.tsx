@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { IconBadge } from '../components/ui/IconBadge';
+import { IconBadge } from '@/shared/ui/IconBadge';
 import { Zap } from 'lucide-react'; // Using a real icon for the test
 
 describe('IconBadge', () => {

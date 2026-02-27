@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { signOut } from 'firebase/auth';
-import { auth, db } from '@/firebase';
+import { auth, db } from '@/shared/api/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { Loader2, Check, LogOut } from 'lucide-react';
 import { useEnvironment } from '@/context/EnvironmentContext';

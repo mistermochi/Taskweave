@@ -1,4 +1,4 @@
-import { TaskEntity, RecurrenceConfig } from '../types';
+import { TaskEntity, RecurrenceConfig } from '@/entities/task';
 
 /**
  * Interface representing the real-time state of a task timer.

@@ -6,29 +6,36 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { useFocusSessionController } from '../hooks/controllers/useFocusSessionController';
-import { useTaskContext } from '../context/TaskContext';
-import { useNavigation } from '../context/NavigationContext';
-import { TaskEntity } from '../types';
+
+// Define mock outside mock call
+const mockTaskApiInstance = {
+  startSession: jest.fn(),
+  pauseSession: jest.fn(),
+  completeTask: jest.fn(),
+};
 
 // Mock dependencies
+jest.mock('@/entities/task', () => ({
+  taskApi: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      startSession: (...args: any[]) => mockTaskApiInstance.startSession(...args),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      pauseSession: (...args: any[]) => mockTaskApiInstance.pauseSession(...args),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      completeTask: (...args: any[]) => mockTaskApiInstance.completeTask(...args),
+  }
+}));
+
 jest.mock('../context/TaskContext');
 jest.mock('../context/NavigationContext');
 jest.mock('../hooks/useFirestore', () => ({
   useUserId: () => 'test-uid',
 }));
 
-const mockTaskService = {
-  startSession: jest.fn(),
-  pauseSession: jest.fn(),
-  completeTask: jest.fn(),
-};
-
-jest.mock('../services/TaskService', () => ({
-  TaskService: {
-    getInstance: () => mockTaskService,
-  },
-}));
+import { useFocusSessionController } from '../hooks/controllers/useFocusSessionController';
+import { useTaskContext } from '../context/TaskContext';
+import { useNavigation } from '../context/NavigationContext';
+import { TaskEntity } from '@/entities/task';
 
 const mockUseTaskContext = useTaskContext as jest.Mock;
 const mockUseNavigation = useNavigation as jest.Mock;
@@ -85,7 +92,7 @@ describe('useFocusSessionController', () => {
 
     // Verify that startSession was called on mount for an idle task
     // Implementation passes: taskId, remainingSeconds, allActiveTasks
-    expect(mockTaskService.startSession).toHaveBeenCalledWith(
+    expect(mockTaskApiInstance.startSession).toHaveBeenCalledWith(
       'task-1',
       expect.any(Number),
       expect.any(Array)
@@ -102,7 +109,7 @@ describe('useFocusSessionController', () => {
       renderHook(() => useFocusSessionController('task-1'));
 
       // Should NOT be called again if it's already running
-      expect(mockTaskService.startSession).not.toHaveBeenCalled();
+      expect(mockTaskApiInstance.startSession).not.toHaveBeenCalled();
     });
 
   it('should toggle timer from running to paused', () => {
@@ -118,7 +125,7 @@ describe('useFocusSessionController', () => {
     });
 
     // Check that pauseSession was called with the correct remaining time
-    expect(mockTaskService.pauseSession).toHaveBeenCalledWith('task-1', expect.any(Number));
+    expect(mockTaskApiInstance.pauseSession).toHaveBeenCalledWith('task-1', expect.any(Number));
   });
 
   it('should toggle timer from paused to running', () => {
@@ -131,8 +138,8 @@ describe('useFocusSessionController', () => {
     const { result } = renderHook(() => useFocusSessionController('task-1'));
 
     // The useEffect will call startSession on initial render for a paused task
-    expect(mockTaskService.startSession).toHaveBeenCalledTimes(1);
-    (mockTaskService.startSession as jest.Mock).mockClear(); // Clear for the next check
+    expect(mockTaskApiInstance.startSession).toHaveBeenCalledTimes(1);
+    (mockTaskApiInstance.startSession as jest.Mock).mockClear(); // Clear for the next check
 
     // Since our mock task still has lastStartedAt: null, isActive is false
     act(() => {
@@ -141,12 +148,12 @@ describe('useFocusSessionController', () => {
 
     // toggleTimer should call startSession because the task is not active
     // Implementation passes: taskId, remainingSeconds, allActiveTasks
-    expect(mockTaskService.startSession).toHaveBeenCalledWith(
+    expect(mockTaskApiInstance.startSession).toHaveBeenCalledWith(
       'task-1',
       expect.any(Number),
       expect.any(Array)
     );
-    expect(mockTaskService.startSession).toHaveBeenCalledTimes(1);
+    expect(mockTaskApiInstance.startSession).toHaveBeenCalledTimes(1);
   });
 
   it('should complete the session and navigate', async () => {
@@ -158,7 +165,7 @@ describe('useFocusSessionController', () => {
     });
 
     // Verify task completion was called
-    expect(mockTaskService.completeTask).toHaveBeenCalledWith(mockTask, expect.any(Number), [mockTask]);
+    expect(mockTaskApiInstance.completeTask).toHaveBeenCalledWith(mockTask, expect.any(Number), [mockTask]);
 
     // Verify navigation was called
     expect(mockCompleteFocusSession).toHaveBeenCalledWith('task-1');
@@ -213,7 +220,7 @@ describe('useFocusSessionController', () => {
         result.current.actions.handleBreathing();
     });
 
-    expect(mockTaskService.pauseSession).toHaveBeenCalledWith('task-1', expect.any(Number));
+    expect(mockTaskApiInstance.pauseSession).toHaveBeenCalledWith('task-1', expect.any(Number));
     expect(mockStartBreathing).toHaveBeenCalled();
   });
 });

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TaskEntity, RecurrenceConfig, EnergyLevel } from '../types';
+import { TaskEntity, RecurrenceConfig, EnergyLevel } from '../model/types';
 
 /**
  * Interface for the state managed by the task editor hook.

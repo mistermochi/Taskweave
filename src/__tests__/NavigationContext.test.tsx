@@ -6,8 +6,23 @@
 
 import React, { PropsWithChildren } from 'react';
 import { renderHook, act } from '@testing-library/react';
+
+// Mock firebase before anything else
+jest.mock('@/shared/api/firebase', () => ({
+  auth: {},
+  db: {},
+}));
+
+// Mock taskApi to avoid firebase dependency
+jest.mock('@/entities/task', () => ({
+  taskApi: {
+    updateTask: jest.fn(),
+  },
+  ViewName: jest.requireActual('../types').ViewName,
+}));
+
 import { NavigationProvider, useNavigation } from '../context/NavigationContext';
-import { ViewName } from '../types';
+import { ViewName } from '@/entities/task';
 
 // Wrapper component to provide the context to the hook
 const wrapper = ({ children }: PropsWithChildren) => <NavigationProvider>{children}</NavigationProvider>;

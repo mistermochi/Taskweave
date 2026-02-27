@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { auth } from '@/firebase';
+import { auth } from '@/shared/api/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 /**

@@ -1,21 +1,20 @@
-import { db } from '../firebase';
-import { doc, updateDoc, deleteDoc, setDoc, writeBatch, collection, addDoc, getDoc } from 'firebase/firestore';
-import { Task, TaskEntity, EnergyLevel, RecurrenceConfig } from '../types';
-import { Category } from '../entities/tag';
+// import { db } from '@/shared/api/firebase';
+import { getFirestore, getDoc, doc, updateDoc, deleteDoc, setDoc, writeBatch, collection, addDoc } from 'firebase/firestore';
+import { Task, TaskEntity, EnergyLevel, RecurrenceConfig } from '../model/types';
+import { Category } from '@/entities/tag';
 import { contextApi } from '@/entities/context';
-import { UserVital } from '@/entities/vital';
-import { getNextRecurrenceDate, calculateTaskTime } from '@/utils/timeUtils';
+import { getNextRecurrenceDate, calculateTaskTime } from '@/shared/lib/timeUtils';
 
 /**
  * Service for managing the lifecycle of tasks in Firestore.
  * Handles CRUD operations, status changes, recurring task logic,
  * dependency management, and focus session persistence.
  *
- * @singleton Use `TaskService.getInstance()` to access the service.
+ * @singleton Use `taskApi` to access the service.
  */
-export class TaskService {
+export class TaskApi {
     /** Singleton instance of the service. */
-    private static instance: TaskService;
+    private static instance: TaskApi;
 
     /**
      * Private constructor for singleton pattern.
@@ -23,14 +22,14 @@ export class TaskService {
     private constructor() { }
 
     /**
-     * Returns the singleton instance of TaskService.
-     * @returns The TaskService instance.
+     * Returns the singleton instance of TaskApi.
+     * @returns The TaskApi instance.
      */
-    public static getInstance(): TaskService {
-        if (!TaskService.instance) {
-            TaskService.instance = new TaskService();
+    public static getInstance(): TaskApi {
+        if (!TaskApi.instance) {
+            TaskApi.instance = new TaskApi();
         }
-        return TaskService.instance;
+        return TaskApi.instance;
     }
 
     /**
@@ -85,7 +84,7 @@ export class TaskService {
         };
         
         const newTaskId = crypto.randomUUID();
-        const taskRef = doc(db, 'users', uid, 'tasks', newTaskId);
+        const taskRef = doc(getFirestore(), 'users', uid, 'tasks', newTaskId);
         const now = Date.now();
 
         await setDoc(taskRef, {
@@ -108,7 +107,7 @@ export class TaskService {
         const uid = contextApi.getUserId();
         if (!uid) return;
 
-        const taskRef = doc(db, 'users', uid, 'tasks', taskId);
+        const taskRef = doc(getFirestore(), 'users', uid, 'tasks', taskId);
         const cleanUpdates = JSON.parse(JSON.stringify(updates));
         await updateDoc(taskRef, {
             ...cleanUpdates,
@@ -149,7 +148,7 @@ export class TaskService {
         const uid = contextApi.getUserId();
         if (!uid) return;
 
-        const taskRef = doc(db, 'users', uid, 'tasks', taskId);
+        const taskRef = doc(getFirestore(), 'users', uid, 'tasks', taskId);
         await updateDoc(taskRef, {
             status: 'active',
             completedAt: null,
@@ -164,7 +163,7 @@ export class TaskService {
     public async deleteTask(taskId: string): Promise<void> {
         const uid = contextApi.getUserId();
         if (!uid) return;
-        const taskRef = doc(db, 'users', uid, 'tasks', taskId);
+        const taskRef = doc(getFirestore(), 'users', uid, 'tasks', taskId);
         await deleteDoc(taskRef);
     }
 
@@ -225,12 +224,13 @@ export class TaskService {
         const uid = contextApi.getUserId();
         if (!uid) return null;
 
+        const db = getFirestore();
         const batch = writeBatch(db);
         const completedAt = Date.now();
         let nextDueDate: number | null = null;
 
         // Part 1: Mark original task as complete
-        const originalTaskRef = doc(db, 'users', uid, 'tasks', originalTask.id);
+        const originalTaskRef = doc(getFirestore(), 'users', uid, 'tasks', originalTask.id);
         const updatePayload: Partial<Task> = {
             status: 'completed',
             completedAt: completedAt,
@@ -248,7 +248,7 @@ export class TaskService {
         // Part 2: Respawn recurring task
         if (nextTaskData) {
             const nextTaskId = crypto.randomUUID();
-            const nextTaskRef = doc(db, 'users', uid, 'tasks', nextTaskId);
+            const nextTaskRef = doc(getFirestore(), 'users', uid, 'tasks', nextTaskId);
             nextDueDate = nextTaskData.dueDate || null;
             batch.set(nextTaskRef, {
                 ...nextTaskData,
@@ -263,7 +263,7 @@ export class TaskService {
         if (allActiveTasks && allActiveTasks.length > 0) {
             const dependentTasks = allActiveTasks.filter(t => t.blockedBy?.includes(originalTask.id));
             for (const dependent of dependentTasks) {
-                const dependentRef = doc(db, 'users', uid, 'tasks', dependent.id);
+                const dependentRef = doc(getFirestore(), 'users', uid, 'tasks', dependent.id);
                 const newBlockedBy = (dependent.blockedBy || []).filter(id => id !== originalTask.id);
                 batch.update(dependentRef, { blockedBy: newBlockedBy });
             }
@@ -284,6 +284,7 @@ export class TaskService {
         const uid = contextApi.getUserId();
         if (!uid) return;
     
+        const db = getFirestore();
         const batch = writeBatch(db);
         const now = Date.now();
     
@@ -291,7 +292,7 @@ export class TaskService {
         const currentFocusedTask = allActiveTasks.find(t => t.isFocused && t.id !== taskId);
         if (currentFocusedTask) {
             const metrics = calculateTaskTime(currentFocusedTask);
-            const focusedTaskRef = doc(db, 'users', uid, 'tasks', currentFocusedTask.id);
+            const focusedTaskRef = doc(getFirestore(), 'users', uid, 'tasks', currentFocusedTask.id);
             batch.update(focusedTaskRef, {
                 isFocused: false,
                 lastStartedAt: null,
@@ -301,7 +302,7 @@ export class TaskService {
         }
     
         // 2. Start the new session
-        const newTaskRef = doc(db, 'users', uid, 'tasks', taskId);
+        const newTaskRef = doc(getFirestore(), 'users', uid, 'tasks', taskId);
         batch.update(newTaskRef, {
             remainingSeconds,
             lastStartedAt: now,
@@ -362,7 +363,7 @@ export class TaskService {
             completionNotes: notes,
         });
 
-        await addDoc(collection(db, 'users', uid, 'activityLogs'), {
+        await addDoc(collection(getFirestore(), 'users', uid, 'activityLogs'), {
             timestamp,
             weekOfYear: 0,
             shiftType: null,
@@ -378,7 +379,7 @@ export class TaskService {
         if (typeof newEnergyLevel === 'number') {
             const context = await contextApi.getSnapshot();
             const vitalId = crypto.randomUUID();
-            const vitalRef = doc(db, 'users', uid, 'vitals', vitalId);
+            const vitalRef = doc(getFirestore(), 'users', uid, 'vitals', vitalId);
             await setDoc(vitalRef, {
                 id: vitalId,
                 timestamp,
@@ -394,3 +395,5 @@ export class TaskService {
         }
     }
 }
+
+export const taskApi = TaskApi.getInstance();

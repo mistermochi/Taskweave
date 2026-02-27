@@ -4,7 +4,7 @@
  * from user-entered strings.
  */
 
-import { parseTaskInput } from '../utils/textParserUtils';
+import { parseTaskInput } from '@/shared/lib/textParserUtils';
 
 describe('parseTaskInput', () => {
   it('should parse a complex string with multiple attributes', () => {

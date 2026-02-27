@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useVitalsContext } from '@/context/VitalsContext';
 import { useUserId } from '@/hooks/useFirestore';
-import { db } from '@/firebase';
+import { db } from '@/shared/api/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { calculatePassiveDrain, normalizeEnergy } from '@/utils/energyUtils';
-import { getStartOfDay } from '@/utils/timeUtils';
+import { calculatePassiveDrain, normalizeEnergy } from '@/shared/lib/energyUtils';
+import { getStartOfDay } from '@/shared/lib/timeUtils';
 
 /**
  * Hook that manages the simulation of "biological battery drain" when the user is inactive.

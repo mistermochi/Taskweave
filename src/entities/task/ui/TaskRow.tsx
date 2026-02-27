@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { Check, Trash2, Lock } from 'lucide-react';
 import { Tag, tagApi } from '@/entities/tag';
-import { TaskEntity, RecurrenceConfig, EnergyLevel } from '@/types';
-import { parseTaskInput } from '@/utils/textParserUtils';
-import { TaskDisplay } from '@/components/task-row/TaskDisplay';
-import { TaskInput } from '@/components/task-row/TaskInput';
-import { TaskRowPickers } from '@/components/task-row/TaskRowPickers';
-import { TaskRowActions } from '@/components/task-row/TaskRowActions';
-import { useTaskTimer, useTaskDisplayInfo } from '@/hooks/useTaskTimer';
+import { TaskEntity, RecurrenceConfig, EnergyLevel } from '@/entities/task';
+import { parseTaskInput } from '@/shared/lib/textParserUtils';
+import { TaskDisplay } from '../ui/task-row/TaskDisplay';
+import { TaskInput } from '../ui/task-row/TaskInput';
+import { TaskRowPickers } from '../ui/task-row/TaskRowPickers';
+import { TaskRowActions } from '../ui/task-row/TaskRowActions';
+import { useTaskTimer, useTaskDisplayInfo } from '@/entities/task';
 
 /**
  * Interface for TaskRow props.

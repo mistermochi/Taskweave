@@ -4,15 +4,15 @@ import React, { Suspense, useEffect } from 'react';
 import { ViewName } from '@/types';
 import { AppLayout } from '@/components/AppLayout';
 import { usePassiveDrain } from '@/hooks/usePassiveDrain';
-import { LoadingScreen } from '@/components/ui/Feedback';
+import { LoadingScreen } from '@/shared/ui/Feedback';
 import { useNavigation } from '@/context/NavigationContext';
 import { useTaskContext } from '@/context/TaskContext';
 import { useReferenceContext } from '@/context/ReferenceContext';
-import SessionSummaryModal from '@/components/SessionSummaryModal';
-import { QuickFocusModal } from '@/components/QuickFocusModal';
+import SessionSummaryModal from '@/features/complete-task/SessionSummaryModal';
+import { QuickFocusModal } from '@/features/focus-session/QuickFocusModal';
 import DashboardView from '@/views/DashboardView';
 import TaskDatabaseView from '@/views/TaskDatabaseView';
-import { FocusPlayer } from '@/components/FocusPlayer';
+import { FocusPlayer } from '@/features/focus-session/FocusPlayer';
 
 // Lazy load secondary views for better initial bundle size
 const TaskHistoryView = React.lazy(() => import('@/views/TaskHistoryView'));

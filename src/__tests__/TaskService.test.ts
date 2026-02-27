@@ -1,17 +1,17 @@
 /**
- * @file Unit tests for TaskService.
+ * @file Unit tests for taskApi.
  * These tests verify the core business logic for task management,
  * including CRUD operations, status changes, recurring task logic,
  * dependency management, and focus session persistence.
  */
 
 /** @jest-environment node */
-import { TaskService } from '../services/TaskService';
-import { db } from '../firebase';
+import { taskApi } from '@/entities/task';
+import { db } from '@/shared/api/firebase';
 import { contextApi } from '../entities/context';
 import { doc, setDoc, updateDoc, deleteDoc, writeBatch, collection, addDoc } from 'firebase/firestore';
-import { getNextRecurrenceDate } from '../utils/timeUtils';
-import { TaskEntity, RecurrenceConfig } from '../types';
+import { getNextRecurrenceDate } from '@/shared/lib/timeUtils';
+import { TaskEntity, RecurrenceConfig } from '@/entities/task';
 
 // --- Mocks ---
 
@@ -58,8 +58,8 @@ jest.mock('../entities/context', () => ({
 }));
 
 // Mock timeUtils for predictable recurrence
-jest.mock('../utils/timeUtils', () => ({
-  ...jest.requireActual('../utils/timeUtils'), // Keep other functions real
+jest.mock('@/shared/lib/timeUtils', () => ({
+  ...jest.requireActual('@/shared/lib/timeUtils'), // Keep other functions real
   getNextRecurrenceDate: jest.fn(),
 }));
 
@@ -69,8 +69,8 @@ jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW);
 
 // --- Test Suite ---
 
-describe('TaskService', () => {
-  let taskService: TaskService;
+describe('taskApi', () => {
+  let taskService: taskApi;
   const mockBatch = {
     update: jest.fn(),
     set: jest.fn(),
@@ -85,7 +85,7 @@ describe('TaskService', () => {
     (writeBatch as jest.Mock).mockReturnValue(mockBatch);
 
     // Get a fresh instance for each test
-    taskService = TaskService.getInstance();
+    taskService = taskApi;
   });
 
   // Test addTask

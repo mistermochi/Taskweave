@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useVitalsContext } from '@/context/VitalsContext';
-import { normalizeEnergy, getMoodIndexFromEnergy } from '@/utils/energyUtils';
-import { getStartOfDay } from '@/utils/timeUtils';
+import { normalizeEnergy, getMoodIndexFromEnergy } from '@/shared/lib/energyUtils';
+import { getStartOfDay } from '@/shared/lib/timeUtils';
 
 /**
  * Interface representing the calculated energy model for the current day.

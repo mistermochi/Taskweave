@@ -10,34 +10,31 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useSessionSummaryController } from '../hooks/controllers/useSessionSummaryController';
 import { useUserId, useFirestoreDoc } from '../hooks/useFirestore';
-import { TaskService } from '../services/TaskService';
+import { taskApi } from '@/entities/task';
 import { useEnergyModel } from '../hooks/useEnergyModel';
 
 // Mock dependencies
 
 // Global firebase mock to prevent init errors
-jest.mock('../firebase', () => ({
+jest.mock('@/shared/api/firebase', () => ({
   auth: {},
   db: {},
 }));
 
 jest.mock('../hooks/useFirestore');
-jest.mock('../services/TaskService');
+jest.mock('@/entities/task');
 jest.mock('../hooks/useEnergyModel');
 
 const mockUseUserId = useUserId as jest.Mock;
 const mockUseFirestoreDoc = useFirestoreDoc as jest.Mock;
 const mockUseEnergyModel = useEnergyModel as jest.Mock;
 
-const mockTaskServiceInstance = {
+const mocktaskApiInstance = {
   logSessionCompletion: jest.fn(),
 };
 
-jest.mock('../services/TaskService', () => ({
-  TaskService: {
-    getInstance: () => mockTaskServiceInstance,
-  },
-}));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(taskApi as any).logSessionCompletion = mocktaskApiInstance.logSessionCompletion;
 
 const mockTask = {
   id: 'task-1',
@@ -139,8 +136,8 @@ describe('useSessionSummaryController', () => {
       await result.current.actions.finishSession();
     });
 
-    expect(mockTaskServiceInstance.logSessionCompletion).toHaveBeenCalledTimes(1);
-    expect(mockTaskServiceInstance.logSessionCompletion).toHaveBeenCalledWith(
+    expect(mocktaskApiInstance.logSessionCompletion).toHaveBeenCalledTimes(1);
+    expect(mocktaskApiInstance.logSessionCompletion).toHaveBeenCalledWith(
         mockTask,
         'Drained',
         'Felt difficult.',

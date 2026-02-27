@@ -11,13 +11,13 @@ import { useTaskContext } from '../context/TaskContext';
 import { useReferenceContext } from '../context/ReferenceContext';
 import { useEnergyModel } from '../hooks/useEnergyModel';
 import { useUserId, useFirestoreCollection } from '../hooks/useFirestore';
-import { TaskEntity } from '../types';
+import { TaskEntity } from '@/entities/task';
 import { RecommendationEngine } from '../services/RecommendationEngine';
 
 // Mock dependencies
 
 // Global firebase mock to prevent init errors
-jest.mock('../firebase', () => ({
+jest.mock('@/shared/api/firebase', () => ({
   auth: {},
   db: {},
 }));

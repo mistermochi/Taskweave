@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { GoogleCalendarService } from '@/services/GoogleCalendarService';
-import { TaskService } from '@/services/TaskService';
+import { taskApi } from '@/entities/task';
 import { tagApi, Tag } from '@/entities/tag';
-import { UserSettings, TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
+import { UserSettings } from '@/types';
 
 /**
  * Interface representing a standardized calendar event structure.
@@ -123,7 +124,7 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
      * @param onSuccess - Callback containing the count of imported tasks.
      */
     const confirmImport = async (onSuccess: (count: number) => void) => {
-        const taskService = TaskService.getInstance();
+        const taskService = taskApi;
         const eventsToImport = events.filter(e => selectedIds.has(e.id));
         
         for (const event of eventsToImport) {

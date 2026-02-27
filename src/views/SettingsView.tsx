@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useUserSettings } from '@/hooks/useUserSettings';
-import { Page } from '@/components/layout/Page';
+import { Page } from '@/shared/layout/Page';
 import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
 import { IntegrationsSettings } from '@/components/settings/IntegrationsSettings';
 import { ContextSensorsSettings } from '@/components/settings/ContextSensorsSettings';
@@ -10,7 +10,7 @@ import { ProfileSettings } from '@/components/settings/ProfileSettings';
 import { MentalModelSettings } from '@/components/settings/MentalModelSettings';
 import { TypicalScheduleSettings } from '@/components/settings/TypicalScheduleSettings';
 import { Actions } from '@/components/settings/Actions';
-import { Toast } from '@/components/ui/Feedback';
+import { Toast } from '@/shared/ui/Feedback';
 import { useTaskContext } from '@/context/TaskContext';
 
 /**

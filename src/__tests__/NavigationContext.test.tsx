@@ -22,7 +22,7 @@ jest.mock('@/entities/task', () => ({
 }));
 
 import { NavigationProvider, useNavigation } from '../context/NavigationContext';
-import { ViewName } from '@/entities/task';
+import { ViewName } from '../types';
 
 // Wrapper component to provide the context to the hook
 const wrapper = ({ children }: PropsWithChildren) => <NavigationProvider>{children}</NavigationProvider>;

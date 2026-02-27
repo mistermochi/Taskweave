@@ -70,7 +70,7 @@ jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW);
 // --- Test Suite ---
 
 describe('taskApi', () => {
-  let taskService: taskApi;
+  let taskService: typeof taskApi;
   const mockBatch = {
     update: jest.fn(),
     set: jest.fn(),

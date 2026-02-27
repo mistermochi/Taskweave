@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { ArrowLeft, Meh, Battery, BatteryWarning, Inbox } from 'lucide-react';
-import { TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
 import { useTaskContext } from '@/context/TaskContext';
-import { Page } from '@/components/layout/Page';
-import { IconBadge } from '@/components/ui/IconBadge';
-import { EmptyState } from '@/components/ui/Feedback';
+import { Page } from '@/shared/layout/Page';
+import { IconBadge } from '@/shared/ui/IconBadge';
+import { EmptyState } from '@/shared/ui/Feedback';
 import { useNavigation } from '@/context/NavigationContext';
 
 /**

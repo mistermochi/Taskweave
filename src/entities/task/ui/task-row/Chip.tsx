@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import Flyout from '@/components/ui/Flyout';
+import Flyout from '@/shared/ui/Flyout';
 
 /**
  * Styling variants for the Chip component using Class Variance Authority.

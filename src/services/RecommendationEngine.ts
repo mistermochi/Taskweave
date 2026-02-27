@@ -2,7 +2,7 @@ import { TaskEntity, Category, SuggestionContext, Suggestion, UserVital } from "
 import { LinUCBService, StrategyArm, ARM_NAMES } from "./LinUCBService";
 import { AIService } from "./AIService";
 import { AIPromptBuilder } from "./AIPromptBuilder";
-import { normalizeEnergy } from "@/utils/energyUtils";
+import { normalizeEnergy } from "@/shared/lib/energyUtils";
 
 /**
  * High-level service that manages the generation of task and wellbeing suggestions.

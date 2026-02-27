@@ -1,4 +1,4 @@
-import { TaskEntity } from '../types';
+import { TaskEntity } from '@/entities/task';
 
 /**
  * Utility class for constructing complex prompts for the AI Service.

@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { SlidersHorizontal, Search } from 'lucide-react';
 import { where, orderBy } from 'firebase/firestore';
-import { TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
 import { useTaskDatabaseController } from '@/hooks/controllers/useTaskDatabaseController';
 import { useFirestoreCollection } from '@/hooks/useFirestore';
-import { Toast } from '@/components/ui/Feedback';
-import { Page } from '@/components/layout/Page';
+import { Toast } from '@/shared/ui/Feedback';
+import { Page } from '@/shared/layout/Page';
 import { useNavigation } from '@/context/NavigationContext';
-import { TaskSection } from '@/components/TaskSection';
+import { TaskSection } from '@/entities/task';
 import { useTaskContext } from '@/context/TaskContext';
 
 /**

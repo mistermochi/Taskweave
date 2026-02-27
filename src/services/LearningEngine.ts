@@ -1,5 +1,5 @@
 import { TaskPattern, Category } from '../types/scheduling';
-import { db } from '../firebase';
+import { db } from '@/shared/api/firebase';
 import { collection, addDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { contextApi } from '@/entities/context';
 

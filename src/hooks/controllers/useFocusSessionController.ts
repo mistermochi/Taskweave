@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useUserId } from '@/hooks/useFirestore';
 import { useTaskContext } from '@/context/TaskContext';
-import { TaskService } from '@/services/TaskService';
-import { calculateTaskTime, formatTimer } from '@/utils/timeUtils';
+import { taskApi } from '@/entities/task';
+import { calculateTaskTime, formatTimer } from '@/shared/lib/timeUtils';
 import { useNavigation } from '@/context/NavigationContext';
-import { TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
 
 /**
  * View Controller for an active Focus Session.
@@ -26,7 +26,7 @@ export const useFocusSessionController = (taskId: string | undefined) => {
   
   const isActive = metrics.status === 'running';
 
-  const taskService = TaskService.getInstance();
+  const taskService = taskApi;
 
   /**
    * Auto-start logic: Automatically begins the focus session

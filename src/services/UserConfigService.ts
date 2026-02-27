@@ -1,5 +1,5 @@
 import { doc, onSnapshot, setDoc, updateDoc, DocumentData } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '@/shared/api/firebase';
 import { UserSettings } from '@/types';
 
 /**

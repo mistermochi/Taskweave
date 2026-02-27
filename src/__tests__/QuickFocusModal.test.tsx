@@ -7,23 +7,24 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { QuickFocusModal } from '../components/QuickFocusModal';
-import { useReferenceContext } from '../context/ReferenceContext';
-import { useNavigation } from '../context/NavigationContext';
-import { TaskService } from '../services/TaskService';
-import { Tag } from '../entities/tag';
 
-// Mock dependencies
-
-// Global firebase mock to prevent init errors
-jest.mock('../firebase', () => ({
+// Mock firebase before anything else
+jest.mock('@/shared/api/firebase', () => ({
   auth: {},
   db: {},
 }));
 
+import { QuickFocusModal } from '../features/focus-session/QuickFocusModal';
+import { useReferenceContext } from '../context/ReferenceContext';
+import { useNavigation } from '../context/NavigationContext';
+import { taskApi } from '@/entities/task';
+import { Tag } from '../entities/tag';
+
+// Mock dependencies
+
 jest.mock('../context/ReferenceContext');
 jest.mock('../context/NavigationContext');
-jest.mock('../services/TaskService');
+jest.mock('@/entities/task');
 
 const mockUseReferenceContext = useReferenceContext as jest.Mock;
 const mockUseNavigation = useNavigation as jest.Mock;
@@ -34,13 +35,9 @@ const mockTags: Tag[] = [
 const mockFocusOnTask = jest.fn();
 const mockOnClose = jest.fn();
 
-// Mock the TaskService instance and its methods
+// Mock the taskApi instance and its methods
 const mockAddTask = jest.fn();
-const mockTaskServiceInstance = {
-  addTask: mockAddTask,
-};
-(TaskService.getInstance as jest.Mock) = jest.fn().mockReturnValue(mockTaskServiceInstance);
-
+(taskApi.addTask as jest.Mock) = mockAddTask;
 
 describe('QuickFocusModal', () => {
 
@@ -90,7 +87,7 @@ describe('QuickFocusModal', () => {
 
     // Assert
     await waitFor(() => {
-      // 1. Verify TaskService.addTask was called with the correct parameters
+      // 1. Verify taskApi.addTask was called with the correct parameters
       expect(mockAddTask).toHaveBeenCalledTimes(1);
       expect(mockAddTask).toHaveBeenCalledWith(
         'Test quick focus', // title

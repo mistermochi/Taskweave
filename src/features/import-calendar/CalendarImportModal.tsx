@@ -3,11 +3,12 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 import { CalendarEvent } from '@/hooks/controllers/useCalendarImportController';
-import { Modal } from '@/components/ui/Dialog';
-import { EmptyState } from '@/components/ui/Feedback';
-import { TaskRow } from '@/components/TaskRow';
+import { Modal } from '@/shared/ui/Dialog';
+import { EmptyState } from '@/shared/ui/Feedback';
+import { TaskRow } from '@/entities/task';
 import { Tag } from '@/entities/tag';
-import { TaskEntity, UserSettings, EnergyLevel } from '@/types';
+import { TaskEntity, EnergyLevel } from '@/entities/task';
+import { UserSettings } from '@/types';
 
 /**
  * Interface for CalendarImportModal props.

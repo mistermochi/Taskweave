@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Check, Edit2, Play, Sun, ArchiveRestore, Archive } from 'lucide-react';
-import { TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
 
 /**
  * Interface for TaskRowActions props.

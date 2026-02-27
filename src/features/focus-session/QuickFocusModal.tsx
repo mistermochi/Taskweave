@@ -2,12 +2,12 @@
 
 import React, { useState, useRef } from 'react';
 import { Zap, Hash } from 'lucide-react';
-import { Modal } from '@/components/ui/Dialog';
+import { Modal } from '@/shared/ui/Dialog';
 import { useReferenceContext } from '@/context/ReferenceContext';
-import { TaskService } from '@/services/TaskService';
+import { taskApi } from '@/entities/task';
 import { useNavigation } from '@/context/NavigationContext';
-import { TagPicker } from './pickers/TagPicker';
-import Flyout from './ui/Flyout';
+import { TagPicker } from '@/components/pickers/TagPicker';
+import Flyout from '@/shared/ui/Flyout';
 import { Category } from '@/entities/tag';
 
 /**
@@ -47,7 +47,7 @@ export const QuickFocusModal: React.FC<QuickFocusModalProps> = ({ isOpen, onClos
   const handleStartFocus = async () => {
     if (!title.trim()) return;
 
-    const newTaskId = await TaskService.getInstance().addTask(
+    const newTaskId = await taskApi.addTask(
       title.trim(),
       categoryId,
       0,

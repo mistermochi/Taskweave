@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useVitalsContext } from '@/context/VitalsContext';
 import { useFirestoreCollection } from '@/hooks/useFirestore';
 import { where } from 'firebase/firestore';
-import { TaskEntity } from "@/types";
+import { TaskEntity } from "@/entities/task";
 import { Category } from "@/entities/tag";
 
 /**

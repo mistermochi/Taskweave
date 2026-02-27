@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useMemo, useRef, PropsWithChildren } from 'react';
 import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '@/hooks/useFirestore';
-import { TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
 
 /**
  * Interface for the Task Database context.

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useUserId } from '@/hooks/useFirestore';
-import { db } from '@/firebase';
+import { db } from '@/shared/api/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { contextApi } from '@/entities/context';
 import { useNavigation } from '@/context/NavigationContext';

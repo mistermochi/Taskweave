@@ -4,8 +4,8 @@
  * various recurrence patterns (daily, weekly, monthly).
  */
 
-import { calculateTaskTime, formatTimer, getNextRecurrenceDate } from '../utils/timeUtils';
-import { TaskEntity, RecurrenceConfig } from '../types';
+import { calculateTaskTime, formatTimer, getNextRecurrenceDate } from '@/shared/lib/timeUtils';
+import { TaskEntity, RecurrenceConfig } from '@/entities/task';
 
 // Mock Date.now() to ensure consistent test results
 const MOCK_NOW = new Date('2024-01-01T12:00:00Z').getTime();

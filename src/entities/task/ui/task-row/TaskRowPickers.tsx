@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react';
 import { Hash, CalendarClock, Calendar, Repeat, Clock, Zap, Pause, GitBranch, Share2 } from 'lucide-react';
 import { Tag } from '@/entities/tag';
-import { TaskEntity, RecurrenceConfig, EnergyLevel } from '@/types';
-import { Chip } from '@/components/task-row/Chip';
+import { TaskEntity, RecurrenceConfig, EnergyLevel } from '@/entities/task';
+import { Chip } from './Chip';
 import { TagPicker } from '@/components/pickers/TagPicker';
 import { DurationPicker } from '@/components/pickers/DurationPicker';
 import { EnergyPicker } from '@/components/pickers/EnergyPicker';
 import { DatePicker } from '@/components/pickers/DatePicker';
 import { RecurrencePicker as RecurrenceInlinePicker } from '@/components/pickers/RecurrencePicker';
 import { DependencyPicker } from '@/components/pickers/DependencyPicker';
-import { formatRecurrence } from '@/utils/timeUtils';
+import { formatRecurrence } from '@/shared/lib/timeUtils';
 
 /**
  * Interface for TaskRowPickers props.

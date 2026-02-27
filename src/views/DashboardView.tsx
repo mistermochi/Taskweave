@@ -5,18 +5,18 @@ import {
   Wind, MessageSquare, Target, 
   Eye, Plus, Star
 } from 'lucide-react';
-import { TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
 import { useDashboardController } from '@/hooks/controllers/useDashboardController';
-import { Toast } from '@/components/ui/Feedback';
-import { TaskRow } from '@/components/TaskRow';
-import { Page } from '@/components/layout/Page';
-import { Heading } from '@/components/ui/Typography';
+import { Toast } from '@/shared/ui/Feedback';
+import { TaskRow } from '@/entities/task';
+import { Page } from '@/shared/layout/Page';
+import { Heading } from '@/shared/ui/Typography';
 import { useNavigation } from '@/context/NavigationContext';
 
 import { ReadinessRing } from '@/components/dashboard/ReadinessRing';
 import { SmileyScale } from '@/components/dashboard/SmileyScale';
-import { SectionHeader } from '@/components/ui/SectionHeader';
-import { Card } from '@/components/ui/Card';
+import { SectionHeader } from '@/shared/ui/SectionHeader';
+import { Card } from '@/shared/ui/Card';
 
 /**
  * Internal component for rendering the sidebar widgets on the dashboard.

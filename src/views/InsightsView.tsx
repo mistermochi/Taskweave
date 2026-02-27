@@ -6,7 +6,7 @@ import { Category } from '@/entities/tag';
 import { UserVital } from '@/entities/vital';
 import { Zap, Clock, Target, Activity, Layers, Wind, Smile, AlignLeft, MapPin, Battery, Wifi, X, BatteryWarning } from 'lucide-react';
 import { useInsightsController } from '@/hooks/controllers/useInsightsController';
-import { Page } from '@/components/layout/Page';
+import { Page } from '@/shared/layout/Page';
 
 /**
  * Interface for InsightsView props.

@@ -1,0 +1,30 @@
+
+> taskweave@0.0.0 dev
+> next dev -p 4246
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:4246
+
+ ✓ Starting...
+ ✓ Ready in 1851ms
+ ○ Compiling / ...
+ ✓ Compiled / in 10.8s (1297 modules)
+ ⨯ FirebaseError: Firebase: Error (auth/invalid-api-key).
+    at eval (./src/shared/api/firebase.ts:32:72)
+    at (ssr)/./src/shared/api/firebase.ts (/app/.next/server/app/page.js:1304:1)
+    at __webpack_require__ (/app/.next/server/webpack-runtime.js:33:43)
+    at eval (./src/app/page.tsx:9:78)
+    at (ssr)/./src/app/page.tsx (/app/.next/server/app/page.js:611:1)
+    at Object.__webpack_require__ [as require] (/app/.next/server/webpack-runtime.js:33:43)
+digest: "3167223497"
+ GET / 500 in 11769ms
+ ✓ Compiled in 1099ms (466 modules)
+ ⨯ FirebaseError: Firebase: Error (auth/invalid-api-key).
+    at eval (./src/shared/api/firebase.ts:32:72)
+    at (ssr)/./src/shared/api/firebase.ts (/app/.next/server/app/page.js:1304:1)
+    at __webpack_require__ (/app/.next/server/webpack-runtime.js:33:43)
+    at eval (./src/app/page.tsx:9:78)
+    at (ssr)/./src/app/page.tsx (/app/.next/server/app/page.js:611:1)
+    at Object.__webpack_require__ [as require] (/app/.next/server/webpack-runtime.js:33:43)
+digest: "3167223497"
+ GET / 500 in 51ms

@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { db } from '@/firebase';
+import { db } from '@/shared/api/firebase';
 import { doc, setDoc, where } from 'firebase/firestore';
 import { useUserId, useFirestoreCollection } from '@/hooks/useFirestore';
 import { contextApi } from "@/entities/context";
@@ -7,10 +7,10 @@ import { useTaskContext } from '@/context/TaskContext';
 import { useVitalsContext } from '@/context/VitalsContext';
 import { useReferenceContext } from '@/context/ReferenceContext';
 import { useEnergyModel } from '@/hooks/useEnergyModel';
-import { getStartOfDay } from '@/utils/timeUtils';
-import { TaskService } from '@/services/TaskService';
-import { TaskEntity } from '@/types';
-import { calculateSessionImpact } from '@/utils/energyUtils';
+import { getStartOfDay } from '@/shared/lib/timeUtils';
+import { taskApi } from '@/entities/task';
+import { TaskEntity } from '@/entities/task';
+import { calculateSessionImpact } from '@/shared/lib/energyUtils';
 import { SuggestionContext } from '@/types/scheduling';
 import { RecommendationEngine } from '@/services/RecommendationEngine';
 
@@ -26,7 +26,7 @@ export const useDashboardController = () => {
   const { vitals } = useVitalsContext();
   const { tags } = useReferenceContext();
   const energyModel = useEnergyModel();
-  const taskService = TaskService.getInstance();
+  const taskService = taskApi;
 
   /** Current AI task recommendation with its reasoning. */
   const [recommendation, setRecommendation] = useState<{ taskId: string; reason: string; } | null>(null);

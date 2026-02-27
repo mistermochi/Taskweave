@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RecurrenceConfig, RecurrenceFrequency } from '@/types';
+import { RecurrenceConfig, RecurrenceFrequency } from '@/entities/task';
 import { ChevronDown, Check } from 'lucide-react';
-import { formatRecurrence } from '@/utils/timeUtils';
+import { formatRecurrence } from '@/shared/lib/timeUtils';
 import { PickerContainer } from './PickerContainer';
 
 /**

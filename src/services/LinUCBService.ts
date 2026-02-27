@@ -1,5 +1,5 @@
-import { Matrix } from "../utils/math";
-import { db } from "../firebase";
+import { Matrix } from "@/shared/lib/math";
+import { db } from "@/shared/api/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 /**

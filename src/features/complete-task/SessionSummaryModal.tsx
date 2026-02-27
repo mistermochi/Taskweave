@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Check, Zap, BatteryWarning, Meh, X } from 'lucide-react';
-import { useSessionSummaryController } from '../hooks/controllers/useSessionSummaryController';
-import { Modal } from '@/components/ui/Dialog';
+import { useSessionSummaryController } from '@/hooks/controllers/useSessionSummaryController';
+import { Modal } from '@/shared/ui/Dialog';
 
 /**
  * Interface for SessionSummaryModal props.

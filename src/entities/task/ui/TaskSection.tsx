@@ -3,8 +3,8 @@
 import React from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
 import { Tag } from '@/entities/tag';
-import { TaskEntity } from '@/types';
-import { TaskRow } from '@/components/TaskRow';
+import { TaskEntity } from '@/entities/task';
+import { TaskRow } from './TaskRow';
 
 /**
  * Interface for TaskSection props.

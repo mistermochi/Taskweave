@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Tag, tagApi } from '@/entities/tag';
-import { TaskEntity } from '@/types';
+import { TaskEntity } from '@/entities/task';
 import { Trash2, AlertTriangle } from 'lucide-react';
 
 /**

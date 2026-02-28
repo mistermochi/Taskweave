@@ -12,6 +12,7 @@ import { useNavigation } from '@/context/NavigationContext';
 import { TaskSection } from '@/entities/task';
 import { useTaskContext } from '@/context/TaskContext';
 import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { CreateTaskSheetContent } from '@/entities/task/ui/task-details/CreateTaskSheetContent';
 

@@ -1,5 +1,5 @@
-// import { db } from '@/shared/api/firebase';
-import { getFirestore, getDoc, doc, updateDoc, deleteDoc, setDoc, writeBatch, collection, addDoc } from 'firebase/firestore';
+import { db } from '@/shared/api/firebase';
+import { getDoc, doc, updateDoc, deleteDoc, setDoc, writeBatch, collection, addDoc } from 'firebase/firestore';
 import { Task, TaskEntity, EnergyLevel, RecurrenceConfig } from '../model/types';
 import { Category } from '@/entities/tag';
 import { contextApi } from '@/entities/context';
@@ -84,7 +84,7 @@ export class TaskApi {
         };
         
         const newTaskId = crypto.randomUUID();
-        const taskRef = doc(getFirestore(), 'users', uid, 'tasks', newTaskId);
+        const taskRef = doc(db, 'users', uid, 'tasks', newTaskId);
         const now = Date.now();
 
         await setDoc(taskRef, {
@@ -107,7 +107,7 @@ export class TaskApi {
         const uid = contextApi.getUserId();
         if (!uid) return;
 
-        const taskRef = doc(getFirestore(), 'users', uid, 'tasks', taskId);
+        const taskRef = doc(db, 'users', uid, 'tasks', taskId);
         const cleanUpdates = JSON.parse(JSON.stringify(updates));
         await updateDoc(taskRef, {
             ...cleanUpdates,
@@ -148,7 +148,7 @@ export class TaskApi {
         const uid = contextApi.getUserId();
         if (!uid) return;
 
-        const taskRef = doc(getFirestore(), 'users', uid, 'tasks', taskId);
+        const taskRef = doc(db, 'users', uid, 'tasks', taskId);
         await updateDoc(taskRef, {
             status: 'active',
             completedAt: null,
@@ -163,7 +163,7 @@ export class TaskApi {
     public async deleteTask(taskId: string): Promise<void> {
         const uid = contextApi.getUserId();
         if (!uid) return;
-        const taskRef = doc(getFirestore(), 'users', uid, 'tasks', taskId);
+        const taskRef = doc(db, 'users', uid, 'tasks', taskId);
         await deleteDoc(taskRef);
     }
 
@@ -224,13 +224,12 @@ export class TaskApi {
         const uid = contextApi.getUserId();
         if (!uid) return null;
 
-        const db = getFirestore();
         const batch = writeBatch(db);
         const completedAt = Date.now();
         let nextDueDate: number | null = null;
 
         // Part 1: Mark original task as complete
-        const originalTaskRef = doc(getFirestore(), 'users', uid, 'tasks', originalTask.id);
+        const originalTaskRef = doc(db, 'users', uid, 'tasks', originalTask.id);
         const updatePayload: Partial<Task> = {
             status: 'completed',
             completedAt: completedAt,
@@ -248,7 +247,7 @@ export class TaskApi {
         // Part 2: Respawn recurring task
         if (nextTaskData) {
             const nextTaskId = crypto.randomUUID();
-            const nextTaskRef = doc(getFirestore(), 'users', uid, 'tasks', nextTaskId);
+            const nextTaskRef = doc(db, 'users', uid, 'tasks', nextTaskId);
             nextDueDate = nextTaskData.dueDate || null;
             batch.set(nextTaskRef, {
                 ...nextTaskData,
@@ -263,7 +262,7 @@ export class TaskApi {
         if (allActiveTasks && allActiveTasks.length > 0) {
             const dependentTasks = allActiveTasks.filter(t => t.blockedBy?.includes(originalTask.id));
             for (const dependent of dependentTasks) {
-                const dependentRef = doc(getFirestore(), 'users', uid, 'tasks', dependent.id);
+                const dependentRef = doc(db, 'users', uid, 'tasks', dependent.id);
                 const newBlockedBy = (dependent.blockedBy || []).filter(id => id !== originalTask.id);
                 batch.update(dependentRef, { blockedBy: newBlockedBy });
             }
@@ -284,7 +283,6 @@ export class TaskApi {
         const uid = contextApi.getUserId();
         if (!uid) return;
     
-        const db = getFirestore();
         const batch = writeBatch(db);
         const now = Date.now();
     
@@ -292,7 +290,7 @@ export class TaskApi {
         const currentFocusedTask = allActiveTasks.find(t => t.isFocused && t.id !== taskId);
         if (currentFocusedTask) {
             const metrics = calculateTaskTime(currentFocusedTask);
-            const focusedTaskRef = doc(getFirestore(), 'users', uid, 'tasks', currentFocusedTask.id);
+            const focusedTaskRef = doc(db, 'users', uid, 'tasks', currentFocusedTask.id);
             batch.update(focusedTaskRef, {
                 isFocused: false,
                 lastStartedAt: null,
@@ -302,7 +300,7 @@ export class TaskApi {
         }
     
         // 2. Start the new session
-        const newTaskRef = doc(getFirestore(), 'users', uid, 'tasks', taskId);
+        const newTaskRef = doc(db, 'users', uid, 'tasks', taskId);
         batch.update(newTaskRef, {
             remainingSeconds,
             lastStartedAt: now,
@@ -363,7 +361,7 @@ export class TaskApi {
             completionNotes: notes,
         });
 
-        await addDoc(collection(getFirestore(), 'users', uid, 'activityLogs'), {
+        await addDoc(collection(db, 'users', uid, 'activityLogs'), {
             timestamp,
             weekOfYear: 0,
             shiftType: null,
@@ -379,7 +377,7 @@ export class TaskApi {
         if (typeof newEnergyLevel === 'number') {
             const context = await contextApi.getSnapshot();
             const vitalId = crypto.randomUUID();
-            const vitalRef = doc(getFirestore(), 'users', uid, 'vitals', vitalId);
+            const vitalRef = doc(db, 'users', uid, 'vitals', vitalId);
             await setDoc(vitalRef, {
                 id: vitalId,
                 timestamp,

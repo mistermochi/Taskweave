@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
+import { cn } from '@/shared/lib/utils';
 
 /**
  * Interface for TaskInput props.
@@ -57,8 +58,10 @@ export const TaskInput: React.FC<TaskInputProps> = ({ title, notes, onTitleChang
         }
     }, [isEditing]);
 
+    const commonClasses = "bg-transparent border-none p-0 focus:ring-0 leading-snug w-full resize-none overflow-hidden block";
+
     return (
-        <>
+        <div className="grid gap-1">
             <textarea 
                 ref={titleRef}
                 value={title}
@@ -71,7 +74,7 @@ export const TaskInput: React.FC<TaskInputProps> = ({ title, notes, onTitleChang
                         onDiscard();
                     }
                 }}
-                className="bg-transparent border-none p-0 text-sm font-medium text-foreground focus:ring-0 leading-snug w-full resize-none overflow-hidden block placeholder-secondary/50"
+                className={cn(commonClasses, "text-sm font-medium text-foreground placeholder-muted-foreground/50")}
                 placeholder="Task name"
                 rows={1}
             />
@@ -79,10 +82,15 @@ export const TaskInput: React.FC<TaskInputProps> = ({ title, notes, onTitleChang
                 ref={notesRef}
                 value={notes}
                 onChange={(e) => { onNotesChange(e.target.value); autoResize(e.target); }}
-                className="bg-transparent border-none p-0 text-xs text-secondary/80 focus:ring-0 leading-snug w-full resize-none overflow-hidden block mt-2 placeholder-secondary/30"
+                onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                        onDiscard();
+                    }
+                }}
+                className={cn(commonClasses, "text-xs text-muted-foreground placeholder-muted-foreground/30")}
                 placeholder="Notes..."
                 rows={1}
             />
-        </>
+        </div>
     );
 };

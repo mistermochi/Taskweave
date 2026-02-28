@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/shared/ui/Card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/shared/ui/card';
 import { Brain, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 import { RecommendationEngine } from '@/services/RecommendationEngine';
 import { useTaskContext } from '@/context/TaskContext';

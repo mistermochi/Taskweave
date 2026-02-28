@@ -3,187 +3,148 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 import { CalendarEvent } from '@/hooks/controllers/useCalendarImportController';
-import { Modal } from '@/shared/ui/Dialog';
+import { Modal } from '@/shared/ui/dialog';
 import { EmptyState } from '@/shared/ui/Feedback';
 import { TaskRow } from '@/entities/task';
 import { Tag } from '@/entities/tag';
 import { TaskEntity, EnergyLevel } from '@/entities/task';
 import { UserSettings } from '@/types';
+import { Button } from '@/shared/ui/button';
 
 /**
  * Interface for CalendarImportModal props.
  */
 interface CalendarImportModalProps {
-  /** Whether the modal is visible. */
+  /** Whether the modal is currently visible. */
   isOpen: boolean;
+  /** Callback to close the modal. */
+  onClose: () => void;
   /** List of calendar events fetched from Google. */
   events: CalendarEvent[];
-  /** IDs of events currently selected for import. */
-  selectedIds: Set<string>;
-  /** IDs of events that have already been imported as tasks. */
-  importedEventIds: Set<string>;
-  /** Callback to toggle the selection of an event. */
-  onToggle: (id: string) => void;
-  /** Callback to finalize the import of selected events. */
-  onConfirm: () => void;
-  /** Callback to close the modal without importing. */
-  onCancel: () => void;
-  /** All available user tags for project mapping. */
+  /** List of user tags for project mapping. */
   tags: Tag[];
-  /** User settings for retrieving calendar configurations. */
+  /** User settings for default mappings. */
   settings: Partial<UserSettings>;
+  /** Set of IDs for tasks already imported (to prevent duplicates). */
+  importedIds: Set<string>;
+  /** Callback to finalize the import of selected events. */
+  onImport: (tasks: TaskEntity[]) => void;
 }
 
 /**
- * Transforms a raw Google Calendar event into a transient TaskEntity for UI preview.
- * This allows reusing the standard `TaskRow` component for event selection.
+ * Helper function to map a raw calendar event into a preview TaskEntity.
  */
 const eventToTaskPreview = (event: CalendarEvent, tags: Tag[], settings: Partial<UserSettings>, isImported: boolean): TaskEntity => {
-    let duration = 30;
-    let dueDate: number | undefined = undefined;
-
-    if (event.start.dateTime && event.end.dateTime) {
-        const start = new Date(event.start.dateTime).getTime();
-        const end = new Date(event.end.dateTime).getTime();
-        duration = Math.max(15, Math.round((end - start) / 60000));
-        dueDate = start;
-    } else if (event.start.date) {
-        const d = new Date(event.start.date);
-        dueDate = d.setHours(12, 0, 0, 0);
-        duration = 30;
-    }
-
-    const lowerSummary = event.summary.toLowerCase();
-    let energy: EnergyLevel = 'Medium';
-    if (lowerSummary.includes('focus') || lowerSummary.includes('deep')) energy = 'High';
-    if (lowerSummary.includes('lunch') || lowerSummary.includes('break')) energy = 'Low';
-
-    let notes = event.description || "";
-    if (event.location) notes += `\n\nLocation: ${event.location}`;
-    if (event.conferenceData?.entryPoints?.[0]?.uri) notes += `\n\nMeeting Link: ${event.conferenceData.entryPoints[0].uri}`;
-
-    if (isImported) {
-        notes = "Already imported into Taskweave";
-    }
-
-    let projectId = '';
     const calendarId = event.calendarId;
-    if (settings.calendarProjectMapping && settings.calendarProjectMapping[calendarId]) {
-        projectId = settings.calendarProjectMapping[calendarId];
-    } else {
-        const matchingTags = tags.filter(tag => lowerSummary.includes(tag.name.toLowerCase()));
-        if (matchingTags.length === 1) {
-            projectId = matchingTags[0].id;
-        }
-    }
-    
+    const mappedTagId = settings.calendarProjectMapping?.[calendarId] || '';
+
     return {
-        id: event.id,
-        title: event.summary || 'Untitled Event',
-        notes: notes.trim(),
-        status: isImported ? 'completed' : 'active',
-        category: projectId,
-        duration,
-        energy,
-        dueDate,
-        createdAt: Date.now(),
-        blockedBy: [],
+      id: event.id,
+      title: event.summary,
+      category: mappedTagId,
+      status: isImported ? 'completed' : 'active',
+      duration: event.end && event.start ? Math.round((event.end - event.start) / 60000) : 30,
+      energy: 'Medium' as EnergyLevel,
+      createdAt: Date.now(),
+      assignedDate: event.start,
+      googleCalendarEventId: event.id,
+      googleCalendarId: event.calendarId,
+      blockedBy: [],
     } as TaskEntity;
 };
 
 /**
- * Modal dialog for selecting and importing Google Calendar events as application tasks.
- * It groups events by day and provides a preview of how the task will look.
+ * Modal for reviewing and importing events from Google Calendar.
+ * Displays events as a list of "Ghost" tasks that the user can tweak before
+ * committing them to their actual task list.
  *
  * @component
  */
-export const CalendarImportModal: React.FC<CalendarImportModalProps> = ({ 
-    isOpen, 
-    events, 
-    selectedIds, 
-    importedEventIds,
-    onToggle, 
-    onConfirm, 
-    onCancel,
+export const CalendarImportModal: React.FC<CalendarImportModalProps> = ({
+    isOpen,
+    onClose,
+    events,
     tags,
-    settings
+    settings,
+    importedIds,
+    onImport
 }) => {
-  const getDayLabel = (event: CalendarEvent) => {
-      const d = new Date(event.start.dateTime || event.start.date || Date.now());
-      const today = new Date();
-      if (d.getDate() === today.getDate() && d.getMonth() === today.getMonth()) return "Today";
-      
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-      if (d.getDate() === tomorrow.getDate() && d.getMonth() === tomorrow.getMonth()) return "Tomorrow";
+  const [selectedEvents, setSelectedEvents] = React.useState<Set<string>>(new Set());
 
-      return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+  const toggleEvent = (id: string) => {
+    const next = new Set(selectedEvents);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedEvents(next);
   };
 
-  const groupedEvents: { [key: string]: CalendarEvent[] } = {};
-  events.forEach(e => {
-      const label = getDayLabel(e);
-      if (!groupedEvents[label]) groupedEvents[label] = [];
-      groupedEvents[label].push(e);
-  });
+  const handleImport = () => {
+    const tasksToImport = events
+        .filter(e => selectedEvents.has(e.id))
+        .map(e => eventToTaskPreview(e, tags, settings, false));
+    onImport(tasksToImport);
+    onClose();
+  };
 
   return (
-    <Modal.Root isOpen={isOpen} onClose={onCancel}>
-        <Modal.Header 
-            title={
-                <div className="flex items-center gap-2 text-foreground">
-                    <Calendar size={20} className="text-primary" />
-                    <span>Select Events to Import</span>
-                </div>
-            }
-            onClose={onCancel}
-        />
+    <Modal.Root isOpen={isOpen} onClose={onClose}>
+      <Modal.Header
+        title={
+            <div className="flex items-center gap-2">
+                <Calendar size={20} className="text-primary" />
+                <span>Import from Calendar</span>
+            </div>
+        }
+        onClose={onClose}
+      />
+      <Modal.Content>
+        {events.length === 0 ? (
+          <EmptyState
+            icon={Calendar}
+            title="No events found"
+            message="We couldn't find any upcoming events in your enabled calendars."
+          />
+        ) : (
+          <div className="space-y-1">
+            <p className="text-xs text-secondary font-medium mb-4 uppercase tracking-wider">Select events to add to your plan</p>
+            {events.map(event => {
+                const isAlreadyImported = importedIds.has(event.id);
+                const taskPreview = eventToTaskPreview(event, tags, settings, isAlreadyImported);
 
-        <Modal.Content>
-            {events.length === 0 ? (
-                <EmptyState 
-                    title="No upcoming events" 
-                    message="We couldn't find any events in the next few days on your selected calendars."
-                />
-            ) : (
-                Object.keys(groupedEvents).map(day => (
-                    <div key={day} className="mb-6 last:mb-0">
-                        <h3 className="text-xxs font-bold uppercase tracking-widest text-secondary/50 mb-1 sticky top-0 bg-surface py-2 z-10">
-                            {day}
-                        </h3>
-                        <div className="space-y-1">
-                            {groupedEvents[day].map(event => {
-                                const isImported = importedEventIds.has(event.id);
-                                const isSelected = selectedIds.has(event.id);
-                                const taskPreview = eventToTaskPreview(event, tags, settings, isImported);
-                                return (
-                                    <TaskRow
-                                        key={event.id}
-                                        task={taskPreview}
-                                        tags={tags}
-                                        allTasks={[]}
-                                        onComplete={() => {}}
-                                        onFocus={() => {}}
-                                        isSelected={isSelected}
-                                        onSelect={isImported ? undefined : () => onToggle(event.id)}
-                                    />
-                                );
-                            })}
-                        </div>
-                    </div>
-                ))
-            )}
-        </Modal.Content>
-
-        <Modal.Footer>
-            <button 
-                onClick={onConfirm}
-                disabled={selectedIds.size === 0}
-                className="w-full bg-primary hover:bg-primary-dim text-background font-bold text-sm h-12 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                return (
+                    <TaskRow
+                        key={event.id}
+                        task={taskPreview}
+                        allTasks={[]}
+                        tags={tags}
+                        onComplete={() => {}}
+                        onFocus={() => {}}
+                        isSelected={selectedEvents.has(event.id)}
+                        onSelect={isAlreadyImported ? undefined : (t) => toggleEvent(t.id)}
+                    />
+                );
+            })}
+          </div>
+        )}
+      </Modal.Content>
+      <Modal.Footer>
+        <div className="flex gap-3 w-full">
+            <Button
+                variant="outline"
+                onClick={onClose}
+                className="flex-1 h-11 font-bold"
             >
-                <span>Import {selectedIds.size > 0 ? selectedIds.size : ''} Tasks</span>
-            </button>
-        </Modal.Footer>
+                Cancel
+            </Button>
+            <Button
+                onClick={handleImport}
+                disabled={selectedEvents.size === 0}
+                className="flex-1 h-11 font-bold"
+            >
+                Import {selectedEvents.size} {selectedEvents.size === 1 ? 'Event' : 'Events'}
+            </Button>
+        </div>
+      </Modal.Footer>
     </Modal.Root>
   );
 };

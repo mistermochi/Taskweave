@@ -265,11 +265,11 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                 ${isBlocked && !isEditing ? 'opacity-50' : ''}
                 ${(isCompleted || isArchived) && !isSelectionMode ? 'cursor-default' : 'cursor-pointer'}
                 ${isCompleting ? 'opacity-0' : ''}
-                ${highlight ? 'bg-primary/5' : (isCheckedForDisplay && isSelectionMode) ? 'bg-surface-highlight' : ''}
-                ${(isCompleted || isArchived || isEditing || (isCheckedForDisplay && isSelectionMode)) ? '' : 'hover:bg-foreground/5'}
+                ${highlight ? 'bg-primary/5' : (isCheckedForDisplay && isSelectionMode) ? 'bg-accent/50' : ''}
+                ${(isCompleted || isArchived || isEditing || (isCheckedForDisplay && isSelectionMode)) ? '' : 'hover:bg-muted/50'}
                 ${isCompleted ? 'opacity-60 hover:opacity-100' : ''}
-                ${isEditing ? 'bg-foreground/[0.08] shadow-xl z-10 px-4 py-4 border-transparent ring-1 ring-border rounded-2xl' : 'px-3'}
-                ${showActions ? 'bg-foreground/5' : ''}
+                ${isEditing ? 'bg-card shadow-xl z-10 px-4 py-4 border-transparent ring-1 ring-border rounded-sm' : 'px-3'}
+                ${showActions ? 'bg-muted/50' : ''}
             `}
             onClick={handleRowClick}
         >
@@ -296,22 +296,22 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                     }
                 }}
                 disabled={isBlocked && !isArchived}
-                className={`mt-0.5 w-6 h-6 rounded-full border shrink-0 flex items-center justify-center transition-all duration-200 group/check
+                className={`mt-0.5 w-6 h-6 rounded-sm border shrink-0 flex items-center justify-center transition-all duration-200 group/check
                     ${isBlocked && !isArchived
-                        ? 'border-secondary/20 bg-transparent'
+                        ? 'border-muted-foreground/20 bg-transparent'
                         : isArchived 
                             ? isDeletePending
-                                ? 'bg-red-500 border-red-500 text-white' 
-                                : 'border-red-500/40 text-red-500 hover:bg-red-500/10 hover:border-red-500' 
+                                ? 'bg-destructive border-destructive text-destructive-foreground'
+                                : 'border-destructive/40 text-destructive hover:bg-destructive/10 hover:border-destructive'
                             : isCheckedForDisplay
                                 ? 'bg-primary border-primary text-primary-foreground' 
-                                : (highlight ? 'border-primary hover:bg-primary/20' : 'border-secondary/40 hover:border-primary')
+                                : (highlight ? 'border-primary hover:bg-primary/20' : 'border-input hover:border-primary')
                     }
                 `}
             >
                 {isBlocked && !isArchived ? (
                     <div title={`Blocked by: ${activeBlockers.map(b => b?.title).join(', ')}`}>
-                        <Lock size={10} className="text-secondary/50" />
+                        <Lock size={10} className="text-muted-foreground/50" />
                     </div>
                 ) : isArchived && !isSelectionMode ? (
                     <Trash2 size={isDeletePending ? 12 : 10} className={`${isDeletePending ? 'opacity-100' : 'opacity-70 group-hover/check:opacity-100'}`} />

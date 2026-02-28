@@ -134,12 +134,12 @@ export const TaskSection: React.FC<TaskSectionProps> = ({
         className="flex items-center gap-2 py-2 group cursor-pointer select-none"
         onClick={onToggle}
       >
-        <ChevronRight size={14} className={`text-secondary transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+        <ChevronRight size={14} className={`text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
         <div className="flex-1 flex justify-between items-center">
-            <h2 className={`text-xs font-bold uppercase tracking-widest text-secondary ${colorClass}`}>
+            <h2 className={`text-[10px] font-bold uppercase tracking-widest text-muted-foreground ${colorClass}`}>
                 {title}
             </h2>
-            <span className="text-xs text-secondary/40 font-medium">{displayCount}</span>
+            <span className="text-[10px] text-muted-foreground/40 font-medium">{displayCount}</span>
         </div>
       </div>
       {isExpanded && (
@@ -161,9 +161,9 @@ export const TaskSection: React.FC<TaskSectionProps> = ({
           ) : isCreatable && tasks.length < 15 ? (
             <button
               onClick={onStartAdding}
-              className="flex items-center gap-2 text-xs text-secondary hover:text-primary mb-2 py-1 px-2 hover:bg-foreground/5 rounded transition-colors group"
+              className="flex items-center gap-2 text-[11px] text-muted-foreground hover:text-primary mb-2 py-1 px-2 hover:bg-accent rounded-sm transition-colors group"
             >
-              <div className="p-0.5 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors group-hover:scale-110 transition-transform">
+              <div className="p-0.5 rounded-sm bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors group-hover:scale-110 transition-transform">
                 <Plus size={10} />
               </div>
               <span className="font-bold">
@@ -173,7 +173,7 @@ export const TaskSection: React.FC<TaskSectionProps> = ({
           ) : null}
 
           {/* Task List */}
-          <div className={sectionKey === 'overdue' ? 'border-l border-red-500/20' : ''}>
+          <div className={sectionKey === 'overdue' ? 'border-l border-destructive/20' : ''}>
             {tasks.map((task) => (
               <TaskRow
                 key={task.id}

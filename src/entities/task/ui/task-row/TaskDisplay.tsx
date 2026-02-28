@@ -21,11 +21,11 @@ interface TaskDisplayProps {
 export const TaskDisplay: React.FC<TaskDisplayProps> = ({ title, notes, isCompleted }) => {
     return (
         <>
-            <span className={`text-sm font-medium leading-snug break-words ${isCompleted ? 'line-through text-secondary' : 'text-foreground'}`}>
+            <span className={`text-sm font-medium leading-snug break-words ${isCompleted ? 'line-through text-muted-foreground/60' : 'text-foreground'}`}>
                 {title}
             </span>
             {notes && (
-                <p className="text-xs truncate mt-0.5 text-secondary/60">
+                <p className="text-[11px] truncate mt-0.5 text-muted-foreground">
                     {notes}
                 </p>
             )}

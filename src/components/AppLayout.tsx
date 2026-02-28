@@ -59,7 +59,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div 
-            className="fixed inset-0 bg-background/60 z-40 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm md:hidden animate-in fade-in duration-300"
             onClick={() => setIsMobileMenuOpen(false)}
         ></div>
       )}
@@ -67,7 +67,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Mobile Sidebar (Drawer) */}
       <aside 
         className={`
-            fixed inset-y-0 left-0 z-50 w-sidebar-mobile bg-surface-highlight border-r border-border transform transition-transform duration-300 ease-productive-in-out
+            fixed inset-y-0 left-0 z-50 w-sidebar-mobile bg-card border-r border-border transform transition-transform duration-300 ease-productive-in-out
             ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
@@ -77,7 +77,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Desktop Sidebar */}
       <aside 
         className={`
-            hidden md:flex flex-col border-r border-border bg-surface transition-all duration-300 ease-productive-in-out
+            hidden md:flex flex-col border-r border-border bg-card transition-all duration-300 ease-productive-in-out
             ${isSidebarOpen ? 'w-sidebar opacity-100' : 'w-0 opacity-0 overflow-hidden'}
         `}
       >
@@ -88,11 +88,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col h-full min-w-0 bg-background relative transition-all duration-300">
         
         {/* Responsive Header */}
-        <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-background shrink-0">
+        <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-card shrink-0">
             <div className="flex items-center gap-3">
                 <button 
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-                    className="hidden md:flex text-secondary hover:text-foreground p-1 rounded hover:bg-foreground/5 transition-colors"
+                    className="hidden md:flex text-muted-foreground hover:text-foreground p-1 rounded-sm hover:bg-accent transition-colors"
                     title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
                 >
                     {isSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
@@ -100,12 +100,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
                 <button 
                     onClick={() => setIsMobileMenuOpen(true)} 
-                    className="md:hidden text-secondary hover:text-foreground"
+                    className="md:hidden text-muted-foreground hover:text-foreground"
                 >
                     <Menu size={20} />
                 </button>
 
-                <button onClick={showDashboard} className="hover:bg-foreground/5 px-2 py-1 rounded transition-colors">
+                <button onClick={showDashboard} className="hover:bg-accent px-2 py-1 rounded-sm transition-colors">
                      <span className="font-semibold text-foreground tracking-tight">Taskweave</span>
                 </button>
             </div>
@@ -132,7 +132,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         {!activeTaskId && (
             <button 
                 onClick={() => quickAddTask()}
-                className="md:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary text-background shadow-lg shadow-primary/30 flex items-center justify-center z-40 active:scale-95 transition-transform"
+                className="md:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 flex items-center justify-center z-40 active:scale-95 transition-transform"
             >
                 <Plus size={28} />
             </button>

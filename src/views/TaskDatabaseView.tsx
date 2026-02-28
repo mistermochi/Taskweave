@@ -177,7 +177,7 @@ export const TaskDatabaseView: React.FC = () => {
           title={activeTagId ? tags.find(t=>t.id === activeTagId)?.name || 'Inbox' : 'Inbox'} 
           subtitle={activeTagId ? "Project" : undefined}
           actions={
-            <button className="p-2 hover:bg-foreground/5 rounded text-secondary hover:text-foreground transition-colors">
+            <button className="p-2 hover:bg-accent rounded-sm text-muted-foreground hover:text-foreground transition-colors">
                <SlidersHorizontal size={18} />
             </button>
           }
@@ -185,11 +185,11 @@ export const TaskDatabaseView: React.FC = () => {
 
        <Page.Content>
             <div className="mb-4 group relative">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 text-secondary/30 group-focus-within:text-primary transition-colors">
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground/30 group-focus-within:text-primary transition-colors">
                     <Search size={16} />
                 </div>
                 <input 
-                    className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-secondary/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
+                    className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
                     placeholder="Search by title or notes..."
                     value={state.searchQuery}
                     onChange={(e) => actions.setSearchQuery(e.target.value)}
@@ -203,7 +203,7 @@ export const TaskDatabaseView: React.FC = () => {
               onToggle={() => toggleSection('overdue')}
               onStartAdding={() => {}} 
               onTaskScheduleToday={handleAddToFlow}
-              colorClass="text-red-400"
+              colorClass="text-destructive"
               {...sectionProps}
             />
            <TaskSection 

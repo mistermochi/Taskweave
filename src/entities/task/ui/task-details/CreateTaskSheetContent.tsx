@@ -4,16 +4,16 @@ import React, { useState } from 'react';
 import { Tag } from '@/entities/tag';
 import { TaskEntity, EnergyLevel, RecurrenceConfig } from '@/entities/task';
 import { parseTaskInput } from '@/shared/lib/textParserUtils';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Textarea } from '@/shared/ui/textarea';
-import { Label } from '@/shared/ui/label';
+import { Button } from '@/shared/ui/ui/button';
+import { Input } from '@/shared/ui/ui/input';
+import { Textarea } from '@/shared/ui/ui/textarea';
+import { Label } from '@/shared/ui/ui/label';
 import { TagPicker } from '@/components/pickers/TagPicker';
 import { DurationPicker } from '@/components/pickers/DurationPicker';
 import { EnergyPicker } from '@/components/pickers/EnergyPicker';
 import { DatePicker } from '@/components/pickers/DatePicker';
 import { RecurrencePicker as RecurrenceInlinePicker } from '@/components/pickers/RecurrencePicker';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
 import { Hash, Clock, Zap, CalendarClock, Calendar, Repeat } from 'lucide-react';
 
 interface CreateTaskSheetContentProps {

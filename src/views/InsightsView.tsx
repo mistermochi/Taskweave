@@ -7,7 +7,7 @@ import { UserVital } from '@/entities/vital';
 import { Zap, Clock, Target, Activity, Layers, Wind, Smile, AlignLeft, MapPin, Battery, Wifi, X, BatteryWarning } from 'lucide-react';
 import { useInsightsController } from '@/hooks/controllers/useInsightsController';
 import { Page } from '@/shared/layout/Page';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 
 /**
  * Interface for InsightsView props.

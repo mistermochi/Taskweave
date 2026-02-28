@@ -2,16 +2,16 @@
 
 import React, { useState, useRef } from 'react';
 import { Zap, Hash } from 'lucide-react';
-import { Modal } from '@/shared/ui/dialog';
+import { Modal } from '@/shared/ui/ui/dialog';
 import { useReferenceContext } from '@/context/ReferenceContext';
 import { taskApi } from '@/entities/task';
 import { useNavigation } from '@/context/NavigationContext';
 import { TagPicker } from '@/components/pickers/TagPicker';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/ui/popover';
 import { Category } from '@/entities/tag';
-import { Input } from '@/shared/ui/input';
-import { Button } from '@/shared/ui/button';
-import { Label } from '@/shared/ui/label';
+import { Input } from '@/shared/ui/ui/input';
+import { Button } from '@/shared/ui/ui/button';
+import { Label } from '@/shared/ui/ui/label';
 
 /**
  * Interface for QuickFocusModal props.

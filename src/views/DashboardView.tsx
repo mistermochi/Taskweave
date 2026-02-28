@@ -7,18 +7,18 @@ import {
 } from 'lucide-react';
 import { TaskEntity } from '@/entities/task';
 import { useDashboardController } from '@/hooks/controllers/useDashboardController';
-import { Toast } from '@/shared/ui/Feedback';
+import { Toast } from '@/shared/ui/ui/Feedback';
 import { TaskRow } from '@/entities/task';
 import { Page } from '@/shared/layout/Page';
-import { Heading } from '@/shared/ui/Typography';
+import { Heading } from '@/shared/ui/ui/Typography';
 import { useNavigation } from '@/context/NavigationContext';
 
 import { ReadinessRing } from '@/components/dashboard/ReadinessRing';
 import { SmileyScale } from '@/components/dashboard/SmileyScale';
-import { SectionHeader } from '@/shared/ui/SectionHeader';
-import { Card } from '@/shared/ui/card';
-import { Button } from '@/shared/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
+import { SectionHeader } from '@/shared/ui/ui/SectionHeader';
+import { Card } from '@/shared/ui/ui/card';
+import { Button } from '@/shared/ui/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/ui/sheet';
 import { CreateTaskSheetContent } from '@/entities/task/ui/task-details/CreateTaskSheetContent';
 
 const DashboardSidebarContent = () => {

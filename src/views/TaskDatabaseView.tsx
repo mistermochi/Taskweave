@@ -6,14 +6,14 @@ import { where, orderBy } from 'firebase/firestore';
 import { TaskEntity } from '@/entities/task';
 import { useTaskDatabaseController } from '@/hooks/controllers/useTaskDatabaseController';
 import { useFirestoreCollection } from '@/hooks/useFirestore';
-import { Toast } from '@/shared/ui/Feedback';
+import { Toast } from '@/shared/ui/ui/Feedback';
 import { Page } from '@/shared/layout/Page';
 import { useNavigation } from '@/context/NavigationContext';
 import { TaskSection } from '@/entities/task';
 import { useTaskContext } from '@/context/TaskContext';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
+import { Button } from '@/shared/ui/ui/button';
+import { Input } from '@/shared/ui/ui/input';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/ui/sheet';
 import { CreateTaskSheetContent } from '@/entities/task/ui/task-details/CreateTaskSheetContent';
 
 export const TaskDatabaseView: React.FC = () => {

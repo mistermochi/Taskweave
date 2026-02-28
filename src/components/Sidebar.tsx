@@ -48,47 +48,48 @@ export const Sidebar: React.FC = () => {
         return (
           <button 
             onClick={onClick}
-            className={`w-full flex items-center justify-between px-2 py-1.5 rounded-sm transition-all mb-0.5 group ${isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'}`}
+            className={`w-full flex items-center justify-between px-2 py-1.5 rounded-md transition-all mb-0.5 group ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm' : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}`}
           >
-            <div className="flex items-center gap-2.5">
-              <Icon size={18} className={isActive ? colorClass : 'text-muted-foreground group-hover:text-accent-foreground transition-colors'} />
-              <span className={`text-sm ${isActive ? 'font-medium' : 'font-normal'}`}>{label}</span>
+            <div className="flex items-center gap-3">
+              <Icon size={18} className={isActive ? colorClass : 'text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground transition-colors'} />
+              <span className={`text-sm ${isActive ? 'font-semibold' : 'font-medium'}`}>{label}</span>
             </div>
             {count !== undefined && count > 0 && (
-              <span className="text-xs text-muted-foreground/40 font-medium group-hover:text-muted-foreground/80">{count}</span>
+              <span className="text-[10px] bg-sidebar-primary/10 text-sidebar-primary px-1.5 py-0.5 rounded-full font-bold tabular-nums group-hover:bg-sidebar-primary/20">{count}</span>
             )}
           </button>
         );
     };
 
     return (
-        <div className="flex flex-col h-full py-4">
+        <div className="flex flex-col h-full py-3 bg-sidebar">
             {/* User Profile Area */}
-            <div className="px-3 mb-4 flex items-center justify-between">
+            <div className="px-3 mb-4">
                 <div 
-                    className="flex items-center gap-2 cursor-pointer hover:bg-accent/50 p-1.5 -ml-1.5 rounded-sm transition-colors flex-1"
+                    className="flex items-center gap-3 cursor-pointer hover:bg-sidebar-accent/50 p-2 rounded-lg transition-colors border border-transparent hover:border-sidebar-border"
                     onClick={showSettings}
                 >
-                    <div className="h-6 w-6 rounded-full border border-border overflow-hidden">
-                        <img src={settings.photoURL || `https://picsum.photos/seed/${seed}/100`} className="h-full w-full object-cover opacity-80" alt="User avatar" />
+                    <div className="h-8 w-8 rounded-lg border border-sidebar-border overflow-hidden bg-sidebar-primary/10 flex items-center justify-center shrink-0">
+                        <img src={settings.photoURL || `https://picsum.photos/seed/${seed}/100`} className="h-full w-full object-cover" alt="User avatar" />
                     </div>
-                    <span className="text-sm font-semibold text-foreground truncate max-w-32">{settings.displayName}</span>
-                    <ChevronDown size={12} className="text-muted-foreground" />
+                    <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-sm font-bold text-sidebar-foreground truncate">{settings.displayName}</span>
+                        <span className="text-xxs text-sidebar-foreground/50 truncate">Personal Workspace</span>
+                    </div>
+                    <ChevronDown size={14} className="text-sidebar-foreground/40" />
                 </div>
             </div>
 
             {/* Mobile Quick Add */}
             <div className="px-3 mb-4 md:hidden">
-                <button onClick={() => quickAddTask()} className="w-full flex items-center gap-2 text-primary font-bold py-2">
-                    <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                        <Plus size={16} />
-                    </div>
-                    <span>Add Task</span>
+                <button onClick={() => quickAddTask()} className="w-full flex items-center gap-2 bg-sidebar-primary text-sidebar-primary-foreground font-bold py-2 px-3 rounded-lg shadow-sm">
+                    <Plus size={18} />
+                    <span className="text-sm">New Task</span>
                 </button>
             </div>
 
             {/* Main Navigation Items */}
-            <div className="px-2 mb-2">
+            <div className="px-3 space-y-1">
                 <NavItem 
                     onClick={showDashboard}
                     isActive={currentView === ViewName.DASHBOARD && !activeTagId}
@@ -118,18 +119,18 @@ export const Sidebar: React.FC = () => {
             </div>
 
             {/* Project Tree Section */}
-            <div className="mt-4 px-2 flex-1 overflow-hidden flex flex-col min-h-0">
-                <div className="flex items-center justify-between px-2 mb-2 text-muted-foreground group">
-                    <span className="text-xs font-bold uppercase tracking-wider group-hover:text-foreground transition-colors">Projects</span>
+            <div className="mt-6 px-3 flex-1 overflow-hidden flex flex-col min-h-0">
+                <div className="flex items-center justify-between px-2 mb-2 text-sidebar-foreground/50 group">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Projects</span>
                     <button 
                         onClick={handleAddProject}
-                        className="opacity-0 group-hover:opacity-100 hover:bg-accent p-1 rounded-sm transition-all text-accent-foreground"
+                        className="opacity-0 group-hover:opacity-100 hover:bg-sidebar-accent p-1 rounded-md transition-all text-sidebar-accent-foreground"
                     >
                         <Plus size={14} />
                     </button>
                 </div>
                 
-                <div className="flex-1 overflow-y-auto no-scrollbar pb-4 pl-1">
+                <div className="flex-1 overflow-y-auto no-scrollbar pb-4">
                     <TagTree 
                         tags={tags}
                         tasks={tasks}
@@ -140,7 +141,7 @@ export const Sidebar: React.FC = () => {
             </div>
 
             {/* Global Settings */}
-            <div className="px-2 pt-2 mt-auto border-t border-border">
+            <div className="px-3 pt-3 mt-auto border-t border-sidebar-border">
                 <NavItem 
                   onClick={showSettings} 
                   isActive={currentView === ViewName.SETTINGS} 

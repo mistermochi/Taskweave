@@ -48,34 +48,51 @@ interface TaskRowProps {
     onUpdate?: (task: TaskEntity, updates: Partial<TaskEntity>) => void;
     onArchive?: (task: TaskEntity) => void;
     highlight?: boolean;
+    isSelected?: boolean;
+    onSelect?: (task: TaskEntity) => void;
 }
 
 const TaskRowComponent: React.FC<TaskRowProps> = ({ 
-    task, allTasks, tags, onComplete, onFocus, onScheduleToday, onDelete, onUpdate, onArchive, highlight
+    task, allTasks, tags, onComplete, onFocus, onScheduleToday, onDelete, onUpdate, onArchive, highlight,
+    isSelected, onSelect
 }) => {
     const { isCompleted, isArchived, isBlocked, isOverdue, displayedDuration } = useTaskDisplayInfo(task, allTasks);
     const { timeDisplay, isRunning } = useTaskTimer(task);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [isCompleting, setIsCompleting] = useState(false);
 
+    const isSelectionMode = !!onSelect;
+
     useEffect(() => {
-        if (isCompleting) {
+        if (isCompleting && !isSelectionMode) {
             const timer = setTimeout(() => {
                 onComplete(task);
                 setIsCompleting(false);
             }, 300);
             return () => clearTimeout(timer);
         }
-    }, [isCompleting, onComplete, task]);
+    }, [isCompleting, onComplete, task, isSelectionMode]);
 
     const taskTag = tags.find(t => t.id === task.category);
 
     const handleCompleteChange = (checked: boolean) => {
+        if (isSelectionMode) {
+            onSelect?.(task);
+            return;
+        }
         if (checked) {
             setIsCompleting(true);
         } else {
-            onComplete(task); // This will handle uncompleting if it was already completed
+            onComplete(task);
         }
+    };
+
+    const handleRowClick = () => {
+        if (isSelectionMode) {
+            onSelect?.(task);
+            return;
+        }
+        setIsSheetOpen(true);
     };
 
     return (
@@ -86,17 +103,18 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                         className={cn(
                             "group flex items-center gap-3 py-2 px-3 border-b border-border last:border-0 transition-all duration-200 cursor-pointer hover:bg-muted/50",
                             isBlocked && !isArchived && "opacity-50",
-                            (isCompleted || isCompleting) && "opacity-60",
+                            (isCompleted || isCompleting) && !isSelectionMode && "opacity-60",
                             highlight && "bg-primary/5",
-                            isCompleting && "opacity-0"
+                            isCompleting && !isSelectionMode && "opacity-0",
+                            isSelected && isSelectionMode && "bg-accent/50"
                         )}
-                        onClick={() => setIsSheetOpen(true)}
+                        onClick={handleRowClick}
                     >
                         <div onClick={(e) => e.stopPropagation()} className="flex items-center">
                             <Checkbox
-                                checked={isCompleted || isCompleting}
+                                checked={isSelectionMode ? isSelected : (isCompleted || isCompleting)}
                                 onCheckedChange={handleCompleteChange}
-                                disabled={isBlocked && !isArchived}
+                                disabled={isBlocked && !isArchived && !isSelectionMode}
                             />
                         </div>
 

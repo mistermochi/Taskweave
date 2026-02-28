@@ -185,7 +185,7 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
 
             {/* Duration Picker / Timer Feedback */}
             {isFocused && !isEditing && timeDisplay ? (
-                <div className={`flex items-center gap-1.5 text-[11px] font-medium ${isRunning ? 'text-primary' : 'text-secondary'}`}>
+                <div className={`flex items-center gap-1.5 text-xs font-medium ${isRunning ? 'text-primary' : 'text-muted-foreground'}`}>
                     {isRunning ? (
                         <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
                     ) : (
@@ -240,7 +240,7 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
             {/* Inverse Dependency Status */}
             {!isEditing && tasksBeingBlocked.length > 0 && (
                 <div 
-                    className="flex items-center gap-1 text-[10px] text-blue-500 font-medium"
+                    className="flex items-center gap-1 text-xs text-blue-500 font-medium"
                     title={`Blocking ${tasksBeingBlocked.length} task${tasksBeingBlocked.length > 1 ? 's' : ''}: ${tasksBeingBlocked.map(t => t.title).join(', ')}`}
                 >
                     <Share2 size={10} />

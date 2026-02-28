@@ -79,8 +79,8 @@ export const TaskRowActions: React.FC<TaskRowActionsProps> = ({
                 {isArchived && (
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button aria-label="Restore" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onComplete(task); }}>
-                                <ArchiveRestore size={14} />
+                            <Button aria-label="Restore" variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onComplete(task); }}>
+                                <ArchiveRestore size={18} />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent><p>Restore</p></TooltipContent>
@@ -91,8 +91,8 @@ export const TaskRowActions: React.FC<TaskRowActionsProps> = ({
                 {onScheduleToday && !isCompleted && !isArchived && !isEditing && !isBlocked && (
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button aria-label="Do Today" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-yellow-400" onClick={(e) => { e.stopPropagation(); onScheduleToday(task); }}>
-                                <Sun size={14} />
+                            <Button aria-label="Do Today" variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-yellow-400" onClick={(e) => { e.stopPropagation(); onScheduleToday(task); }}>
+                                <Sun size={18} />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent><p>Do Today</p></TooltipContent>
@@ -103,8 +103,8 @@ export const TaskRowActions: React.FC<TaskRowActionsProps> = ({
                 {isEditing ? (
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button aria-label="Save" variant="secondary" size="icon" className="h-7 w-7 text-primary" onClick={(e) => { e.stopPropagation(); onSave(); }}>
-                                <Check size={14} />
+                            <Button aria-label="Save" variant="secondary" size="icon" className="h-9 w-9 text-primary" onClick={(e) => { e.stopPropagation(); onSave(); }}>
+                                <Check size={18} />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent><p>Save</p></TooltipContent>
@@ -112,8 +112,8 @@ export const TaskRowActions: React.FC<TaskRowActionsProps> = ({
                 ) : !isCompleted && !isArchived && (
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button aria-label="Edit" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEnterEditMode(); }}>
-                                <Edit2 size={14} />
+                            <Button aria-label="Edit" variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEnterEditMode(); }}>
+                                <Edit2 size={18} />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent><p>Edit</p></TooltipContent>
@@ -124,8 +124,8 @@ export const TaskRowActions: React.FC<TaskRowActionsProps> = ({
                 {!isArchived && !isCompleted && onArchive && (
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button aria-label="Archive" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); onArchive(task); }}>
-                                <Archive size={14} />
+                            <Button aria-label="Archive" variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); onArchive(task); }}>
+                                <Archive size={18} />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent><p>Archive</p></TooltipContent>
@@ -136,8 +136,8 @@ export const TaskRowActions: React.FC<TaskRowActionsProps> = ({
                 {!isCompleted && !isEditing && !isBlocked && (
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button aria-label="Focus" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10" onClick={(e) => { e.stopPropagation(); onFocus(task); }}>
-                                <Play size={14} />
+                            <Button aria-label="Focus" variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10" onClick={(e) => { e.stopPropagation(); onFocus(task); }}>
+                                <Play size={18} />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent><p>Focus</p></TooltipContent>

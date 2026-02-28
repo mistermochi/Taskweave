@@ -25,7 +25,7 @@ export const TaskDisplay: React.FC<TaskDisplayProps> = ({ title, notes, isComple
                 {title}
             </span>
             {notes && (
-                <p className="text-[11px] truncate mt-0.5 text-muted-foreground">
+                <p className="text-xs truncate mt-0.5 text-muted-foreground">
                     {notes}
                 </p>
             )}

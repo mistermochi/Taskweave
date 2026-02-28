@@ -16,7 +16,7 @@ import { useNavigation } from '@/context/NavigationContext';
 import { ReadinessRing } from '@/components/dashboard/ReadinessRing';
 import { SmileyScale } from '@/components/dashboard/SmileyScale';
 import { SectionHeader } from '@/shared/ui/SectionHeader';
-import { Card } from '@/shared/ui/Card';
+import { Card } from '@/shared/ui/card';
 
 /**
  * Internal component for rendering the sidebar widgets on the dashboard.

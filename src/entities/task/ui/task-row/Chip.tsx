@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import Flyout from '@/shared/ui/Flyout';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 
 /**
  * Styling variants for the Chip component using Class Variance Authority.
@@ -114,17 +114,14 @@ export const Chip: React.FC<ChipProps> = ({
 
   if (flyoutContent) {
       return (
-          <>
+        <Popover open={isFlyoutOpen} onOpenChange={setIsFlyoutOpen}>
+          <PopoverTrigger asChild>
             {buttonElement}
-            <Flyout
-                isOpen={isFlyoutOpen}
-                onClose={() => setIsFlyoutOpen(false)}
-                triggerEl={triggerRef.current}
-                position={flyoutPosition}
-            >
-                {flyoutContent(() => setIsFlyoutOpen(false))}
-            </Flyout>
-          </>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-3" side={flyoutPosition} align="start">
+            {flyoutContent(() => setIsFlyoutOpen(false))}
+          </PopoverContent>
+        </Popover>
       )
   }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent } from '@/shared/ui/Card';
+import { Card, CardContent } from '@/shared/ui/card';
 import { auth } from '@/shared/api/firebase';
 import { UserSettings } from '@/hooks/useUserSettings';
 

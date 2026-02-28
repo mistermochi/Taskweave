@@ -2,13 +2,16 @@
 
 import React, { useState, useRef } from 'react';
 import { Zap, Hash } from 'lucide-react';
-import { Modal } from '@/shared/ui/Dialog';
+import { Modal } from '@/shared/ui/dialog';
 import { useReferenceContext } from '@/context/ReferenceContext';
 import { taskApi } from '@/entities/task';
 import { useNavigation } from '@/context/NavigationContext';
 import { TagPicker } from '@/components/pickers/TagPicker';
-import Flyout from '@/shared/ui/Flyout';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Category } from '@/entities/tag';
+import { Input } from '@/shared/ui/input';
+import { Button } from '@/shared/ui/button';
+import { Label } from '@/shared/ui/label';
 
 /**
  * Interface for QuickFocusModal props.
@@ -86,46 +89,42 @@ export const QuickFocusModal: React.FC<QuickFocusModalProps> = ({ isOpen, onClos
 
         <div className="space-y-4">
           {/* Task Title Input */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-secondary/50 mb-2">
+          <div className="grid gap-2">
+            <Label className="text-xs font-bold uppercase tracking-widest text-secondary/50">
               Task Title
-            </label>
-            <input 
+            </Label>
+            <Input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleStartFocus()}
               placeholder="What are you working on?"
-              className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-secondary/30 focus:border-primary focus:outline-none transition-colors"
+              className="bg-foreground/5"
               autoFocus
             />
           </div>
           {/* Project/Tag Picker */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-secondary/50 mb-2">
+          <div className="grid gap-2">
+            <Label className="text-xs font-bold uppercase tracking-widest text-secondary/50">
               Project
-            </label>
-            <div className="relative">
-                <button
-                    ref={pickerTriggerRef}
-                    onClick={() => setIsPickerOpen(!isPickerOpen)}
-                    className="w-full flex items-center justify-between p-3 bg-foreground/5 border border-border rounded-xl text-sm text-foreground hover:border-primary transition-colors"
-                >
-                    <div className="flex items-center gap-2">
-                        {selectedTag ? (
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: selectedTag.color }}></span>
-                        ) : (
-                            <Hash size={12} className="text-secondary" />
-                        )}
-                        <span>{selectedTag?.name || 'Inbox'}</span>
-                    </div>
-                    <span className="text-xs text-secondary">Change</span>
-                </button>
-                <Flyout 
-                    isOpen={isPickerOpen} 
-                    onClose={() => setIsPickerOpen(false)}
-                    triggerEl={pickerTriggerRef.current}
-                >
+            </Label>
+            <Popover open={isPickerOpen} onOpenChange={setIsPickerOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                      className="w-full flex items-center justify-between p-3 bg-foreground/5 border border-border rounded-xl text-sm text-foreground hover:border-primary transition-colors"
+                  >
+                      <div className="flex items-center gap-2">
+                          {selectedTag ? (
+                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: selectedTag.color }}></span>
+                          ) : (
+                              <Hash size={12} className="text-secondary" />
+                          )}
+                          <span>{selectedTag?.name || 'Inbox'}</span>
+                      </div>
+                      <span className="text-xs text-secondary">Change</span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="start">
                     <TagPicker 
                         tags={tags} 
                         selectedTagId={categoryId} 
@@ -134,20 +133,20 @@ export const QuickFocusModal: React.FC<QuickFocusModalProps> = ({ isOpen, onClos
                             setIsPickerOpen(false);
                         }} 
                     />
-                </Flyout>
-            </div>
+                </PopoverContent>
+            </Popover>
           </div>
         </div>
       </Modal.Content>
-      <Modal.Footer>
-        <button 
+      <Modal.Footer className="sm:justify-center">
+        <Button
           onClick={handleStartFocus}
           disabled={!title.trim()}
-          className="w-full bg-primary hover:bg-primary-dim text-background font-bold text-sm h-12 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-12 font-bold"
         >
-          <Zap size={16} />
+          <Zap size={16} className="mr-2" />
           <span>Start Focusing</span>
-        </button>
+        </Button>
       </Modal.Footer>
     </Modal.Root>
   );

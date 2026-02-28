@@ -185,7 +185,7 @@ describe('TaskRow - UI Interaction Tests', () => {
     fireEvent.click(option45m);
     
     // 3. Click the save button to confirm the changes
-    const saveButton = screen.getByTitle('Save');
+    const saveButton = screen.getByRole('button', { name: /save/i });
     fireEvent.click(saveButton);
 
     // 4. Assert that the onUpdate prop was called with the correct data
@@ -222,7 +222,7 @@ describe('TaskRow - UI Interaction Tests', () => {
     fireEvent.click(optionHigh);
 
     // 3. Click the save button.
-    const saveButton = screen.getByTitle('Save');
+    const saveButton = screen.getByRole('button', { name: /save/i });
     fireEvent.click(saveButton);
 
     // 4. Assert that onUpdate was called with the new energy level.
@@ -263,7 +263,7 @@ describe('TaskRow - UI Interaction Tests', () => {
     fireEvent.click(optionToday);
 
     // 3. Click the save button.
-    const saveButton = screen.getByTitle('Save');
+    const saveButton = screen.getByRole('button', { name: /save/i });
     fireEvent.click(saveButton);
 
     // 4. Assert that onUpdate was called with today's timestamp.
@@ -321,7 +321,7 @@ describe('TaskRow - UI Interaction Tests', () => {
     fireEvent.change(intervalInput, { target: { value: '2' } });
 
     // 6. Click the save button.
-    const saveButton = screen.getByTitle('Save');
+    const saveButton = screen.getByRole('button', { name: /save/i });
     fireEvent.click(saveButton);
 
     // 7. Assert that onUpdate was called with the correct recurrence data.

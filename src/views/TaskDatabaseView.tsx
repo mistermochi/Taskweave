@@ -165,13 +165,13 @@ export const TaskDatabaseView: React.FC = () => {
        />
 
        <Page.Content>
-            <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="bg-background/95 p-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
                 <form>
                 <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search tasks..."
-                        className="pl-8"
+                        className="pl-8 bg-muted/40 border-none shadow-none h-9 text-sm focus-visible:ring-1 focus-visible:ring-ring"
                         value={state.searchQuery}
                         onChange={(e) => actions.setSearchQuery(e.target.value)}
                     />

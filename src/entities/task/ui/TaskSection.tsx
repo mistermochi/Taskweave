@@ -72,14 +72,14 @@ export const TaskSection: React.FC<TaskSectionProps> = ({
     >
       <AccordionItem value={sectionKey} className="border-none">
         <AccordionTrigger className={cn(
-          "hover:no-underline py-2 px-3 hover:bg-muted/10 rounded-lg transition-colors",
+          "hover:no-underline py-2 px-3 hover:bg-muted/10 rounded-sm transition-colors",
           (sectionKey === 'completed' || sectionKey === 'archived') && "opacity-60"
         )}>
           <div className="flex-1 flex justify-between items-center pr-4">
-            <h2 className={cn("text-[11px] font-bold uppercase tracking-widest opacity-40", colorClass)}>
+            <h2 className={cn("text-[10px] font-semibold uppercase tracking-wider opacity-60 text-muted-foreground", colorClass)}>
               {title}
             </h2>
-            <Badge variant="secondary" className="text-[10px] px-2 py-0 font-bold tabular-nums bg-muted/50">
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 rounded-full font-bold tabular-nums bg-muted/30 text-muted-foreground border-none">
               {displayCount}
             </Badge>
           </div>

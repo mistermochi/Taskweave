@@ -101,20 +101,24 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                 <ContextMenuTrigger>
                     <div
                         className={cn(
-                            "group flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent",
+                            "group flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all",
+                            "hover:bg-accent/40 active:bg-accent/60 cursor-pointer",
                             isBlocked && !isArchived && "opacity-50",
                             (isCompleted || isCompleting) && !isSelectionMode && "opacity-60",
-                            highlight && "bg-primary/5",
+                            highlight && "bg-primary/5 border-primary/20",
                             isCompleting && !isSelectionMode && "opacity-0",
                             isSelected && isSelectionMode && "bg-accent/50",
-                            "mx-1 my-0.5"
+                            "mx-1 my-0.5 relative"
                         )}
                         onClick={handleRowClick}
                     >
                         <div className="flex w-full flex-col gap-1">
-                            <div className="flex items-center">
-                                <div className="flex items-center gap-2">
-                                    <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3">
+                                    <div onClick={(e) => e.stopPropagation()} className="flex items-center mt-0.5 relative">
+                                        {task.energy === 'High' && !isCompleted && !isCompleting && (
+                                            <span className="absolute -left-2 top-1.5 flex h-2 w-2 rounded-full bg-blue-600" />
+                                        )}
                                         <Checkbox
                                             checked={isSelectionMode ? isSelected : (isCompleted || isCompleting)}
                                             onCheckedChange={handleCompleteChange}
@@ -123,14 +127,14 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                                         />
                                     </div>
                                     <div className={cn(
-                                        "font-semibold",
+                                        "font-semibold text-sm leading-tight",
                                         (isCompleted || isCompleting) && "line-through text-muted-foreground"
                                     )}>
                                         {task.title}
                                     </div>
                                 </div>
                                 <div className={cn(
-                                    "ml-auto text-xs",
+                                    "text-xs whitespace-nowrap pt-0.5",
                                     isSelected ? "text-foreground" : "text-muted-foreground"
                                 )}>
                                     {task.dueDate ? new Date(task.dueDate).toLocaleDateString(undefined, {month:'short', day:'numeric'}) : (task.assignedDate ? new Date(task.assignedDate).toLocaleDateString(undefined, {month:'short', day:'numeric'}) : '')}
@@ -138,53 +142,45 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                             </div>
                         </div>
                         {task.notes && (
-                            <div className="line-clamp-2 text-xs text-muted-foreground">
+                            <div className="line-clamp-2 text-xs text-muted-foreground/80 pl-7 leading-normal">
                                 {task.notes}
                             </div>
                         )}
-                        <div className="flex items-center gap-1.5 mt-1">
+                        <div className="flex items-center gap-2 pl-7 mt-1">
                             {/* Tag Badge */}
-                            <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal" style={{
-                                borderColor: taskTag ? `${taskTag.color}44` : undefined,
+                            <Badge variant={isSelected ? "default" : "secondary"} className="text-[10px] px-2 py-0 rounded-sm whitespace-nowrap font-medium tracking-tight" style={!isSelected ? {
+                                borderColor: taskTag ? `${taskTag.color}33` : undefined,
                                 color: taskTag?.color,
-                                backgroundColor: taskTag ? `${taskTag.color}11` : undefined
-                            }}>
-                                <Hash size={10} className="mr-1 shrink-0" />
+                                backgroundColor: taskTag ? `${taskTag.color}08` : undefined
+                            } : undefined}>
+                                <Hash size={10} className="mr-1 shrink-0 opacity-70" />
                                 {taskTag?.name || 'Inbox'}
                             </Badge>
 
-                            {/* Date Badges */}
-                            {task.assignedDate && (
-                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal text-primary border-primary/20 bg-primary/5">
-                                    <CalendarClock size={10} className="mr-1 shrink-0" />
-                                    {new Date(task.assignedDate).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
-                                </Badge>
-                            )}
-
                             {/* Timer / Duration Badge */}
                             {isRunning && timeDisplay ? (
-                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-mono text-primary border-primary/20 bg-primary/5 animate-pulse">
+                                <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-sm whitespace-nowrap font-mono text-primary border-primary/20 bg-primary/5 animate-pulse">
                                     {timeDisplay}
                                 </Badge>
                             ) : (
-                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal text-muted-foreground border-border bg-muted/30">
-                                    <Clock size={10} className="mr-1 shrink-0" />
+                                <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-sm whitespace-nowrap font-medium text-muted-foreground border-border/50 bg-muted/20">
+                                    <Clock size={10} className="mr-1 shrink-0 opacity-70" />
                                     {displayedDuration}m
                                 </Badge>
                             )}
 
                             {/* Energy Badge */}
                             <Badge variant="outline" className={cn(
-                                "text-[10px] px-2 py-0.5 whitespace-nowrap font-normal",
-                                task.energy === 'High' ? "text-orange-500 border-orange-500/20 bg-orange-500/5" :
-                                task.energy === 'Low' ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
-                                "text-yellow-500 border-yellow-500/20 bg-yellow-500/5"
+                                "text-[10px] px-2 py-0 rounded-sm whitespace-nowrap font-medium",
+                                task.energy === 'High' ? "text-orange-500/90 border-orange-500/10 bg-orange-500/5" :
+                                task.energy === 'Low' ? "text-emerald-500/90 border-emerald-500/10 bg-emerald-500/5" :
+                                "text-yellow-500/90 border-yellow-500/10 bg-yellow-500/5"
                             )}>
-                                <Zap size={10} className="mr-1 shrink-0" />
+                                <Zap size={10} className="mr-1 shrink-0 opacity-70" />
                                 {task.energy === 'Medium' ? 'Med' : task.energy}
                             </Badge>
 
-                            {task.recurrence && <Repeat size={10} className="text-muted-foreground/50" />}
+                            {task.recurrence && <Repeat size={10} className="text-muted-foreground/30 ml-auto" />}
                         </div>
                     </div>
                 </ContextMenuTrigger>

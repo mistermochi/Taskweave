@@ -24,3 +24,4 @@ https://nextjs.org/telemetry
 digest: "2042166634"
  GET / 500 in 18425ms
  ✓ Compiled in 1749ms (557 modules)
+ ✓ Compiled in 7.4s (557 modules)

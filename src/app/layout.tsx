@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/context/AppProvider";
 
 /**
- * Global font configuration using Google Manrope.
+ * Global font configuration using Google Inter.
  */
-const manrope = Manrope({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"] });
 
 /**
  * Metadata for the Focus Flow application.
@@ -48,7 +48,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${manrope.className} bg-background text-foreground antialiased`}>
+      <body className={`${inter.className} bg-background text-foreground antialiased`}>
         <AppProvider>
           {children}
         </AppProvider>

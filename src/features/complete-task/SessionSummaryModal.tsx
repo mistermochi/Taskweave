@@ -63,7 +63,7 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({ taskId, onClo
                 ].map(option => (
                     <button
                         key={option.id}
-                        onClick={() => actions.setMood(option.id as any)}
+                        onClick={() => actions.setMood(option.id as 'Energized' | 'Neutral' | 'Drained')}
                         className={`
                             flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all
                             ${state.mood === option.id

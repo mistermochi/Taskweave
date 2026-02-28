@@ -24,7 +24,15 @@ export const Flyout: React.FC<{ children: React.ReactNode; isOpen: boolean; onCl
 
   return (
     <Popover open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      {anchor && <PopoverPrimitive.Anchor virtualRef={{ current: { getBoundingClientRect: () => anchor } as any }} />}
+      {anchor && (
+        <PopoverPrimitive.Anchor
+          virtualRef={{
+            current: {
+              getBoundingClientRect: () => anchor
+            } as unknown as HTMLElement
+          }}
+        />
+      )}
       <PopoverContent className={cn("w-auto p-3", className)} side={position} align="start">{children}</PopoverContent>
     </Popover>
   );

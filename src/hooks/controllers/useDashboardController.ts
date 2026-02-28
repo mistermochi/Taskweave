@@ -252,6 +252,16 @@ export const useDashboardController = () => {
       saveFocus,
       completeTask,
       updateTask: (taskId: string, updates: Partial<TaskEntity>) => taskService.updateTask(taskId, updates),
+      createTask: (title: string, overrides?: Partial<TaskEntity>) => taskService.addTask(
+          title,
+          overrides?.category || '',
+          overrides?.duration || 30,
+          overrides?.energy === 'High' ? 80 : overrides?.energy === 'Low' ? 25 : 50,
+          overrides?.notes || '',
+          overrides?.dueDate,
+          overrides?.assignedDate,
+          overrides?.recurrence
+      ),
       deleteTask: (taskId: string) => taskService.deleteTask(taskId),
       isTaskInActiveSession: (id: string) => activeTasks.find(t => t.id === id)?.isFocused || false
     }

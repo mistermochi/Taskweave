@@ -101,90 +101,90 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                 <ContextMenuTrigger>
                     <div
                         className={cn(
-                            "group flex items-center gap-3 py-2 px-3 border-b border-border last:border-0 transition-all duration-200 cursor-pointer hover:bg-muted/50",
+                            "group flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent",
                             isBlocked && !isArchived && "opacity-50",
                             (isCompleted || isCompleting) && !isSelectionMode && "opacity-60",
                             highlight && "bg-primary/5",
                             isCompleting && !isSelectionMode && "opacity-0",
-                            isSelected && isSelectionMode && "bg-accent/50"
+                            isSelected && isSelectionMode && "bg-accent/50",
+                            "mx-1 my-0.5"
                         )}
                         onClick={handleRowClick}
                     >
-                        <div onClick={(e) => e.stopPropagation()} className="flex items-center">
-                            <Checkbox
-                                checked={isSelectionMode ? isSelected : (isCompleted || isCompleting)}
-                                onCheckedChange={handleCompleteChange}
-                                disabled={isBlocked && !isArchived && !isSelectionMode}
-                            />
-                        </div>
-
-                        <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-                            <span className={cn(
-                                "text-sm font-medium truncate",
-                                (isCompleted || isCompleting) && "line-through text-muted-foreground"
-                            )}>
-                                {task.title}
-                            </span>
-
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                                {/* Tag Badge */}
-                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal" style={{
-                                    borderColor: taskTag ? `${taskTag.color}44` : undefined,
-                                    color: taskTag?.color,
-                                    backgroundColor: taskTag ? `${taskTag.color}11` : undefined
-                                }}>
-                                    <Hash size={10} className="mr-1 shrink-0" />
-                                    {taskTag?.name || 'Inbox'}
-                                </Badge>
-
-                                {/* Date Badges */}
-                                {task.assignedDate && (
-                                    <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal text-primary border-primary/20 bg-primary/5">
-                                        <CalendarClock size={10} className="mr-1 shrink-0" />
-                                        {new Date(task.assignedDate).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
-                                    </Badge>
-                                )}
-
-                                {task.dueDate && (
-                                    <Badge variant="outline" className={cn(
-                                        "text-[10px] px-2 py-0.5 whitespace-nowrap font-normal",
-                                        isOverdue ? "text-destructive border-destructive/20 bg-destructive/5 font-bold" : "text-muted-foreground border-border bg-muted/30"
+                        <div className="flex w-full flex-col gap-1">
+                            <div className="flex items-center">
+                                <div className="flex items-center gap-2">
+                                    <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                                        <Checkbox
+                                            checked={isSelectionMode ? isSelected : (isCompleted || isCompleting)}
+                                            onCheckedChange={handleCompleteChange}
+                                            disabled={isBlocked && !isArchived && !isSelectionMode}
+                                            className="h-4 w-4"
+                                        />
+                                    </div>
+                                    <div className={cn(
+                                        "font-semibold",
+                                        (isCompleted || isCompleting) && "line-through text-muted-foreground"
                                     )}>
-                                        <Calendar size={10} className="mr-1 shrink-0" />
-                                        {new Date(task.dueDate).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
-                                    </Badge>
-                                )}
-
-                                {/* Timer / Duration Badge */}
-                                {isRunning && timeDisplay ? (
-                                    <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-mono text-primary border-primary/20 bg-primary/5 animate-pulse">
-                                        {timeDisplay}
-                                    </Badge>
-                                ) : (
-                                    <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal text-muted-foreground border-border bg-muted/30">
-                                        <Clock size={10} className="mr-1 shrink-0" />
-                                        {displayedDuration}m
-                                    </Badge>
-                                )}
-
-                                {/* Energy Badge */}
-                                <Badge variant="outline" className={cn(
-                                    "text-[10px] px-2 py-0.5 whitespace-nowrap font-normal",
-                                    task.energy === 'High' ? "text-orange-500 border-orange-500/20 bg-orange-500/5" :
-                                    task.energy === 'Low' ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
-                                    "text-yellow-500 border-yellow-500/20 bg-yellow-500/5"
+                                        {task.title}
+                                    </div>
+                                </div>
+                                <div className={cn(
+                                    "ml-auto text-xs",
+                                    isSelected ? "text-foreground" : "text-muted-foreground"
                                 )}>
-                                    <Zap size={10} className="mr-1 shrink-0" />
-                                    {task.energy === 'Medium' ? 'Med' : task.energy}
-                                </Badge>
-
-                                {task.recurrence && <Repeat size={10} className="text-muted-foreground/50" />}
-                                {(task.blockedBy?.length || 0) > 0 && <GitBranch size={10} className="text-blue-500/50" />}
+                                    {task.dueDate ? new Date(task.dueDate).toLocaleDateString(undefined, {month:'short', day:'numeric'}) : (task.assignedDate ? new Date(task.assignedDate).toLocaleDateString(undefined, {month:'short', day:'numeric'}) : '')}
+                                </div>
                             </div>
                         </div>
+                        {task.notes && (
+                            <div className="line-clamp-2 text-xs text-muted-foreground">
+                                {task.notes}
+                            </div>
+                        )}
+                        <div className="flex items-center gap-1.5 mt-1">
+                            {/* Tag Badge */}
+                            <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal" style={{
+                                borderColor: taskTag ? `${taskTag.color}44` : undefined,
+                                color: taskTag?.color,
+                                backgroundColor: taskTag ? `${taskTag.color}11` : undefined
+                            }}>
+                                <Hash size={10} className="mr-1 shrink-0" />
+                                {taskTag?.name || 'Inbox'}
+                            </Badge>
 
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreHorizontal size={14} className="text-muted-foreground" />
+                            {/* Date Badges */}
+                            {task.assignedDate && (
+                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal text-primary border-primary/20 bg-primary/5">
+                                    <CalendarClock size={10} className="mr-1 shrink-0" />
+                                    {new Date(task.assignedDate).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
+                                </Badge>
+                            )}
+
+                            {/* Timer / Duration Badge */}
+                            {isRunning && timeDisplay ? (
+                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-mono text-primary border-primary/20 bg-primary/5 animate-pulse">
+                                    {timeDisplay}
+                                </Badge>
+                            ) : (
+                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal text-muted-foreground border-border bg-muted/30">
+                                    <Clock size={10} className="mr-1 shrink-0" />
+                                    {displayedDuration}m
+                                </Badge>
+                            )}
+
+                            {/* Energy Badge */}
+                            <Badge variant="outline" className={cn(
+                                "text-[10px] px-2 py-0.5 whitespace-nowrap font-normal",
+                                task.energy === 'High' ? "text-orange-500 border-orange-500/20 bg-orange-500/5" :
+                                task.energy === 'Low' ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
+                                "text-yellow-500 border-yellow-500/20 bg-yellow-500/5"
+                            )}>
+                                <Zap size={10} className="mr-1 shrink-0" />
+                                {task.energy === 'Medium' ? 'Med' : task.energy}
+                            </Badge>
+
+                            {task.recurrence && <Repeat size={10} className="text-muted-foreground/50" />}
                         </div>
                     </div>
                 </ContextMenuTrigger>

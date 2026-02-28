@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Tag } from '@/entities/tag';
 import { TaskEntity, EnergyLevel, RecurrenceConfig } from '@/entities/task';
+import { parseTaskInput } from '@/shared/lib/textParserUtils';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
@@ -56,9 +57,31 @@ export const CreateTaskSheetContent: React.FC<CreateTaskSheetContentProps> = ({
   const [dueDate, setDueDate] = useState<number | undefined>(undefined);
   const [recurrence, setRecurrence] = useState<RecurrenceConfig | undefined>(undefined);
 
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+
+    // Apply NLP parsing
+    const { attributes } = parseTaskInput(newTitle);
+
+    if (attributes.energy) setEnergy(attributes.energy);
+    if (attributes.duration) setDuration(attributes.duration);
+    if (attributes.assignedDate) setAssignedDate(attributes.assignedDate);
+    if (attributes.dueDate) setDueDate(attributes.dueDate);
+    if (attributes.recurrence) setRecurrence(attributes.recurrence);
+    if (attributes.tagKeyword) {
+      const matchedTag = tags.find(t => t.name.toLowerCase() === attributes.tagKeyword?.toLowerCase());
+      if (matchedTag) setTagId(matchedTag.id);
+    }
+  };
+
   const handleCreate = () => {
     if (!title.trim()) return;
-    onCreate(title, {
+
+    // Use cleaned title for the actual task
+    const { cleanTitle } = parseTaskInput(title);
+
+    onCreate(cleanTitle, {
       notes,
       category: tagId,
       duration,
@@ -80,9 +103,12 @@ export const CreateTaskSheetContent: React.FC<CreateTaskSheetContentProps> = ({
           id="title"
           autoFocus
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="What needs to be done?"
+          onChange={handleTitleChange}
+          placeholder="What needs to be done? (e.g. 'Gym ~1h !high #personal')"
         />
+        <p className="text-[10px] text-muted-foreground">
+          Supports natural language: !high/med/low, ~30m, #tag, @today, due tomorrow, every monday...
+        </p>
       </div>
 
       <div className="space-y-2">

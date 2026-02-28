@@ -4,6 +4,7 @@ import React from 'react';
 import { Tag } from '@/entities/tag';
 import { TaskEntity } from '@/entities/task';
 import { TaskRow } from './TaskRow';
+import { Badge } from '@/shared/ui/badge';
 import {
   Accordion,
   AccordionContent,
@@ -78,9 +79,9 @@ export const TaskSection: React.FC<TaskSectionProps> = ({
             <h2 className={cn("text-xs font-semibold tracking-tight", colorClass)}>
               {title}
             </h2>
-            <span className="text-[10px] text-muted-foreground/60 font-medium tabular-nums bg-muted px-1.5 py-0.5 rounded-full">
+            <Badge variant="secondary" className="text-[10px] h-4.5 px-1.5 py-0 font-medium tabular-nums">
               {displayCount}
-            </span>
+            </Badge>
           </div>
         </AccordionTrigger>
         <AccordionContent className="pt-1 pb-2">

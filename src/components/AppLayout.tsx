@@ -67,7 +67,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Mobile Sidebar (Drawer) */}
       <aside 
         className={`
-            fixed inset-y-0 left-0 z-50 w-sidebar-mobile bg-card border-r border-border transform transition-transform duration-300 ease-productive-in-out
+            fixed inset-y-0 left-0 z-50 w-sidebar-mobile bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-productive-in-out
             ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
@@ -77,7 +77,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Desktop Sidebar */}
       <aside 
         className={`
-            hidden md:flex flex-col border-r border-border bg-card transition-all duration-300 ease-productive-in-out
+            hidden md:flex flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300 ease-productive-in-out
             ${isSidebarOpen ? 'w-sidebar opacity-100' : 'w-0 opacity-0 overflow-hidden'}
         `}
       >
@@ -88,7 +88,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col h-full min-w-0 bg-background relative transition-all duration-300">
         
         {/* Responsive Header */}
-        <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-card shrink-0">
+        <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-background shrink-0">
             <div className="flex items-center gap-3">
                 <button 
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)} 

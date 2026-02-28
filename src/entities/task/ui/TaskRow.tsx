@@ -126,55 +126,55 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                                 {task.title}
                             </span>
 
-                            <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                                 {/* Tag Badge */}
-                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 font-normal" style={{
+                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal" style={{
                                     borderColor: taskTag ? `${taskTag.color}44` : undefined,
                                     color: taskTag?.color,
                                     backgroundColor: taskTag ? `${taskTag.color}11` : undefined
                                 }}>
-                                    <Hash size={10} className="mr-1" />
+                                    <Hash size={10} className="mr-1 shrink-0" />
                                     {taskTag?.name || 'Inbox'}
                                 </Badge>
 
                                 {/* Date Badges */}
                                 {task.assignedDate && (
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 font-normal text-primary border-primary/20 bg-primary/5">
-                                        <CalendarClock size={10} className="mr-1" />
+                                    <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal text-primary border-primary/20 bg-primary/5">
+                                        <CalendarClock size={10} className="mr-1 shrink-0" />
                                         {new Date(task.assignedDate).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
                                     </Badge>
                                 )}
 
                                 {task.dueDate && (
                                     <Badge variant="outline" className={cn(
-                                        "text-[10px] px-1.5 py-0 h-4 font-normal",
+                                        "text-[10px] px-2 py-0.5 whitespace-nowrap font-normal",
                                         isOverdue ? "text-destructive border-destructive/20 bg-destructive/5 font-bold" : "text-muted-foreground border-border bg-muted/30"
                                     )}>
-                                        <Calendar size={10} className="mr-1" />
+                                        <Calendar size={10} className="mr-1 shrink-0" />
                                         {new Date(task.dueDate).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
                                     </Badge>
                                 )}
 
                                 {/* Timer / Duration Badge */}
                                 {isRunning && timeDisplay ? (
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 font-mono text-primary border-primary/20 bg-primary/5 animate-pulse">
+                                    <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-mono text-primary border-primary/20 bg-primary/5 animate-pulse">
                                         {timeDisplay}
                                     </Badge>
                                 ) : (
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 font-normal text-muted-foreground border-border bg-muted/30">
-                                        <Clock size={10} className="mr-1" />
+                                    <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal text-muted-foreground border-border bg-muted/30">
+                                        <Clock size={10} className="mr-1 shrink-0" />
                                         {displayedDuration}m
                                     </Badge>
                                 )}
 
                                 {/* Energy Badge */}
                                 <Badge variant="outline" className={cn(
-                                    "text-[10px] px-1.5 py-0 h-4 font-normal",
+                                    "text-[10px] px-2 py-0.5 whitespace-nowrap font-normal",
                                     task.energy === 'High' ? "text-orange-500 border-orange-500/20 bg-orange-500/5" :
                                     task.energy === 'Low' ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
                                     "text-yellow-500 border-yellow-500/20 bg-yellow-500/5"
                                 )}>
-                                    <Zap size={10} className="mr-1" />
+                                    <Zap size={10} className="mr-1 shrink-0" />
                                     {task.energy === 'Medium' ? 'Med' : task.energy}
                                 </Badge>
 

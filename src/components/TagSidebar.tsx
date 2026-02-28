@@ -99,11 +99,11 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
         const isActive = activeTagId === tag.id;
 
         return (
-          <div key={tag.id} className="pl-3">
+          <div key={tag.id} className="pl-2">
              <div 
                 className={`
-                    group flex items-center gap-2 py-1.5 pr-2 rounded-sm cursor-pointer transition-colors relative select-none
-                    ${isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-accent-foreground hover:bg-accent/50'}
+                    group flex items-center gap-2 py-1.5 pr-2 rounded-md cursor-pointer transition-all relative select-none
+                    ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm' : 'text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50'}
                     ${draggedTagId === tag.id ? 'opacity-50' : 'opacity-100'}
                 `}
                 onClick={() => onSelectTag(tag.id)}
@@ -114,17 +114,17 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
              >
                 <button 
                     onClick={(e) => toggleExpand(tag.id, e)}
-                    className={`p-0.5 rounded-sm hover:bg-accent/50 ${hasChildren ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                    className={`p-1 rounded-md hover:bg-sidebar-accent transition-colors ${hasChildren ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 >
-                    {isExpanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+                    {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                 </button>
                 
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tag.color }}></span>
-                    <span className="text-sm font-medium truncate">{tag.name}</span>
+                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                    <span className="w-2 h-2 rounded-full shrink-0 shadow-[0_0_4px_rgba(0,0,0,0.1)]" style={{ backgroundColor: tag.color }}></span>
+                    <span className={`text-sm truncate ${isActive ? 'font-semibold' : 'font-medium'}`}>{tag.name}</span>
                 </div>
                 
-                <div className="relative ml-auto">
+                <div className="relative ml-auto flex items-center">
                     <button 
                         onClick={(e) => {
                           e.stopPropagation();
@@ -135,7 +135,7 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
                               triggerElRef.current = e.currentTarget;
                           }
                         }}
-                        className="p-1 rounded-sm hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="p-1 rounded-md hover:bg-sidebar-accent opacity-0 group-hover:opacity-100 transition-all text-sidebar-foreground/50 hover:text-sidebar-foreground"
                     >
                         <Edit2 size={12} />
                     </button>
@@ -143,7 +143,7 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
              </div>
 
              {hasChildren && isExpanded && (
-                 <div className="border-l border-border ml-3">
+                 <div className="border-l border-sidebar-border/50 ml-3.5 mt-0.5 mb-1 space-y-0.5">
                      {buildTree(tag.id)}
                  </div>
              )}

@@ -123,7 +123,7 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                                         />
                                     </div>
                                     <div className={cn(
-                                        "font-semibold",
+                                        "font-semibold text-sm",
                                         (isCompleted || isCompleting) && "line-through text-muted-foreground"
                                     )}>
                                         {task.title}
@@ -142,24 +142,16 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                                 {task.notes}
                             </div>
                         )}
-                        <div className="flex items-center gap-1.5 mt-1">
+                        <div className="flex items-center gap-2">
                             {/* Tag Badge */}
-                            <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal" style={{
+                            <Badge variant={isSelected ? "default" : "secondary"} className="text-[10px] px-2 py-0.5 whitespace-nowrap font-medium" style={!isSelected ? {
                                 borderColor: taskTag ? `${taskTag.color}44` : undefined,
                                 color: taskTag?.color,
                                 backgroundColor: taskTag ? `${taskTag.color}11` : undefined
-                            }}>
+                            } : undefined}>
                                 <Hash size={10} className="mr-1 shrink-0" />
                                 {taskTag?.name || 'Inbox'}
                             </Badge>
-
-                            {/* Date Badges */}
-                            {task.assignedDate && (
-                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal text-primary border-primary/20 bg-primary/5">
-                                    <CalendarClock size={10} className="mr-1 shrink-0" />
-                                    {new Date(task.assignedDate).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
-                                </Badge>
-                            )}
 
                             {/* Timer / Duration Badge */}
                             {isRunning && timeDisplay ? (
@@ -167,7 +159,7 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                                     {timeDisplay}
                                 </Badge>
                             ) : (
-                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-normal text-muted-foreground border-border bg-muted/30">
+                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 whitespace-nowrap font-medium text-muted-foreground border-border bg-muted/30">
                                     <Clock size={10} className="mr-1 shrink-0" />
                                     {displayedDuration}m
                                 </Badge>
@@ -175,7 +167,7 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
 
                             {/* Energy Badge */}
                             <Badge variant="outline" className={cn(
-                                "text-[10px] px-2 py-0.5 whitespace-nowrap font-normal",
+                                "text-[10px] px-2 py-0.5 whitespace-nowrap font-medium",
                                 task.energy === 'High' ? "text-orange-500 border-orange-500/20 bg-orange-500/5" :
                                 task.energy === 'Low' ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
                                 "text-yellow-500 border-yellow-500/20 bg-yellow-500/5"

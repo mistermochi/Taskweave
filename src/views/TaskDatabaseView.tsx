@@ -164,16 +164,18 @@ export const TaskDatabaseView: React.FC = () => {
        />
 
        <Page.Content>
-            <div className="mb-6 group relative">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground/30 group-focus-within:text-primary transition-colors">
-                    <Search size={16} />
+            <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <form>
+                <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search tasks..."
+                        className="pl-8"
+                        value={state.searchQuery}
+                        onChange={(e) => actions.setSearchQuery(e.target.value)}
+                    />
                 </div>
-                <input 
-                    className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
-                    placeholder="Search by title or notes..."
-                    value={state.searchQuery}
-                    onChange={(e) => actions.setSearchQuery(e.target.value)}
-                />
+                </form>
             </div>
            <TaskSection
               sectionKey="overdue"

@@ -110,6 +110,7 @@ export const DashboardView: React.FC = () => {
 
   const handleUndo = () => {
     if (toast.lastCompletedId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       actions.updateTask(toast.lastCompletedId, { status: 'active', completedAt: null as any });
       setToast({ visible: false, message: "", lastCompletedId: null });
       showToast("Task restored");

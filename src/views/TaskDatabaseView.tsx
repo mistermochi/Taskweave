@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { SlidersHorizontal, Search } from 'lucide-react';
+import { SlidersHorizontal, Search, Plus } from 'lucide-react';
 import { where, orderBy } from 'firebase/firestore';
 import { TaskEntity } from '@/entities/task';
 import { useTaskDatabaseController } from '@/hooks/controllers/useTaskDatabaseController';
@@ -11,26 +11,16 @@ import { Page } from '@/shared/layout/Page';
 import { useNavigation } from '@/context/NavigationContext';
 import { TaskSection } from '@/entities/task';
 import { useTaskContext } from '@/context/TaskContext';
+import { Button } from '@/shared/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
+import { CreateTaskSheetContent } from '@/entities/task/ui/task-details/CreateTaskSheetContent';
 
-/**
- * View for managing the full inventory of tasks.
- * It provides a structured interface for organizing tasks into temporal sections
- * (Today, Overdue, Upcoming, Inbox) and historical sections (Completed, Archived).
- * Supports complex filtering, searching, and AI-driven task recommendations.
- *
- * @component
- * @interaction
- * - Lazily loads historical data (Completed/Archived) only when the section is expanded.
- * - Handles inline task creation across all sections.
- * - Synchronizes with `NavigationContext` to respond to external filtering/adding requests.
- */
 export const TaskDatabaseView: React.FC = () => {
   const { activeTagId, autoCreateSection, clearAutoCreate, focusOnTask } = useNavigation();
   const { state, actions } = useTaskDatabaseController(activeTagId);
   const { tasks: allTasks } = useTaskContext();
   const [toast, setToast] = useState({ visible: false, message: "", lastCompletedId: null as string | null });
   
-  /** State tracking which sections are expanded in the UI. */
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
       'overdue': true,
       'today': true,
@@ -40,33 +30,25 @@ export const TaskDatabaseView: React.FC = () => {
       'archived': false
   });
 
-  /**
-   * LAZY LOADING: Completed history.
-   * Enabled flag ensures we don't fetch hundreds of documents until the user asks.
-   */
   const { data: completedTasks } = useFirestoreCollection<TaskEntity>(
     'tasks',
     [where('status', '==', 'completed'), orderBy('completedAt', 'desc')],
     expandedSections.completed
   );
 
-  /** LAZY LOADING: Archived history. */
   const { data: archivedTasks } = useFirestoreCollection<TaskEntity>(
     'tasks',
     [where('status', '==', 'archived'), orderBy('archivedAt', 'desc')],
     expandedSections.archived
   );
 
-  /** Name of the section where an inline add form is currently visible. */
-  const [addingToSection, setAddingToSection] = useState<string | null>(null);
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
+  const [createInitialSection, setCreateInitialSection] = useState<string | null>(null);
 
-  /**
-   * Responds to navigation-level requests to open the add form in a specific section.
-   */
   useEffect(() => {
       if (autoCreateSection) {
-          setAddingToSection(autoCreateSection);
-          setExpandedSections(prev => ({ ...prev, [autoCreateSection]: true }));
+          setCreateInitialSection(autoCreateSection);
+          setIsCreateSheetOpen(true);
           clearAutoCreate();
       }
   }, [autoCreateSection, clearAutoCreate]);
@@ -127,20 +109,8 @@ export const TaskDatabaseView: React.FC = () => {
       actions.updateTask(task.id, updates);
   }, [actions]);
 
-  /**
-   * Finalizes the inline creation flow.
-   */
-  const handleCreateFromRow = async (baseTask: TaskEntity, updates: Partial<TaskEntity>) => {
-      const merged = { ...baseTask, ...updates };
-      const nextDate = await actions.createTask(merged.title, {
-          category: merged.category,
-          duration: merged.duration,
-          energy: merged.energy, 
-          dueDate: merged.dueDate,
-          assignedDate: merged.assignedDate,
-          recurrence: merged.recurrence,
-          notes: merged.notes
-      });
+  const handleCreateTask = async (title: string, updates: Partial<TaskEntity>) => {
+      const nextDate = await actions.createTask(title, updates);
       
       if (nextDate) {
           const dateStr = new Date(nextDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -148,19 +118,15 @@ export const TaskDatabaseView: React.FC = () => {
       } else {
           showToast("Task created");
       }
-      setAddingToSection(null);
+      setIsCreateSheetOpen(false);
   };
 
   const { sections, tags, recommendation } = state;
 
-  /** Props bundled for the TaskSection components. */
   const sectionProps = {
     allTasks: allTasks,
     tags: tags,
     activeTagId: activeTagId,
-    addingToSection: addingToSection,
-    onCancelAdding: () => setAddingToSection(null),
-    onTaskCreate: handleCreateFromRow,
     onTaskComplete: handleComplete,
     onTaskUncomplete: handleUncomplete,
     onTaskFocus: (task: TaskEntity) => focusOnTask(task.id),
@@ -177,14 +143,28 @@ export const TaskDatabaseView: React.FC = () => {
           title={activeTagId ? tags.find(t=>t.id === activeTagId)?.name || 'Inbox' : 'Inbox'} 
           subtitle={activeTagId ? "Project" : undefined}
           actions={
-            <button className="p-2 hover:bg-accent rounded-sm text-muted-foreground hover:text-foreground transition-colors">
-               <SlidersHorizontal size={18} />
-            </button>
+            <div className="flex items-center gap-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => {
+                        setCreateInitialSection(null);
+                        setIsCreateSheetOpen(true);
+                    }}
+                >
+                    <Plus size={16} />
+                    New Task
+                </Button>
+                <button className="p-2 hover:bg-accent rounded-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <SlidersHorizontal size={18} />
+                </button>
+            </div>
           }
        />
 
        <Page.Content>
-            <div className="mb-4 group relative">
+            <div className="mb-6 group relative">
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground/30 group-focus-within:text-primary transition-colors">
                     <Search size={16} />
                 </div>
@@ -201,7 +181,6 @@ export const TaskDatabaseView: React.FC = () => {
               tasks={sections.overdue}
               isExpanded={expandedSections.overdue}
               onToggle={() => toggleSection('overdue')}
-              onStartAdding={() => {}} 
               onTaskScheduleToday={handleAddToFlow}
               colorClass="text-destructive"
               {...sectionProps}
@@ -212,8 +191,6 @@ export const TaskDatabaseView: React.FC = () => {
               tasks={sections.today} 
               isExpanded={expandedSections.today}
               onToggle={() => toggleSection('today')}
-              onStartAdding={() => setAddingToSection('today')}
-              onTaskScheduleToday={undefined}
               {...sectionProps}
             />
            <TaskSection
@@ -222,7 +199,6 @@ export const TaskDatabaseView: React.FC = () => {
               tasks={sections.upcoming}
               isExpanded={expandedSections.upcoming}
               onToggle={() => toggleSection('upcoming')}
-              onStartAdding={() => setAddingToSection('upcoming')}
               onTaskScheduleToday={handleAddToFlow}
               {...sectionProps}
             />
@@ -232,7 +208,6 @@ export const TaskDatabaseView: React.FC = () => {
               tasks={sections.inbox}
               isExpanded={expandedSections.inbox}
               onToggle={() => toggleSection('inbox')}
-              onStartAdding={() => setAddingToSection('inbox')}
               onTaskScheduleToday={handleAddToFlow}
               {...sectionProps}
             />
@@ -242,8 +217,6 @@ export const TaskDatabaseView: React.FC = () => {
               tasks={completedTasks}
               isExpanded={expandedSections.completed}
               onToggle={() => toggleSection('completed')}
-              onStartAdding={() => {}}
-              onTaskScheduleToday={undefined}
               countOverride={expandedSections.completed ? completedTasks.length : undefined}
               {...sectionProps}
             />
@@ -253,12 +226,25 @@ export const TaskDatabaseView: React.FC = () => {
               tasks={archivedTasks}
               isExpanded={expandedSections.archived}
               onToggle={() => toggleSection('archived')}
-              onStartAdding={() => {}}
-              onTaskScheduleToday={undefined}
               {...sectionProps}
             />
        </Page.Content>
        
+       <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
+          <SheetContent className="sm:max-w-md overflow-y-auto">
+              <SheetHeader>
+                  <SheetTitle>Create New Task</SheetTitle>
+              </SheetHeader>
+              <CreateTaskSheetContent
+                initialSection={createInitialSection}
+                activeTagId={activeTagId}
+                tags={tags}
+                onCreate={handleCreateTask}
+                onClose={() => setIsCreateSheetOpen(false)}
+              />
+          </SheetContent>
+       </Sheet>
+
        <Toast 
           message={toast.message} 
           isVisible={toast.visible} 

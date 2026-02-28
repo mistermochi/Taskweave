@@ -84,7 +84,7 @@ export const Chip: React.FC<ChipProps> = ({
   if (!isEditing) {
     if (!isActive && !label) return null;
     return (
-      <div className={`flex items-center gap-1 text-[10px] transition-colors ${className} ${colorClass} ${isActive ? 'font-medium' : 'text-muted-foreground/70'}`}>
+      <div className={`flex items-center gap-1 text-xs transition-colors ${className} ${colorClass} ${isActive ? 'font-medium' : 'text-muted-foreground/70'}`}>
         {Icon && <Icon size={10} className={fill && isActive ? 'fill-current' : ''} style={iconColor ? { color: iconColor } : {}} />}
         <span style={labelColor ? { color: labelColor } : {}}>{label}</span>
       </div>

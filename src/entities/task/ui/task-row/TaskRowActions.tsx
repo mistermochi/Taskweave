@@ -67,7 +67,7 @@ export const TaskRowActions: React.FC<TaskRowActionsProps> = ({
         <TooltipProvider>
             <div
                 className={`
-                    absolute right-2 top-2 flex items-center gap-1 p-1 rounded-lg bg-background border border-border shadow-lg z-20
+                    absolute right-2 top-2 flex items-center gap-1 p-1 rounded-sm bg-card border border-border shadow-lg z-20
                     transition-all duration-200
                     ${(showActions || isEditing)
                         ? 'opacity-100 translate-y-0 pointer-events-auto'

@@ -14,7 +14,7 @@ const chipVariants = cva(
     variants: {
       isActive: {
         true: '',
-        false: 'bg-foreground/5 border-transparent text-secondary hover:bg-foreground/10 hover:text-foreground',
+    false: 'bg-muted/50 border-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground',
       },
     },
     defaultVariants: {
@@ -84,7 +84,7 @@ export const Chip: React.FC<ChipProps> = ({
   if (!isEditing) {
     if (!isActive && !label) return null;
     return (
-      <div className={`flex items-center gap-1 text-xs transition-colors ${className} ${colorClass} ${isActive ? 'font-medium' : 'opacity-70'}`}>
+      <div className={`flex items-center gap-1 text-[10px] transition-colors ${className} ${colorClass} ${isActive ? 'font-medium' : 'text-muted-foreground/70'}`}>
         {Icon && <Icon size={10} className={fill && isActive ? 'fill-current' : ''} style={iconColor ? { color: iconColor } : {}} />}
         <span style={labelColor ? { color: labelColor } : {}}>{label}</span>
       </div>

@@ -37,11 +37,11 @@ const DashboardSidebarContent = () => {
     return (
         <>
             {/* Readiness Widget */}
-            <Card className="flex flex-row items-center gap-4 p-4 bg-surface-highlight">
+            <Card className="flex flex-row items-center gap-4 p-4 shadow-none rounded-sm">
                 <ReadinessRing score={state.latestEnergy} />
                 <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-secondary">Readiness</span>
-                    <p className="text-foreground text-sm leading-tight">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Readiness</span>
+                    <p className="text-foreground text-sm leading-tight font-medium">
                         {state.latestEnergy > 70 ? "Peak Condition" : state.latestEnergy > 40 ? "Steady State" : "Recovery Needed"}
                     </p>
                 </div>
@@ -49,31 +49,31 @@ const DashboardSidebarContent = () => {
 
             {/* Mood Tracker */}
             <div>
-                <Heading variant="section">Energy Check-in</Heading>
-                <Card className="p-4 bg-foreground/5">
+                <Heading variant="section" className="text-muted-foreground">Energy Check-in</Heading>
+                <Card className="p-4 shadow-none rounded-sm">
                     <SmileyScale value={moodLevel} onChange={handleMoodChange} />
                 </Card>
             </div>
 
             {/* Quick Actions Grid */}
             <div>
-                <Heading variant="section">Quick Actions</Heading>
+                <Heading variant="section" className="text-muted-foreground">Quick Actions</Heading>
                 <div className="grid grid-cols-2 gap-3">
-                    <button onClick={startBreathing} className="p-3 bg-foreground/5 hover:bg-foreground/10 rounded-xl border border-border flex flex-col items-center gap-2 transition-colors">
-                        <Wind size={20} className="text-blue-300" />
-                        <span className="text-xxs font-bold uppercase text-secondary">Breathe</span>
+                    <button onClick={startBreathing} className="p-3 bg-muted/50 hover:bg-accent hover:text-accent-foreground rounded-sm border border-border flex flex-col items-center gap-2 transition-colors">
+                        <Wind size={20} className="text-primary" />
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground group-hover:text-inherit">Breathe</span>
                     </button>
-                    <button onClick={startGrounding} className="p-3 bg-foreground/5 hover:bg-foreground/10 rounded-xl border border-border flex flex-col items-center gap-2 transition-colors">
-                        <Eye size={20} className="text-emerald-300" />
-                        <span className="text-xxs font-bold uppercase text-secondary">Ground</span>
+                    <button onClick={startGrounding} className="p-3 bg-muted/50 hover:bg-accent hover:text-accent-foreground rounded-sm border border-border flex flex-col items-center gap-2 transition-colors">
+                        <Eye size={20} className="text-primary" />
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground group-hover:text-inherit">Ground</span>
                     </button>
-                    <button onClick={showChat} className="p-3 bg-foreground/5 hover:bg-foreground/10 rounded-xl border border-border flex flex-col items-center gap-2 transition-colors">
-                        <MessageSquare size={20} className="text-purple-300" />
-                        <span className="text-xxs font-bold uppercase text-secondary">Journal</span>
+                    <button onClick={showChat} className="p-3 bg-muted/50 hover:bg-accent hover:text-accent-foreground rounded-sm border border-border flex flex-col items-center gap-2 transition-colors">
+                        <MessageSquare size={20} className="text-primary" />
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground group-hover:text-inherit">Journal</span>
                     </button>
-                    <button onClick={() => focusOnTask('')} className="p-3 bg-foreground/5 hover:bg-foreground/10 rounded-xl border border-border flex flex-col items-center gap-2 transition-colors">
+                    <button onClick={() => focusOnTask('')} className="p-3 bg-muted/50 hover:bg-accent hover:text-accent-foreground rounded-sm border border-border flex flex-col items-center gap-2 transition-colors">
                         <Target size={20} className="text-primary" />
-                        <span className="text-xxs font-bold uppercase text-secondary">Focus</span>
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground group-hover:text-inherit">Focus</span>
                     </button>
                 </div>
             </div>
@@ -156,7 +156,7 @@ export const DashboardView: React.FC = () => {
         {/* === LEFT COLUMN / MAIN CONTENT === */}
         <Page.Root className="flex-1 md:border-r md:border-border">
             <Page.Header 
-                title="Focus for today" 
+                title="Today"
                 subtitle={dateStr}
             />
 
@@ -165,11 +165,11 @@ export const DashboardView: React.FC = () => {
                     
                     {/* Intention Input */}
                     <div className="mb-8 group relative">
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 text-secondary/30 group-focus-within:text-primary transition-colors">
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground/30 group-focus-within:text-primary transition-colors">
                             <Star size={16} fill="currentColor" />
                         </div>
                         <input 
-                            className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-secondary/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
+                            className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
                             placeholder="What is your main focus?"
                             value={intention}
                             onChange={(e) => setIntention(e.target.value)}
@@ -231,12 +231,12 @@ export const DashboardView: React.FC = () => {
                     {/* Quick Add Placeholder */}
                     <button 
                         onClick={() => quickAddTask()}
-                        className="w-full py-3 rounded-lg border border-border hover:bg-foreground/5 text-secondary hover:text-foreground transition-all flex items-center gap-2 px-3 group"
+                        className="w-full py-3 rounded-sm border border-border hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-all flex items-center gap-2 px-3 group"
                     >
-                        <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="h-5 w-5 rounded-sm bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Plus size={14} />
                         </div>
-                        <span className="text-sm font-medium">Add task to Flow</span>
+                        <span className="text-sm font-medium">Add task</span>
                     </button>
 
                     {/* Mobile-only sidebar content */}
@@ -248,7 +248,7 @@ export const DashboardView: React.FC = () => {
         </Page.Root>
 
         {/* === RIGHT COLUMN: Context Sidebar (Desktop) === */}
-        <aside className="hidden md:flex w-80 bg-surface flex-col p-6 gap-6 overflow-y-auto no-scrollbar">
+        <aside className="hidden md:flex w-80 bg-muted/30 border-l border-border flex-col p-6 gap-6 overflow-y-auto no-scrollbar">
             <DashboardSidebarContent />
         </aside>
 

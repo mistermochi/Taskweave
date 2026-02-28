@@ -107,11 +107,11 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
 
     const getEnergyColor = (lvl: EnergyLevel) => {
         switch(lvl) {
-            case 'Low': return { text: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' };
-            case 'High': return { text: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20' };
+            case 'Low': return { text: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' };
+            case 'High': return { text: 'text-orange-500', bg: 'bg-orange-500/10', border: 'border-orange-500/20' };
             case 'Medium': 
             default:
-                return { text: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20' };
+                return { text: 'text-yellow-500', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' };
         }
     };
     const energyStyle = getEnergyColor(effectiveEnergy);
@@ -161,9 +161,9 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
                     label={effectiveDueDate ? new Date(effectiveDueDate).toLocaleDateString(undefined, {month:'short', day:'numeric'}) : "Deadline"}
                     isEditing={isEditing}
                     isActive={!!effectiveDueDate}
-                    colorClass={isOverdue ? "text-red-400 font-bold" : "text-secondary"}
-                    bgClass="bg-red-500/10"
-                    borderClass="border-red-500/20"
+                    colorClass={isOverdue ? "text-destructive font-bold" : "text-muted-foreground"}
+                    bgClass="bg-destructive/10"
+                    borderClass="border-destructive/20"
                     flyoutContent={(close) => <DatePicker value={effectiveDueDate} onChange={(d) => { onDueDateChange(d); close(); }} type="due" />}
                 />
             )}
@@ -223,7 +223,7 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
                     label={dependencyCount > 0 ? `${dependencyCount} blocked` : "Blocks"}
                     isEditing={isEditing}
                     isActive={dependencyCount > 0}
-                    colorClass={dependencyCount > 0 ? "text-blue-400" : "text-secondary"}
+                    colorClass={dependencyCount > 0 ? "text-blue-500" : "text-muted-foreground"}
                     bgClass="bg-blue-500/10"
                     borderClass="border-blue-500/20"
                     flyoutContent={(close) => 
@@ -240,7 +240,7 @@ export const TaskRowPickers: React.FC<TaskRowPickersProps> = ({
             {/* Inverse Dependency Status */}
             {!isEditing && tasksBeingBlocked.length > 0 && (
                 <div 
-                    className="flex items-center gap-1 text-[11px] text-blue-400 font-medium"
+                    className="flex items-center gap-1 text-[10px] text-blue-500 font-medium"
                     title={`Blocking ${tasksBeingBlocked.length} task${tasksBeingBlocked.length > 1 ? 's' : ''}: ${tasksBeingBlocked.map(t => t.title).join(', ')}`}
                 >
                     <Share2 size={10} />

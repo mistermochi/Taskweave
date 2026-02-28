@@ -102,8 +102,8 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
           <div key={tag.id} className="pl-3">
              <div 
                 className={`
-                    group flex items-center gap-2 py-1.5 pr-2 rounded-lg cursor-pointer transition-colors relative select-none
-                    ${isActive ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-foreground hover:bg-foreground/5'}
+                    group flex items-center gap-2 py-1.5 pr-2 rounded-sm cursor-pointer transition-colors relative select-none
+                    ${isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-accent-foreground hover:bg-accent/50'}
                     ${draggedTagId === tag.id ? 'opacity-50' : 'opacity-100'}
                 `}
                 onClick={() => onSelectTag(tag.id)}
@@ -114,7 +114,7 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
              >
                 <button 
                     onClick={(e) => toggleExpand(tag.id, e)}
-                    className={`p-0.5 rounded hover:bg-foreground/10 ${hasChildren ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                    className={`p-0.5 rounded-sm hover:bg-accent/50 ${hasChildren ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 >
                     {isExpanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
                 </button>
@@ -135,7 +135,7 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
                               triggerElRef.current = e.currentTarget;
                           }
                         }}
-                        className="p-1 rounded hover:bg-foreground/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="p-1 rounded-sm hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                         <Edit2 size={12} />
                     </button>
@@ -156,7 +156,7 @@ export const TagTree: React.FC<TagTreeProps> = ({ tags, tasks, activeTagId, onSe
     <div className={`overflow-y-auto no-scrollbar ${className}`}>
         {/* Root Drop Zone: Allows dragging tags back to the top level */}
         <div 
-            className="mb-1 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-secondary/30 border-2 border-dashed border-transparent hover:border-border rounded-lg transition-colors"
+            className="mb-1 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30 border-2 border-dashed border-transparent hover:border-border rounded-sm transition-colors"
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, null)}
         >

@@ -10,9 +10,16 @@ const config: Config = {
     './src/views/**/*.{js,ts,jsx,tsx,mdx}'
   ],
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
       fontFamily: {
-        sans: ['var(--font-manrope)', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
       },
       fontSize: {
         'xxs': '10px',
@@ -25,21 +32,51 @@ const config: Config = {
         'hero': '0 0 30px hsla(var(--primary), 0.05)',
       },
       colors: {
-        border: 'hsl(var(--border))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         surface: 'hsl(var(--surface))',
         'surface-1': 'hsla(var(--surface-1-hsl), 0.7)',
         'surface-2': 'hsla(var(--surface-2-hsl), 0.6)',
         'surface-highlight': 'hsl(var(--surface-highlight))',
-        
-        primary: 'hsl(var(--primary))',
-        'primary-dim': 'hsl(var(--primary-dim))',
-        'primary-glow': 'hsla(var(--primary), 0.15)',
-        
-        secondary: 'hsl(var(--secondary))',
-        accent: 'hsl(var(--accent))', 
-        'accent-purple': 'hsl(var(--accent-purple))',
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+          dim: 'hsl(var(--primary-dim))',
+          glow: 'hsla(var(--primary), 0.15)',
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+          purple: 'hsl(var(--accent-purple))',
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       width: {
         'sidebar': '260px',

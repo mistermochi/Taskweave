@@ -4,47 +4,81 @@
 
 @layer base {
   :root {
-    /* Light Mode Colors */
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222.2 84% 4.9%;
 
-    --surface: 0 0% 98%;
-    --surface-1-hsl: 220 13% 91%;
-    --surface-2-hsl: 220 13% 85%;
-    --surface-highlight: 0 0% 96%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --border: 240 5.9% 90%;
-    --secondary: 240 4.8% 60%;
-    
-    /* Default: Green. This is overridden by ThemeProvider */
-    --primary: 142.1 76.2% 36.3%; 
-    --primary-dim: 142.1 76.2% 26.3%;
-    --primary-foreground: 355.7 100% 97.3%;
-    
-    --accent: 24.6 95% 53.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.3rem;
+
+    /* Legacy compatibility mappings */
+    --surface: var(--background);
+    --surface-1-hsl: 210 40% 96.1%;
+    --surface-2-hsl: 214.3 31.8% 91.4%;
+    --surface-highlight: var(--accent);
+    --primary-dim: 199 89% 38%;
     --accent-purple: 271 91% 65%;
   }
 
   .dark {
-    /* Dark Mode Colors (from original config) */
-    --background: 140 33% 1.2%;
-    --foreground: 140 5% 85%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --surface: 152 35% 5.5%;
-    --surface-1-hsl: 150 25% 8%;
-    --surface-2-hsl: 148 20% 9%;
-    --surface-highlight: 145 23% 10.8%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --border: 140 10% 15%;
-    --secondary: 140 9% 58%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    /* Default: Green. This is overridden by ThemeProvider */
-    --primary: 149 80% 46%;
-    --primary-dim: 149 80% 36%;
-    --primary-foreground: 149 80% 5%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-    --accent: 30 100% 63%;
-    --accent-purple: 276 95% 76%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 199 89% 48%;
+
+    /* Legacy compatibility mappings */
+    --surface: var(--background);
+    --surface-1-hsl: 217.2 32.6% 12%;
+    --surface-2-hsl: 217.2 32.6% 10%;
+    --surface-highlight: var(--accent);
+    --primary-dim: 199 89% 38%;
+    --accent-purple: 271 91% 75%;
   }
 }
 

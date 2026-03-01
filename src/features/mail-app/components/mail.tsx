@@ -13,6 +13,7 @@ import { TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { MailDisplay } from "./mail-display";
 import { MailList } from "./mail-list";
 import { Task } from "@/entities/task";
+import { Tag } from "@/entities/tag";
 import { useMailStore } from "../use-mail";
 import { NavDesktop } from "./nav-desktop";
 import { NavMobile } from "./nav-mobile";
@@ -20,6 +21,7 @@ import { MailDisplayMobile } from "./mail-display-mobile";
 
 interface MailProps {
   tasks: Task[];
+  tags: Tag[];
   defaultLayout: number[] | undefined;
   defaultCollapsed?: boolean;
   navCollapsedSize: number;
@@ -27,6 +29,7 @@ interface MailProps {
 
 export function Mail({
   tasks,
+  tags,
   defaultLayout = [20, 32, 48],
   defaultCollapsed = false,
   navCollapsedSize
@@ -100,6 +103,7 @@ export function Mail({
             <div className="min-h-0">
               <MailList
                 items={filteredTasks}
+                tags={tags}
               />
             </div>
           </Tabs>
@@ -108,12 +112,18 @@ export function Mail({
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
-              <MailDisplay mail={tasks.find((item) => item.id === selectedMail?.id) || null} />
+              <MailDisplay
+                mail={tasks.find((item) => item.id === selectedMail?.id) || null}
+                tags={tags}
+              />
             </ResizablePanel>
           </>
         )}
         {isMobile && (
-          <MailDisplayMobile mail={tasks.find((item) => item.id === selectedMail?.id) || null} />
+          <MailDisplayMobile
+            mail={tasks.find((item) => item.id === selectedMail?.id) || null}
+            tags={tags}
+          />
         )}
       </ResizablePanelGroup>
     </TooltipProvider>

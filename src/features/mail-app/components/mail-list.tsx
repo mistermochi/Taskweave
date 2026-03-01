@@ -9,14 +9,17 @@ import {
   Layers
 } from "lucide-react";
 import { Task } from "@/entities/task";
+import { Tag } from "@/entities/tag";
 import { useMailStore } from "../use-mail";
 import { cn } from "@/shared/lib/utils";
+import { formatRecurrence } from "@/shared/lib/timeUtils";
 
 import { Badge } from "@/shared/ui/ui/badge";
 import { ScrollArea } from "@/shared/ui/ui/scroll-area";
 
 interface MailListProps {
   items: Task[];
+  tags: Tag[];
 }
 
 type GroupedTasks = {
@@ -24,8 +27,14 @@ type GroupedTasks = {
     tasks: Task[];
 };
 
-export function MailList({ items }: MailListProps) {
+export function MailList({ items, tags }: MailListProps) {
   const { selectedMail, setSelectedMail } = useMailStore();
+
+  const getTagInfo = (categoryId: string) => {
+    const tag = tags.find(t => t.id === categoryId);
+    if (tag) return { name: tag.name, color: tag.color };
+    return { name: categoryId, color: undefined };
+  };
 
   const groups = useMemo(() => {
     const overdue: Task[] = [];
@@ -104,12 +113,19 @@ export function MailList({ items }: MailListProps) {
                     </div>
                 )}
                 <div className="flex flex-wrap items-center gap-2 mt-1">
-                  {item.category && (
-                    <Badge variant="secondary" className="flex items-center gap-1 text-[10px] px-1.5 py-0">
-                      <TagIcon className="h-3 w-3" />
-                      {item.category}
-                    </Badge>
-                  )}
+                  {item.category && (() => {
+                    const info = getTagInfo(item.category);
+                    return (
+                        <Badge
+                            variant="secondary"
+                            className="flex items-center gap-1 text-[10px] px-1.5 py-0"
+                            style={info.color ? { backgroundColor: `${info.color}33`, color: info.color, borderColor: `${info.color}66` } : {}}
+                        >
+                            <TagIcon className="h-3 w-3" />
+                            {info.name}
+                        </Badge>
+                    );
+                  })()}
                   {item.duration > 0 && (
                     <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0">
                       <Clock className="h-3 w-3" />
@@ -135,9 +151,9 @@ export function MailList({ items }: MailListProps) {
                     </Badge>
                   )}
                   {item.recurrence && (
-                      <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0">
+                      <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-purple-500/30 text-purple-400">
                         <Repeat className="h-3 w-3" />
-                        {item.recurrence.frequency}
+                        {formatRecurrence(item.recurrence)}
                       </Badge>
                   )}
                   {item.blockedBy?.length > 0 && (

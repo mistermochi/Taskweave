@@ -8,11 +8,12 @@ import {
   MousePointerClick,
   Reply,
   ReplyAll,
+  Tag,
   Trash2
 } from "lucide-react";
 
 import { DropdownMenuContent, DropdownMenuItem } from "@/shared/ui/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/ui/avatar";
+import { Badge } from "@/shared/ui/ui/badge";
 import { Button } from "@/shared/ui/ui/button";
 import { Calendar } from "@/shared/ui/ui/calendar";
 import { DropdownMenu, DropdownMenuTrigger } from "@/shared/ui/ui/dropdown-menu";
@@ -169,20 +170,35 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
       {mail ? (
         <div className="flex flex-1 flex-col">
-          <div className="flex-1 p-4">
+          <div className="flex flex-col gap-4 p-4">
             <Textarea
-              className="h-full min-h-[400px] resize-none border-none p-0 text-sm focus-visible:ring-0"
-              defaultValue={mail.text}
+              className="resize-none border-none p-0 text-2xl font-bold focus-visible:ring-0"
+              defaultValue={mail.subject}
+              rows={1}
             />
+            {mail.labels.length ? (
+              <div className="flex items-center gap-2">
+                {mail.labels.map((label) => (
+                  <Badge key={label} variant="secondary" className="flex items-center gap-1">
+                    <Tag className="h-3 w-3" />
+                    {label}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
           </div>
           <Separator className="mt-auto" />
           <div className="p-4">
             <form>
               <div className="grid gap-4">
-                <Textarea className="p-4" placeholder={`Reply...`} />
+                <Textarea
+                  className="min-h-[400px] p-4"
+                  placeholder={`Reply...`}
+                  defaultValue={mail.text}
+                />
                 <div className="flex items-center">
                   <Button onClick={(e) => e.preventDefault()} size="sm" className="ml-auto">
-                    Send
+                    Save
                   </Button>
                 </div>
               </div>

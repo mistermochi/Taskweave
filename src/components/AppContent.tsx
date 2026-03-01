@@ -4,7 +4,7 @@ import React, { Suspense, useEffect } from 'react';
 import { ViewName } from '@/types';
 import { AppLayout } from '@/components/AppLayout';
 import { usePassiveDrain } from '@/hooks/usePassiveDrain';
-import { LoadingScreen } from '@/shared/ui/Feedback';
+import { LoadingScreen } from '@/shared/ui/ui/Feedback';
 import { useNavigation } from '@/context/NavigationContext';
 import { useTaskContext } from '@/context/TaskContext';
 import { useReferenceContext } from '@/context/ReferenceContext';

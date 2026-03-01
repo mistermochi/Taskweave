@@ -4,13 +4,13 @@ import React from 'react';
 import { Tag } from '@/entities/tag';
 import { TaskEntity } from '@/entities/task';
 import { TaskRow } from './TaskRow';
-import { Badge } from '@/shared/ui/badge';
+import { Badge } from '@/shared/ui/ui/badge';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger
-} from '@/shared/ui/accordion';
+} from '@/shared/ui/ui/accordion';
 import { cn } from '@/shared/lib/utils';
 
 interface TaskSectionProps {

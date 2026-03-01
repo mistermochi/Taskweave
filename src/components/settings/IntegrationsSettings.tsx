@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/shared/ui/card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/shared/ui/ui/card';
 import { Calendar, Plus, Loader2 } from 'lucide-react';
 import { useCalendarImportController } from '@/hooks/controllers/useCalendarImportController';
 import { TaskEntity } from '@/entities/task';

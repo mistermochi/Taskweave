@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/shared/ui/card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/shared/ui/ui/card';
 import { Sparkles, Sun, Moon } from 'lucide-react';
 import { UserSettings } from '@/hooks/useUserSettings';
 

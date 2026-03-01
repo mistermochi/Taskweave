@@ -10,7 +10,7 @@ import { ProfileSettings } from '@/components/settings/ProfileSettings';
 import { MentalModelSettings } from '@/components/settings/MentalModelSettings';
 import { TypicalScheduleSettings } from '@/components/settings/TypicalScheduleSettings';
 import { Actions } from '@/components/settings/Actions';
-import { Toast } from '@/shared/ui/Feedback';
+import { Toast } from '@/shared/ui/ui/Feedback';
 import { useTaskContext } from '@/context/TaskContext';
 
 /**

@@ -5,8 +5,8 @@ import { ArrowLeft, Meh, Battery, BatteryWarning, Inbox } from 'lucide-react';
 import { TaskEntity } from '@/entities/task';
 import { useTaskContext } from '@/context/TaskContext';
 import { Page } from '@/shared/layout/Page';
-import { IconBadge } from '@/shared/ui/IconBadge';
-import { EmptyState } from '@/shared/ui/Feedback';
+import { IconBadge } from '@/shared/ui/ui/IconBadge';
+import { EmptyState } from '@/shared/ui/ui/Feedback';
 import { useNavigation } from '@/context/NavigationContext';
 
 /**

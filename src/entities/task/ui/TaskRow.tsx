@@ -19,21 +19,21 @@ import {
 import { Tag } from '@/entities/tag';
 import { TaskEntity } from '@/entities/task';
 import { useTaskDisplayInfo, useTaskTimer } from '@/entities/task';
-import { Checkbox } from '@/shared/ui/checkbox';
-import { Badge } from '@/shared/ui/badge';
+import { Checkbox } from '@/shared/ui/ui/checkbox';
+import { Badge } from '@/shared/ui/ui/badge';
 import {
     ContextMenu,
     ContextMenuContent,
     ContextMenuItem,
     ContextMenuSeparator,
     ContextMenuTrigger
-} from '@/shared/ui/context-menu';
+} from '@/shared/ui/ui/context-menu';
 import {
     Sheet,
     SheetContent,
     SheetHeader,
     SheetTitle
-} from '@/shared/ui/sheet';
+} from '@/shared/ui/ui/sheet';
 import { TaskDetailsSheetContent } from './task-details/TaskDetailsSheetContent';
 import { cn } from '@/shared/lib/utils';
 

@@ -47,7 +47,7 @@ export function Mail({
         orientation="horizontal"
         className="items-stretch"
         onLayoutChanged={(layout) => {
-          document.cookie = `react-resizable-panels:layout:mail=${JSON.stringify(Object.values(layout))}`;
+          document.cookie = `react-resizable-panels:layout:mail=${JSON.stringify(layout)}`;
         }}
       >
         {!isMobile && (

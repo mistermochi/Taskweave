@@ -21,10 +21,10 @@ interface AccountSwitcherProps {
 }
 
 export function AccountSwitcher({ isCollapsed, accounts }: AccountSwitcherProps) {
-  const [selectedAccount, setSelectedAccount] = React.useState<string>(accounts[0].email);
+  const [selectedAccount, setSelectedAccount] = React.useState<string>(accounts[0]?.email || "");
 
   return (
-    <Select defaultValue={selectedAccount} onValueChange={setSelectedAccount}>
+    <Select value={selectedAccount} onValueChange={setSelectedAccount}>
       <SelectTrigger
         className={cn(
           "hover:bg-accent/70! bg-background! flex w-full items-center gap-2 border-transparent [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&>span]:line-clamp-1 [&>span]:flex [&>span]:w-full [&>span]:items-center [&>span]:gap-1 [&>span]:truncate",

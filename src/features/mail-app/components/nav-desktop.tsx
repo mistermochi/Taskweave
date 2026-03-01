@@ -18,7 +18,13 @@ import { Separator } from "@/shared/ui/ui/separator";
 import * as React from "react";
 import { cn } from "@/shared/lib/utils";
 import { AccountSwitcher } from "./account-switcher";
-import { accounts } from "../data";
+const accounts = [
+  {
+    label: "Personal Tasks",
+    email: "personal@taskweave.app",
+    icon: <Inbox className="size-4" />,
+  }
+];
 
 interface NavDesktopProps {
   isCollapsed: boolean;

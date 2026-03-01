@@ -18,11 +18,18 @@ import {
 import { Nav } from "./nav";
 import { Separator } from "@/shared/ui/ui/separator";
 import { AccountSwitcher } from "./account-switcher";
-import { accounts } from "../data";
 import { Sheet, SheetContent, SheetTrigger } from "@/shared/ui/ui/sheet";
 import { Button } from "@/shared/ui/ui/button";
 import { DialogHeader, DialogTitle } from "@/shared/ui/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+
+const accounts = [
+  {
+    label: "Personal Tasks",
+    email: "personal@taskweave.app",
+    icon: <Inbox className="size-4" />,
+  }
+];
 
 export function NavMobile() {
   return (

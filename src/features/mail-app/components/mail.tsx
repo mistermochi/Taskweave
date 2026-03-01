@@ -12,26 +12,21 @@ import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
 import { TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { MailDisplay } from "./mail-display";
 import { MailList } from "./mail-list";
-import { type Mail } from "../data";
+import { Task } from "@/entities/task";
 import { useMailStore } from "../use-mail";
 import { NavDesktop } from "./nav-desktop";
 import { NavMobile } from "./nav-mobile";
 import { MailDisplayMobile } from "./mail-display-mobile";
 
 interface MailProps {
-  accounts: {
-    label: string;
-    email: string;
-    icon: React.ReactNode;
-  }[];
-  mails: Mail[];
+  tasks: Task[];
   defaultLayout: number[] | undefined;
   defaultCollapsed?: boolean;
   navCollapsedSize: number;
 }
 
 export function Mail({
-  mails,
+  tasks,
   defaultLayout = [20, 32, 48],
   defaultCollapsed = false,
   navCollapsedSize
@@ -39,7 +34,15 @@ export function Mail({
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
   const isMobile = useIsMobile();
   const { selectedMail } = useMailStore();
-  const [tab, setTab] = React.useState("all");
+  const [tab, setTab] = React.useState("active");
+
+  const filteredTasks = React.useMemo(() => {
+    return tasks.filter(task => {
+        if (tab === "active") return task.status === "active";
+        if (tab === "completed") return task.status === "completed";
+        return true;
+    });
+  }, [tasks, tab]);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -81,8 +84,8 @@ export function Mail({
                 <h1 className="text-xl font-bold">Inbox</h1>
               </div>
               <TabsList className="ml-auto">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="unread">Unread</TabsTrigger>
+                <TabsTrigger value="active">Active</TabsTrigger>
+                <TabsTrigger value="completed">Completed</TabsTrigger>
               </TabsList>
             </div>
             <Separator />
@@ -96,9 +99,7 @@ export function Mail({
             </div>
             <div className="min-h-0">
               <MailList
-                items={
-                  tab === "all" ? mails : mails.filter((item) => !item.read)
-                }
+                items={filteredTasks}
               />
             </div>
           </Tabs>
@@ -107,12 +108,12 @@ export function Mail({
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
-              <MailDisplay mail={mails.find((item) => item.id === selectedMail?.id) || null} />
+              <MailDisplay mail={tasks.find((item) => item.id === selectedMail?.id) || null} />
             </ResizablePanel>
           </>
         )}
         {isMobile && (
-          <MailDisplayMobile mail={mails.find((item) => item.id === selectedMail?.id) || null} />
+          <MailDisplayMobile mail={tasks.find((item) => item.id === selectedMail?.id) || null} />
         )}
       </ResizablePanelGroup>
     </TooltipProvider>

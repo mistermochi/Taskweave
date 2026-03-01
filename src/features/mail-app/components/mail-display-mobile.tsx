@@ -1,15 +1,19 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { addDays, addHours, format, nextSaturday } from "date-fns";
 import {
   Archive,
   ArchiveX,
+  Calendar as CalendarIcon,
   Clock,
   Forward,
+  Layers,
   MoreVertical,
+  Repeat,
   Reply,
   ReplyAll,
   Tag,
-  Trash2
+  Trash2,
+  Zap
 } from "lucide-react";
 import { useMailStore } from "../use-mail";
 
@@ -18,19 +22,18 @@ import { Badge } from "@/shared/ui/ui/badge";
 import { Button } from "@/shared/ui/ui/button";
 import { Calendar } from "@/shared/ui/ui/calendar";
 import { DropdownMenu, DropdownMenuTrigger } from "@/shared/ui/ui/dropdown-menu";
-import { Label } from "@/shared/ui/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/ui/popover";
 import { Separator } from "@/shared/ui/ui/separator";
-import { Switch } from "@/shared/ui/ui/switch";
 import { Textarea } from "@/shared/ui/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
-import { Mail } from "../data";
+import { Task, taskApi } from "@/entities/task";
 import { Drawer, DrawerContent } from "@/shared/ui/ui/drawer";
 import { DialogHeader, DialogTitle } from "@/shared/ui/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { parseTaskInput } from "@/shared/lib/textParserUtils";
 
 interface MailDisplayProps {
-  mail: Mail | null;
+  mail: Task | null;
 }
 
 export function MailDisplayMobile({ mail }: MailDisplayProps) {
@@ -38,9 +41,15 @@ export function MailDisplayMobile({ mail }: MailDisplayProps) {
   const today = new Date();
   const { selectedMail, setSelectedMail } = useMailStore();
 
+  const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
     if (selectedMail) {
       setOpen(true);
+      setTitle(selectedMail.title);
+      setNotes(selectedMail.notes || "");
     }
   }, [selectedMail]);
 
@@ -49,6 +58,32 @@ export function MailDisplayMobile({ mail }: MailDisplayProps) {
       setSelectedMail(null);
     }
   }, [open, setSelectedMail]);
+
+  const parsed = useMemo(() => {
+    return parseTaskInput(title);
+  }, [title]);
+
+  const handleSave = async () => {
+    if (!mail) return;
+    setIsSaving(true);
+    try {
+        await taskApi.updateTask(mail.id, {
+            title: parsed.cleanTitle,
+            notes: notes,
+            energy: parsed.attributes.energy || mail.energy,
+            duration: parsed.attributes.duration ?? mail.duration,
+            dueDate: parsed.attributes.dueDate ?? mail.dueDate,
+            assignedDate: parsed.attributes.assignedDate ?? mail.assignedDate,
+            recurrence: parsed.attributes.recurrence ?? mail.recurrence,
+            category: parsed.attributes.tagKeyword || mail.category
+        });
+        setTitle(parsed.cleanTitle);
+    } catch (e) {
+        console.error("Failed to save task", e);
+    } finally {
+        setIsSaving(false);
+    }
+  };
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -196,35 +231,73 @@ export function MailDisplayMobile({ mail }: MailDisplayProps) {
             <div className="flex flex-1 flex-col overflow-y-auto">
               <div className="flex flex-col gap-4 p-4">
                 <Textarea
-                  className="resize-none border-none p-0 text-2xl font-bold focus-visible:ring-0"
-                  defaultValue={mail.subject}
+                  className="resize-none border-none p-0 text-2xl font-bold focus-visible:ring-0 bg-transparent min-h-[40px]"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Task Title..."
                   rows={1}
                 />
-                {mail.labels.length ? (
-                  <div className="flex items-center gap-2">
-                    {mail.labels.map((label) => (
-                      <Badge key={label} variant="secondary" className="flex items-center gap-1">
-                        <Tag className="h-3 w-3" />
-                        {label}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : null}
+
+                <div className="flex flex-wrap items-center gap-2">
+                    {(parsed.attributes.tagKeyword || mail.category) && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                            <Tag className="h-3 w-3" />
+                            {parsed.attributes.tagKeyword || mail.category}
+                        </Badge>
+                    )}
+                    {(parsed.attributes.energy || mail.energy) && (
+                        <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-500">
+                            <Zap className="h-3 w-3" />
+                            {parsed.attributes.energy || mail.energy}
+                        </Badge>
+                    )}
+                    {((parsed.attributes.duration ?? mail.duration) > 0) && (
+                        <Badge variant="outline" className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {parsed.attributes.duration ?? mail.duration}m
+                        </Badge>
+                    )}
+                    {(parsed.attributes.dueDate ?? mail.dueDate) && (
+                        <Badge variant="outline" className="flex items-center gap-1 border-red-500/30 text-red-500">
+                            <CalendarIcon className="h-3 w-3" />
+                            {new Date(parsed.attributes.dueDate ?? mail.dueDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </Badge>
+                    )}
+                    {(parsed.attributes.assignedDate ?? mail.assignedDate) && (
+                        <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-400">
+                            <Clock className="h-3 w-3" />
+                            {new Date(parsed.attributes.assignedDate ?? mail.assignedDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </Badge>
+                    )}
+                    {(parsed.attributes.recurrence ?? mail.recurrence) && (
+                        <Badge variant="outline" className="flex items-center gap-1">
+                            <Repeat className="h-3 w-3" />
+                            {(parsed.attributes.recurrence ?? mail.recurrence)!.frequency}
+                        </Badge>
+                    )}
+                    {mail.blockedBy?.length > 0 && (
+                        <Badge variant="outline" className="flex items-center gap-1 border-orange-500/30 text-orange-500">
+                            <Layers className="h-3 w-3" />
+                            {mail.blockedBy.length}
+                        </Badge>
+                    )}
+                </div>
               </div>
 
               <Separator className="mt-auto" />
 
               <div className="p-4">
-                <form>
+                <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
                   <div className="grid gap-4">
                     <Textarea
-                      className="min-h-[400px] p-4"
-                      placeholder={`Reply...`}
-                      defaultValue={mail.text}
+                      className="min-h-[300px] p-4 bg-muted/20"
+                      placeholder={`Task notes and details...`}
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
                     />
                     <div className="flex items-center">
-                      <Button onClick={(e) => e.preventDefault()} size="sm" className="ml-auto">
-                        Save
+                      <Button type="submit" size="sm" className="ml-auto" disabled={isSaving}>
+                        {isSaving ? "Saving..." : "Save"}
                       </Button>
                     </div>
                   </div>

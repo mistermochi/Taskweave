@@ -27,15 +27,25 @@ import { Separator } from "@/shared/ui/ui/separator";
 import { Textarea } from "@/shared/ui/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 import { Task, taskApi } from "@/entities/task";
+import { Tag as TagEntity } from "@/entities/tag";
 import { parseTaskInput } from "@/shared/lib/textParserUtils";
+import { formatRecurrence } from "@/shared/lib/timeUtils";
 
 interface MailDisplayProps {
   mail: Task | null;
+  tags: TagEntity[];
 }
 
-export function MailDisplay({ mail }: MailDisplayProps) {
+export function MailDisplay({ mail, tags }: MailDisplayProps) {
   const today = new Date();
   const [title, setTitle] = useState("");
+
+  const getTagInfo = (categoryId: string | undefined) => {
+    if (!categoryId) return null;
+    const tag = tags.find(t => t.id === categoryId);
+    if (tag) return { name: tag.name, color: tag.color };
+    return { name: categoryId, color: undefined };
+  };
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -223,12 +233,19 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             />
 
             <div className="flex flex-wrap items-center gap-2">
-                {(parsed.attributes.tagKeyword || mail.category) && (
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                        <Tag className="h-3 w-3" />
-                        {parsed.attributes.tagKeyword || mail.category}
-                    </Badge>
-                )}
+                {(parsed.attributes.tagKeyword || mail.category) && (() => {
+                    const info = getTagInfo(parsed.attributes.tagKeyword || mail.category);
+                    return info ? (
+                        <Badge
+                            variant="secondary"
+                            className="flex items-center gap-1"
+                            style={info.color ? { backgroundColor: `${info.color}33`, color: info.color, borderColor: `${info.color}66` } : {}}
+                        >
+                            <Tag className="h-3 w-3" />
+                            {info.name}
+                        </Badge>
+                    ) : null;
+                })()}
                 {(parsed.attributes.energy || mail.energy) && (
                     <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-500">
                         <Zap className="h-3 w-3" />
@@ -254,9 +271,9 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                     </Badge>
                 )}
                 {(parsed.attributes.recurrence ?? mail.recurrence) && (
-                    <Badge variant="outline" className="flex items-center gap-1">
+                    <Badge variant="outline" className="flex items-center gap-1 border-purple-500/30 text-purple-400">
                         <Repeat className="h-3 w-3" />
-                        {(parsed.attributes.recurrence ?? mail.recurrence)!.frequency}
+                        {formatRecurrence(parsed.attributes.recurrence ?? mail.recurrence)}
                     </Badge>
                 )}
                 {mail.blockedBy?.length > 0 && (

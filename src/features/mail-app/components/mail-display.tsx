@@ -5,7 +5,7 @@ import {
   Clock,
   Forward,
   MoreVertical,
-  MousePointerClickIcon,
+  MousePointerClick,
   Reply,
   ReplyAll,
   Trash2
@@ -216,7 +216,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         </div>
       ) : (
         <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
-          <MousePointerClickIcon className="size-8 opacity-50" />
+          <MousePointerClick className="size-8 opacity-50" />
           No message selected
         </div>
       )}

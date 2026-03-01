@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 199 89% 48%;
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -30,9 +30,9 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 199 89% 48%;
+    --ring: 222.2 84% 4.9%;
 
-    --radius: 0.3rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -42,27 +42,19 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-
-    /* Legacy compatibility mappings */
-    --surface: var(--background);
-    --surface-1-hsl: 210 40% 96.1%;
-    --surface-2-hsl: 214.3 31.8% 91.4%;
-    --surface-highlight: var(--accent);
-    --primary-dim: 199 89% 38%;
-    --accent-purple: 271 91% 65%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 6%;
+    --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 8%;
+    --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 199 89% 48%;
+    --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -79,19 +71,11 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 199 89% 48%;
-
-    /* Legacy compatibility mappings */
-    --surface: var(--background);
-    --surface-1-hsl: 217.2 32.6% 12%;
-    --surface-2-hsl: 217.2 32.6% 10%;
-    --surface-highlight: var(--accent);
-    --primary-dim: 199 89% 38%;
-    --accent-purple: 271 91% 75%;
+    --ring: 212.7 26.8% 83.9%;
 
     --sidebar-background: 240 5.9% 6%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
@@ -100,6 +84,14 @@
   }
 }
 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
 
 html,
 body,
@@ -109,16 +101,16 @@ body,
 
 /* Custom Scrollbar Hide */
 .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 /* Range Slider Styling */
 input[type=range] {
-  -webkit-appearance: none; 
-  background: transparent; 
+  -webkit-appearance: none;
+  background: transparent;
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -126,15 +118,15 @@ input[type=range]::-webkit-slider-thumb {
   width: 20px;
   border-radius: 50%;
   background: hsl(var(--primary));
-  margin-top: -8px; 
+  margin-top: -8px;
   box-shadow: 0 0 15px hsla(var(--primary), 0.4);
-  border: 2px solid hsl(var(--surface));
+  border: 2px solid hsl(var(--background));
 }
 input[type=range]::-webkit-slider-runnable-track {
   width: 100%;
   height: 4px;
   cursor: pointer;
-  background: hsl(var(--surface-highlight));
+  background: hsl(var(--accent));
   border-radius: 2px;
 }
 
@@ -146,17 +138,17 @@ input[type=range]::-webkit-slider-runnable-track {
     height: 100%;
     overflow: hidden; /* Prevent body scroll, handle in app */
   }
-  
+
   #root {
     height: 100%;
     overflow: hidden;
   }
-  
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

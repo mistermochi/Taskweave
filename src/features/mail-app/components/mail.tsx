@@ -44,27 +44,32 @@ export function Mail({
   return (
     <TooltipProvider delayDuration={0}>
       <ResizablePanelGroup
+        orientation="horizontal"
         className="items-stretch"
         onLayoutChanged={(layout) => {
           document.cookie = `react-resizable-panels:layout:mail=${JSON.stringify(Object.values(layout))}`;
         }}
       >
-        <ResizablePanel
-          defaultSize={defaultLayout[0]}
-          collapsedSize={navCollapsedSize}
-          collapsible={true}
-          minSize={15}
-          maxSize={20}
-          onResize={(size) => {
-            const isNowCollapsed = size.asPercentage <= navCollapsedSize;
-            setIsCollapsed(isNowCollapsed);
-            document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
-          }}
-          className={cn(isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out")}
-        >
-          <NavDesktop isCollapsed={isCollapsed} />
-        </ResizablePanel>
-        <ResizableHandle withHandle />
+        {!isMobile && (
+          <>
+            <ResizablePanel
+              defaultSize={defaultLayout[0]}
+              collapsedSize={navCollapsedSize}
+              collapsible={true}
+              minSize={15}
+              maxSize={20}
+              onResize={(size) => {
+                const isNowCollapsed = size.asPercentage <= navCollapsedSize;
+                setIsCollapsed(isNowCollapsed);
+                document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
+              }}
+              className={cn(isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out")}
+            >
+              <NavDesktop isCollapsed={isCollapsed} />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+          </>
+        )}
         <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
           <Tabs
             defaultValue="all"
@@ -98,14 +103,17 @@ export function Mail({
             </div>
           </Tabs>
         </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
-          {isMobile ? (
-            <MailDisplayMobile mail={mails.find((item) => item.id === selectedMail?.id) || null} />
-          ) : (
-            <MailDisplay mail={mails.find((item) => item.id === selectedMail?.id) || null} />
-          )}
-        </ResizablePanel>
+        {!isMobile && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
+              <MailDisplay mail={mails.find((item) => item.id === selectedMail?.id) || null} />
+            </ResizablePanel>
+          </>
+        )}
+        {isMobile && (
+          <MailDisplayMobile mail={mails.find((item) => item.id === selectedMail?.id) || null} />
+        )}
       </ResizablePanelGroup>
     </TooltipProvider>
   );

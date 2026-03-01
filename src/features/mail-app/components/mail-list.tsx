@@ -1,5 +1,6 @@
 import { ComponentProps } from "react";
 import { formatDistanceToNow } from "date-fns";
+import { Tag } from "lucide-react";
 import { Mail } from "../data";
 import { useMailStore } from "../use-mail";
 import { cn } from "@/shared/lib/utils";
@@ -28,7 +29,7 @@ export function MailList({ items }: MailListProps) {
             <div className="flex w-full flex-col gap-1">
               <div className="flex items-center">
                 <div className="flex items-center gap-2">
-                  <div className="font-semibold">{item.name}</div>
+                  <div className="font-semibold">{item.subject}</div>
                   {!item.read && <span className="flex h-2 w-2 rounded-full bg-blue-600" />}
                 </div>
                 <div
@@ -41,7 +42,6 @@ export function MailList({ items }: MailListProps) {
                   })}
                 </div>
               </div>
-              <div className="text-xs font-medium">{item.subject}</div>
             </div>
             <div className="text-muted-foreground line-clamp-2 text-xs">
               {item.text.substring(0, 300)}
@@ -49,7 +49,12 @@ export function MailList({ items }: MailListProps) {
             {item.labels.length ? (
               <div className="flex items-center gap-2">
                 {item.labels.map((label) => (
-                  <Badge key={label} variant={getBadgeVariantFromLabel(label)}>
+                  <Badge
+                    key={label}
+                    variant={getBadgeVariantFromLabel(label)}
+                    className="flex items-center gap-1"
+                  >
+                    <Tag className="h-3 w-3" />
                     {label}
                   </Badge>
                 ))}

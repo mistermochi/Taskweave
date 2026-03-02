@@ -2,17 +2,13 @@
 
 import * as React from "react";
 import {
-  AlertCircle,
   Archive,
   ArchiveX,
   File,
   Inbox,
   MenuIcon,
-  MessagesSquare,
   Send,
-  ShoppingCart,
   Trash2,
-  Users2
 } from "lucide-react";
 
 import { Nav } from "./nav";
@@ -24,7 +20,7 @@ import { DialogHeader, DialogTitle } from "@/shared/ui/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Tag } from "@/entities/tag";
 import { Task } from "@/entities/task";
-import { MailTagTree } from "./mail-tag-tree";
+import { TaskTagTree } from "./task-tag-tree";
 
 const accounts = [
   {
@@ -65,13 +61,13 @@ export function NavMobile({ tags, tasks }: NavMobileProps) {
           links={[
             {
               title: "Inbox",
-              label: "128",
+              label: tasks.filter(t => t.status === 'active').length.toString(),
               icon: Inbox,
               variant: "default"
             },
             {
               title: "Drafts",
-              label: "9",
+              label: "",
               icon: File,
               variant: "ghost"
             },
@@ -83,7 +79,7 @@ export function NavMobile({ tags, tasks }: NavMobileProps) {
             },
             {
               title: "Junk",
-              label: "23",
+              label: "",
               icon: ArchiveX,
               variant: "ghost"
             },
@@ -104,7 +100,7 @@ export function NavMobile({ tags, tasks }: NavMobileProps) {
 
         <Separator />
 
-        <MailTagTree isCollapsed={false} tags={tags} tasks={tasks} />
+        <TaskTagTree isCollapsed={false} tags={tags} tasks={tasks} />
       </SheetContent>
     </Sheet>
   );

@@ -5,7 +5,7 @@ import { ChevronRight, ChevronDown, Edit2, Plus, Tag as TagIcon, Trash2 } from "
 import { cn } from "@/shared/lib/utils";
 import { Tag, tagApi } from "@/entities/tag";
 import { Task } from "@/entities/task";
-import { useMailStore } from "../use-mail";
+import { useTaskAppStore } from "../use-task-app";
 import { useNavigation } from "@/context/NavigationContext";
 import {
   ContextMenu,
@@ -27,15 +27,15 @@ import {
 import { Input } from "@/shared/ui/ui/input";
 import { Label } from "@/shared/ui/ui/label";
 
-interface MailTagTreeProps {
+interface TaskTagTreeProps {
   tags: Tag[];
   tasks: Task[];
   isCollapsed: boolean;
 }
 
-export function MailTagTree({ tags, tasks, isCollapsed }: MailTagTreeProps) {
+export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
   const [expanded, setExpanded] = React.useState<Set<string>>(new Set());
-  const { selectedTagId, setSelectedTagId } = useMailStore();
+  const { selectedTagId, setSelectedTagId } = useTaskAppStore();
   const { selectTag } = useNavigation();
   const [draggedTagId, setDraggedTagId] = React.useState<string | null>(null);
 

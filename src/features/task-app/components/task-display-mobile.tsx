@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { addDays, addHours, format, nextSaturday } from "date-fns";
 import {
   Archive,
@@ -13,8 +13,7 @@ import {
   ReplyAll,
   Tag,
   Trash2,
-  Zap,
-  Plus
+  Zap
 } from "lucide-react";
 import { useTaskAppStore } from "../use-task-app";
 
@@ -44,7 +43,6 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
   const [open, setOpen] = React.useState(false);
   const today = new Date();
   const { selectedTask, setSelectedTask } = useTaskAppStore();
-  const titleInputRef = useRef<HTMLTextAreaElement>(null);
 
   const getTagInfo = (categoryId: string | undefined) => {
     if (!categoryId) return null;
@@ -97,11 +95,6 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
     }
   };
 
-  const addNLPAttribute = (prefix: string) => {
-    setTitle(prev => prev.trim() + " " + prefix);
-    setTimeout(() => titleInputRef.current?.focus(), 0);
-  };
-
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerContent>
@@ -111,7 +104,7 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
           </DialogHeader>
         </VisuallyHidden>
 
-        <div className="flex h-full flex-col max-h-[90vh]">
+        <div className="flex h-full flex-col">
           <div className="flex items-center p-2">
             <div className="flex items-center gap-2">
               <Tooltip>
@@ -248,7 +241,6 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
             <div className="flex flex-1 flex-col overflow-y-auto">
               <div className="flex flex-col gap-4 p-4">
                 <Textarea
-                  ref={titleInputRef}
                   className="resize-none border-none p-0 text-2xl font-bold focus-visible:ring-0 bg-transparent min-h-[40px]"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -257,90 +249,49 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
                 />
 
                 <div className="flex flex-wrap items-center gap-2">
-                    {(() => {
+                    {(parsed.attributes.tagKeyword || task.category) && (() => {
                         const info = getTagInfo(parsed.attributes.tagKeyword || task.category);
                         return info ? (
                             <Badge
                                 variant="secondary"
-                                className="flex items-center gap-1 cursor-pointer"
+                                className="flex items-center gap-1"
                                 style={info.color ? { backgroundColor: `${info.color}33`, color: info.color, borderColor: `${info.color}66` } : {}}
-                                onClick={() => addNLPAttribute("#")}
                             >
                                 <Tag className="h-3 w-3" />
                                 {info.name}
                             </Badge>
-                        ) : (
-                            <Badge
-                                variant="outline"
-                                className="flex items-center gap-1 border-dashed text-muted-foreground/60"
-                                onClick={() => addNLPAttribute("#")}
-                            >
-                                <Plus className="h-3 w-3" />
-                                Add Project
-                            </Badge>
-                        );
+                        ) : null;
                     })()}
-
-                    {(parsed.attributes.energy || task.energy) ? (
-                        <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-500" onClick={() => addNLPAttribute("!")}>
+                    {(parsed.attributes.energy || task.energy) && (
+                        <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-500">
                             <Zap className="h-3 w-3" />
                             {parsed.attributes.energy || task.energy}
                         </Badge>
-                    ) : (
-                        <Badge variant="outline" className="flex items-center gap-1 border-dashed text-muted-foreground/60" onClick={() => addNLPAttribute("!")}>
-                            <Plus className="h-3 w-3" />
-                            Add Energy
-                        </Badge>
                     )}
-
-                    {((parsed.attributes.duration ?? task.duration) > 0) ? (
-                        <Badge variant="outline" className="flex items-center gap-1" onClick={() => addNLPAttribute("~")}>
+                    {((parsed.attributes.duration ?? task.duration) > 0) && (
+                        <Badge variant="outline" className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {parsed.attributes.duration ?? task.duration}m
                         </Badge>
-                    ) : (
-                        <Badge variant="outline" className="flex items-center gap-1 border-dashed text-muted-foreground/60" onClick={() => addNLPAttribute("~")}>
-                            <Plus className="h-3 w-3" />
-                            Add Duration
-                        </Badge>
                     )}
-
-                    {(parsed.attributes.assignedDate ?? task.assignedDate) ? (
-                        <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-400" onClick={() => addNLPAttribute("@")}>
+                    {(parsed.attributes.assignedDate ?? task.assignedDate) && (
+                        <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-400">
                             <Clock className="h-3 w-3" />
                             {new Date(parsed.attributes.assignedDate ?? task.assignedDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </Badge>
-                    ) : (
-                        <Badge variant="outline" className="flex items-center gap-1 border-dashed text-muted-foreground/60" onClick={() => addNLPAttribute("@")}>
-                            <Plus className="h-3 w-3" />
-                            Schedule
-                        </Badge>
                     )}
-
-                    {(parsed.attributes.dueDate ?? task.dueDate) ? (
-                        <Badge variant="outline" className="flex items-center gap-1 border-red-500/30 text-red-500" onClick={() => addNLPAttribute("by:")}>
+                    {(parsed.attributes.dueDate ?? task.dueDate) && (
+                        <Badge variant="outline" className="flex items-center gap-1 border-red-500/30 text-red-500">
                             <CalendarIcon className="h-3 w-3" />
                             {new Date(parsed.attributes.dueDate ?? task.dueDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </Badge>
-                    ) : (
-                        <Badge variant="outline" className="flex items-center gap-1 border-dashed text-muted-foreground/60" onClick={() => addNLPAttribute("by:")}>
-                            <Plus className="h-3 w-3" />
-                            Set Deadline
-                        </Badge>
                     )}
-
-                    {(parsed.attributes.recurrence ?? task.recurrence) ? (
-                        <Badge variant="outline" className="flex items-center gap-1 border-purple-500/30 text-purple-400" onClick={() => addNLPAttribute("repeat:")}>
+                    {(parsed.attributes.recurrence ?? task.recurrence) && (
+                        <Badge variant="outline" className="flex items-center gap-1 border-purple-500/30 text-purple-400">
                             <Repeat className="h-3 w-3" />
                             {formatRecurrence(parsed.attributes.recurrence ?? task.recurrence)}
                         </Badge>
-                    ) : (
-                        <Badge variant="outline" className="flex items-center gap-1 border-dashed text-muted-foreground/60" onClick={() => addNLPAttribute("repeat:")}>
-                            <Plus className="h-3 w-3" />
-                            Make Recurring
-                        </Badge>
                     )}
-
                     {task.blockedBy?.length > 0 && (
                         <Badge variant="outline" className="flex items-center gap-1 border-orange-500/30 text-orange-500">
                             <Layers className="h-3 w-3" />
@@ -356,18 +307,10 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
                 <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
                   <div className="grid gap-4">
                     <Textarea
-                      className="min-h-[48px] max-h-[144px] p-4 bg-muted/20 resize-none overflow-y-auto"
+                      className="min-h-[300px] p-4 bg-muted/20"
                       placeholder={`Task notes and details...`}
                       value={notes}
-                      onChange={(e) => {
-                          setNotes(e.target.value);
-                          e.target.style.height = 'auto';
-                          e.target.style.height = `${Math.min(144, Math.max(48, e.target.scrollHeight))}px`;
-                      }}
-                      onFocus={(e) => {
-                          e.target.style.height = 'auto';
-                          e.target.style.height = `${Math.min(144, Math.max(48, e.target.scrollHeight))}px`;
-                      }}
+                      onChange={(e) => setNotes(e.target.value)}
                     />
                     <div className="flex items-center">
                       <Button type="submit" size="sm" className="ml-auto" disabled={isSaving}>

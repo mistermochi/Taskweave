@@ -35,7 +35,7 @@ interface TaskTagTreeProps {
 
 export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
   const [expanded, setExpanded] = React.useState<Set<string>>(new Set());
-  const { selectedTagId, setSelectedTagId } = useTaskAppStore();
+  const { selectedTagId, setSelectedTagId, setShowSettings } = useTaskAppStore();
   const { selectTag } = useNavigation();
   const [draggedTagId, setDraggedTagId] = React.useState<string | null>(null);
 
@@ -124,6 +124,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
                     const nextId = isActive ? null : tag.id;
                     setSelectedTagId(nextId);
                     selectTag(nextId);
+                    setShowSettings(false);
                   }}
                   draggable
                   onDragStart={(e) => handleDragStart(e, tag.id)}
@@ -204,6 +205,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
               onClick={() => {
                 setSelectedTagId(null);
                 selectTag(null);
+                setShowSettings(false);
               }}
             >
               <TagIcon className="size-4" />

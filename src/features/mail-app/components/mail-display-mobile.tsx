@@ -274,16 +274,16 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
                             {parsed.attributes.duration ?? mail.duration}m
                         </Badge>
                     )}
-                    {(parsed.attributes.dueDate ?? mail.dueDate) && (
-                        <Badge variant="outline" className="flex items-center gap-1 border-red-500/30 text-red-500">
-                            <CalendarIcon className="h-3 w-3" />
-                            {new Date(parsed.attributes.dueDate ?? mail.dueDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                        </Badge>
-                    )}
                     {(parsed.attributes.assignedDate ?? mail.assignedDate) && (
                         <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-400">
                             <Clock className="h-3 w-3" />
                             {new Date(parsed.attributes.assignedDate ?? mail.assignedDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </Badge>
+                    )}
+                    {(parsed.attributes.dueDate ?? mail.dueDate) && (
+                        <Badge variant="outline" className="flex items-center gap-1 border-red-500/30 text-red-500">
+                            <CalendarIcon className="h-3 w-3" />
+                            {new Date(parsed.attributes.dueDate ?? mail.dueDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </Badge>
                     )}
                     {(parsed.attributes.recurrence ?? mail.recurrence) && (

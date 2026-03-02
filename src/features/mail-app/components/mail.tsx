@@ -43,6 +43,7 @@ export function Mail({
     return tasks.filter(task => {
         if (tab === "active") return task.status === "active";
         if (tab === "completed") return task.status === "completed";
+        if (tab === "archived") return task.status === "archived";
         return true;
     });
   }, [tasks, tab]);
@@ -89,6 +90,7 @@ export function Mail({
               <TabsList className="ml-auto">
                 <TabsTrigger value="active">Active</TabsTrigger>
                 <TabsTrigger value="completed">Completed</TabsTrigger>
+                <TabsTrigger value="archived">Archived</TabsTrigger>
               </TabsList>
             </div>
             <Separator />

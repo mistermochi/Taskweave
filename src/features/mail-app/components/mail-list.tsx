@@ -96,15 +96,6 @@ export function MailList({ items, tags }: MailListProps) {
                       <div className="font-semibold line-clamp-1">{item.title}</div>
                       {item.energy === 'High' && <span className="flex h-2 w-2 rounded-full bg-blue-600" />}
                     </div>
-                    <div
-                      className={cn(
-                        "ml-auto text-xs whitespace-nowrap",
-                        selectedMail?.id === item.id ? "text-foreground" : "text-muted-foreground"
-                      )}>
-                      {formatDistanceToNow(new Date(item.dueDate || item.assignedDate || item.createdAt), {
-                        addSuffix: true
-                      })}
-                    </div>
                   </div>
                 </div>
                 {item.notes && (
@@ -138,16 +129,16 @@ export function MailList({ items, tags }: MailListProps) {
                       {item.energy}
                     </Badge>
                   )}
-                  {item.dueDate && (
-                    <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-red-500/30 text-red-500">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(item.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    </Badge>
-                  )}
                   {item.assignedDate && (
                     <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-blue-500/30 text-blue-400">
                       <Clock className="h-3 w-3" />
                       {new Date(item.assignedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </Badge>
+                  )}
+                  {item.dueDate && (
+                    <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-red-500/30 text-red-500">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(item.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </Badge>
                   )}
                   {item.recurrence && (

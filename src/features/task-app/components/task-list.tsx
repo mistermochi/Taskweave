@@ -42,34 +42,54 @@ export function TaskList({ items, tags }: TaskListProps) {
     const tomorrow: Task[] = [];
     const upcoming: Task[] = [];
     const later: Task[] = [];
+    const completed: Task[] = [];
 
     const now = startOfToday();
+    const endOfToday = now.getTime() + 86400000;
 
     items.forEach(task => {
         const date = task.dueDate || task.assignedDate || task.createdAt;
         const taskDate = new Date(date);
 
         if (task.status === 'completed') {
-            later.push(task);
-        } else if (isPast(taskDate) && !isToday(taskDate)) {
-            overdue.push(task);
-        } else if (isToday(taskDate)) {
+            completed.push(task);
+        } else if (task.isFocused || (task.assignedDate && task.assignedDate >= now.getTime() && task.assignedDate < endOfToday)) {
             today.push(task);
+        } else if (task.dueDate && task.dueDate < endOfToday) {
+            overdue.push(task);
         } else if (isTomorrow(taskDate)) {
             tomorrow.push(task);
-        } else if (taskDate > now) {
+        } else if (taskDate.getTime() >= endOfToday) {
             upcoming.push(task);
         } else {
             later.push(task);
         }
     });
 
+    // Sorting
+    overdue.sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0));
+    today.sort((a, b) => ((b.isFocused ? 1 : 0) - (a.isFocused ? 1 : 0)) || ((a.assignedDate || 0) - (b.assignedDate || 0)));
+    tomorrow.sort((a, b) => (a.assignedDate || a.dueDate || 0) - (b.assignedDate || b.dueDate || 0));
+    upcoming.sort((a, b) => (a.assignedDate || a.dueDate || 0) - (b.assignedDate || b.dueDate || 0));
+
+    const inboxSort = (a: Task, b: Task) => {
+        // Shortest duration first
+        const durationDiff = a.duration - b.duration;
+        if (durationDiff !== 0) return durationDiff;
+        // Then newest first
+        return b.createdAt - a.createdAt;
+    };
+
+    later.sort(inboxSort);
+    completed.sort((a, b) => (b.completedAt || b.createdAt) - (a.completedAt || a.createdAt));
+
     const result: GroupedTasks[] = [];
     if (overdue.length) result.push({ label: "Overdue", tasks: overdue });
     if (today.length) result.push({ label: "Today", tasks: today });
     if (tomorrow.length) result.push({ label: "Tomorrow", tasks: tomorrow });
     if (upcoming.length) result.push({ label: "Upcoming", tasks: upcoming });
-    if (later.length) result.push({ label: items[0]?.status === 'completed' ? "Completed" : "Later", tasks: later });
+    if (later.length) result.push({ label: "Later", tasks: later });
+    if (completed.length) result.push({ label: "Completed", tasks: completed });
 
     return result;
   }, [items]);

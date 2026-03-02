@@ -22,6 +22,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/shared/ui/ui/sheet";
 import { Button } from "@/shared/ui/ui/button";
 import { DialogHeader, DialogTitle } from "@/shared/ui/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { Tag } from "@/entities/tag";
+import { Task } from "@/entities/task";
+import { MailTagTree } from "./mail-tag-tree";
 
 const accounts = [
   {
@@ -31,7 +34,12 @@ const accounts = [
   }
 ];
 
-export function NavMobile() {
+interface NavMobileProps {
+  tags: Tag[];
+  tasks: Task[];
+}
+
+export function NavMobile({ tags, tasks }: NavMobileProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -96,46 +104,7 @@ export function NavMobile() {
 
         <Separator />
 
-        <Nav
-          isCollapsed={false}
-          links={[
-            {
-              title: "Social",
-              label: "972",
-              icon: Users2,
-              dot: <span className="me-2 size-3.5 rounded-full bg-indigo-400 dark:bg-indigo-700" />,
-              variant: "ghost"
-            },
-            {
-              title: "Updates",
-              label: "342",
-              icon: AlertCircle,
-              dot: <span className="me-2 size-3.5 rounded-full bg-teal-400 dark:bg-teal-700" />,
-              variant: "ghost"
-            },
-            {
-              title: "Forums",
-              label: "128",
-              icon: MessagesSquare,
-              dot: <span className="me-2 size-3.5 rounded-full bg-orange-400 dark:bg-orange-700" />,
-              variant: "ghost"
-            },
-            {
-              title: "Shopping",
-              label: "8",
-              icon: ShoppingCart,
-              dot: <span className="me-2 size-3.5 rounded-full bg-lime-400 dark:bg-lime-700" />,
-              variant: "ghost"
-            },
-            {
-              title: "Promotions",
-              label: "21",
-              icon: Archive,
-              dot: <span className="me-2 size-3.5 rounded-full bg-pink-400 dark:bg-pink-700" />,
-              variant: "ghost"
-            }
-          ]}
-        />
+        <MailTagTree isCollapsed={false} tags={tags} tasks={tasks} />
       </SheetContent>
     </Sheet>
   );

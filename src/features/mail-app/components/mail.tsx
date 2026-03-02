@@ -36,17 +36,26 @@ export function Mail({
 }: MailProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
   const isMobile = useIsMobile();
-  const { selectedMail } = useMailStore();
+  const { selectedMail, selectedTagId } = useMailStore();
   const [tab, setTab] = React.useState("active");
 
   const filteredTasks = React.useMemo(() => {
     return tasks.filter(task => {
-        if (tab === "active") return task.status === "active";
-        if (tab === "completed") return task.status === "completed";
-        if (tab === "archived") return task.status === "archived";
+        // Status filter
+        if (tab === "active" && task.status !== "active") return false;
+        if (tab === "completed" && task.status !== "completed") return false;
+        if (tab === "archived" && task.status !== "archived") return false;
+
+        // Tag filter
+        if (selectedTagId) {
+            const tag = tags.find(t => t.id === selectedTagId);
+            if (!tag) return false;
+            if (task.category !== tag.id && task.category !== tag.name) return false;
+        }
+
         return true;
     });
-  }, [tasks, tab]);
+  }, [tasks, tab, selectedTagId, tags]);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -70,9 +79,12 @@ export function Mail({
                 setIsCollapsed(isNowCollapsed);
                 document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
               }}
-              className={cn(isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out")}
+              className={cn(
+                "flex flex-col h-full",
+                isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out"
+              )}
             >
-              <NavDesktop isCollapsed={isCollapsed} />
+              <NavDesktop isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
             </ResizablePanel>
             <ResizableHandle withHandle />
           </>
@@ -84,7 +96,7 @@ export function Mail({
             onValueChange={(value) => setTab(value)}>
             <div className="flex items-center px-4 py-2">
               <div className="flex items-center gap-2">
-                {isMobile && <NavMobile />}
+                {isMobile && <NavMobile tags={tags} tasks={tasks} />}
                 <h1 className="text-xl font-bold">Inbox</h1>
               </div>
               <TabsList className="ml-auto">

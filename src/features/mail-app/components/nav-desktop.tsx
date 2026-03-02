@@ -18,6 +18,10 @@ import { Separator } from "@/shared/ui/ui/separator";
 import * as React from "react";
 import { cn } from "@/shared/lib/utils";
 import { AccountSwitcher } from "./account-switcher";
+import { Tag } from "@/entities/tag";
+import { Task } from "@/entities/task";
+import { MailTagTree } from "./mail-tag-tree";
+
 const accounts = [
   {
     label: "Personal Tasks",
@@ -28,15 +32,17 @@ const accounts = [
 
 interface NavDesktopProps {
   isCollapsed: boolean;
+  tags: Tag[];
+  tasks: Task[];
 }
 
-export function NavDesktop({ isCollapsed }: NavDesktopProps) {
+export function NavDesktop({ isCollapsed, tags, tasks }: NavDesktopProps) {
   return (
     <>
       <div
         className={cn(
           "flex h-[52px] items-center justify-center",
-          isCollapsed ? "h-[52px]" : "px-2"
+          isCollapsed ? "h-[52px]" : "px-0"
         )}>
         <AccountSwitcher isCollapsed={isCollapsed} accounts={accounts} />
       </div>
@@ -87,46 +93,7 @@ export function NavDesktop({ isCollapsed }: NavDesktopProps) {
 
       <Separator />
 
-      <Nav
-        isCollapsed={isCollapsed}
-        links={[
-          {
-            title: "Social",
-            label: "972",
-            icon: Users2,
-            dot: <span className="me-2 size-3.5 rounded-full bg-indigo-400 dark:bg-indigo-700" />,
-            variant: "ghost"
-          },
-          {
-            title: "Updates",
-            label: "342",
-            icon: AlertCircle,
-            dot: <span className="me-2 size-3.5 rounded-full bg-teal-400 dark:bg-teal-700" />,
-            variant: "ghost"
-          },
-          {
-            title: "Forums",
-            label: "128",
-            icon: MessagesSquare,
-            dot: <span className="me-2 size-3.5 rounded-full bg-orange-400 dark:bg-orange-700" />,
-            variant: "ghost"
-          },
-          {
-            title: "Shopping",
-            label: "8",
-            icon: ShoppingCart,
-            dot: <span className="me-2 size-3.5 rounded-full bg-lime-400 dark:bg-lime-700" />,
-            variant: "ghost"
-          },
-          {
-            title: "Promotions",
-            label: "21",
-            icon: Archive,
-            dot: <span className="me-2 size-3.5 rounded-full bg-pink-400 dark:bg-pink-700" />,
-            variant: "ghost"
-          }
-        ]}
-      />
+      <MailTagTree isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
     </>
   );
 }

@@ -6,11 +6,15 @@ type TaskAppStore = {
   setSelectedTask: (task: Task | null) => void;
   selectedTagId: string | null;
   setSelectedTagId: (tagId: string | null) => void;
+  showSettings: boolean;
+  setShowSettings: (show: boolean) => void;
 };
 
 export const useTaskAppStore = create<TaskAppStore>((set) => ({
   selectedTask: null,
   setSelectedTask: (task) => set({ selectedTask: task }),
   selectedTagId: null,
-  setSelectedTagId: (tagId) => set({ selectedTagId: tagId })
+  setSelectedTagId: (tagId) => set({ selectedTagId: tagId }),
+  showSettings: false,
+  setShowSettings: (show) => set({ showSettings: show, selectedTask: show ? null : null })
 }));

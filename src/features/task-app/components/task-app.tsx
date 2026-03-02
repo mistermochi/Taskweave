@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
 import { TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { TaskDisplay } from "./task-display";
 import { TaskList } from "./task-list";
+import { SettingsView } from "@/features/settings";
 import { Task } from "@/entities/task";
 import { Tag } from "@/entities/tag";
 import { useTaskAppStore } from "../use-task-app";
@@ -36,7 +37,7 @@ export function TaskApp({
 }: TaskAppProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
   const isMobile = useIsMobile();
-  const { selectedTask, selectedTagId } = useTaskAppStore();
+  const { selectedTask, selectedTagId, showSettings, setShowSettings } = useTaskAppStore();
   const [tab, setTab] = React.useState("active");
 
   const filteredTasks = React.useMemo(() => {
@@ -90,37 +91,41 @@ export function TaskApp({
           </>
         )}
         <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
-          <Tabs
-            defaultValue="all"
-            className="flex h-full flex-col gap-0"
-            onValueChange={(value) => setTab(value)}>
-            <div className="flex items-center px-4 py-2">
-              <div className="flex items-center gap-2">
-                {isMobile && <NavMobile tags={tags} tasks={tasks} />}
-                <h1 className="text-xl font-bold">Inbox</h1>
-              </div>
-              <TabsList className="ml-auto">
-                <TabsTrigger value="active">Active</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
-                <TabsTrigger value="archived">Archived</TabsTrigger>
-              </TabsList>
-            </div>
-            <Separator />
-            <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 p-4 backdrop-blur">
-              <form>
-                <div className="relative">
-                  <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
-                  <Input placeholder="Search" className="pl-8" />
+          {showSettings ? (
+            <SettingsView />
+          ) : (
+            <Tabs
+              defaultValue="all"
+              className="flex h-full flex-col gap-0"
+              onValueChange={(value) => setTab(value)}>
+              <div className="flex items-center px-4 py-2">
+                <div className="flex items-center gap-2">
+                  {isMobile && <NavMobile tags={tags} tasks={tasks} />}
+                  <h1 className="text-xl font-bold">Inbox</h1>
                 </div>
-              </form>
-            </div>
-            <div className="min-h-0">
-              <TaskList
-                items={filteredTasks}
-                tags={tags}
-              />
-            </div>
-          </Tabs>
+                <TabsList className="ml-auto">
+                  <TabsTrigger value="active">Active</TabsTrigger>
+                  <TabsTrigger value="completed">Completed</TabsTrigger>
+                  <TabsTrigger value="archived">Archived</TabsTrigger>
+                </TabsList>
+              </div>
+              <Separator />
+              <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 p-4 backdrop-blur">
+                <form>
+                  <div className="relative">
+                    <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
+                    <Input placeholder="Search" className="pl-8" />
+                  </div>
+                </form>
+              </div>
+              <div className="min-h-0">
+                <TaskList
+                  items={filteredTasks}
+                  tags={tags}
+                />
+              </div>
+            </Tabs>
+          )}
         </ResizablePanel>
         {!isMobile && (
           <>

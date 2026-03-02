@@ -6,6 +6,7 @@ import {
   File,
   Inbox,
   Send,
+  Settings,
   Trash2,
 } from "lucide-react";
 
@@ -82,6 +83,12 @@ export function NavDesktop({ isCollapsed, tags, tasks }: NavDesktopProps) {
             title: "Archive",
             label: "",
             icon: Archive,
+            variant: "ghost"
+          },
+          {
+            title: "Settings",
+            label: "",
+            icon: Settings,
             variant: "ghost"
           }
         ]}

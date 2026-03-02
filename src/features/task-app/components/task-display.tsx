@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { addDays, addHours, format, nextSaturday } from "date-fns";
 import {
   Archive,
@@ -14,7 +14,8 @@ import {
   ReplyAll,
   Tag,
   Trash2,
-  Zap
+  Zap,
+  Plus
 } from "lucide-react";
 
 import { DropdownMenuContent, DropdownMenuItem } from "@/shared/ui/ui/dropdown-menu";
@@ -39,6 +40,7 @@ interface TaskDisplayProps {
 export function TaskDisplay({ task, tags }: TaskDisplayProps) {
   const today = new Date();
   const [title, setTitle] = useState("");
+  const titleInputRef = useRef<HTMLTextAreaElement>(null);
 
   const getTagInfo = (categoryId: string | undefined) => {
     if (!categoryId) return null;
@@ -83,6 +85,11 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
     } finally {
         setIsSaving(false);
     }
+  };
+
+  const addNLPAttribute = (prefix: string) => {
+    setTitle(prev => prev.trim() + " " + prefix);
+    setTimeout(() => titleInputRef.current?.focus(), 0);
   };
 
   return (
@@ -225,6 +232,7 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
         <div className="flex flex-1 flex-col overflow-y-auto">
           <div className="flex flex-col gap-4 p-4">
             <Textarea
+              ref={titleInputRef}
               className="resize-none border-none p-0 text-2xl font-bold focus-visible:ring-0 bg-transparent min-h-[40px]"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -233,49 +241,90 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
             />
 
             <div className="flex flex-wrap items-center gap-2">
-                {(parsed.attributes.tagKeyword || task.category) && (() => {
+                {(() => {
                     const info = getTagInfo(parsed.attributes.tagKeyword || task.category);
                     return info ? (
                         <Badge
                             variant="secondary"
-                            className="flex items-center gap-1"
+                            className="flex items-center gap-1 cursor-pointer"
                             style={info.color ? { backgroundColor: `${info.color}33`, color: info.color, borderColor: `${info.color}66` } : {}}
+                            onClick={() => addNLPAttribute("#")}
                         >
                             <Tag className="h-3 w-3" />
                             {info.name}
                         </Badge>
-                    ) : null;
+                    ) : (
+                        <Badge
+                            variant="outline"
+                            className="flex items-center gap-1 border-dashed text-muted-foreground/60 hover:text-foreground cursor-pointer transition-colors"
+                            onClick={() => addNLPAttribute("#")}
+                        >
+                            <Plus className="h-3 w-3" />
+                            Add Project
+                        </Badge>
+                    );
                 })()}
-                {(parsed.attributes.energy || task.energy) && (
-                    <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-500">
+
+                {(parsed.attributes.energy || task.energy) ? (
+                    <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-500 cursor-pointer" onClick={() => addNLPAttribute("!")}>
                         <Zap className="h-3 w-3" />
                         {parsed.attributes.energy || task.energy}
                     </Badge>
+                ) : (
+                    <Badge variant="outline" className="flex items-center gap-1 border-dashed text-muted-foreground/60 hover:text-foreground cursor-pointer transition-colors" onClick={() => addNLPAttribute("!")}>
+                        <Plus className="h-3 w-3" />
+                        Add Energy
+                    </Badge>
                 )}
-                {((parsed.attributes.duration ?? task.duration) > 0) && (
-                    <Badge variant="outline" className="flex items-center gap-1">
+
+                {((parsed.attributes.duration ?? task.duration) > 0) ? (
+                    <Badge variant="outline" className="flex items-center gap-1 cursor-pointer" onClick={() => addNLPAttribute("~")}>
                         <Clock className="h-3 w-3" />
                         {parsed.attributes.duration ?? task.duration}m
                     </Badge>
+                ) : (
+                    <Badge variant="outline" className="flex items-center gap-1 border-dashed text-muted-foreground/60 hover:text-foreground cursor-pointer transition-colors" onClick={() => addNLPAttribute("~")}>
+                        <Plus className="h-3 w-3" />
+                        Add Duration
+                    </Badge>
                 )}
-                {(parsed.attributes.assignedDate ?? task.assignedDate) && (
-                    <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-400">
+
+                {(parsed.attributes.assignedDate ?? task.assignedDate) ? (
+                    <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-400 cursor-pointer" onClick={() => addNLPAttribute("@")}>
                         <Clock className="h-3 w-3" />
                         {new Date(parsed.attributes.assignedDate ?? task.assignedDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </Badge>
+                ) : (
+                    <Badge variant="outline" className="flex items-center gap-1 border-dashed text-muted-foreground/60 hover:text-foreground cursor-pointer transition-colors" onClick={() => addNLPAttribute("@")}>
+                        <Plus className="h-3 w-3" />
+                        Schedule
+                    </Badge>
                 )}
-                {(parsed.attributes.dueDate ?? task.dueDate) && (
-                    <Badge variant="outline" className="flex items-center gap-1 border-red-500/30 text-red-500">
+
+                {(parsed.attributes.dueDate ?? task.dueDate) ? (
+                    <Badge variant="outline" className="flex items-center gap-1 border-red-500/30 text-red-500 cursor-pointer" onClick={() => addNLPAttribute("by:")}>
                         <CalendarIcon className="h-3 w-3" />
                         {new Date(parsed.attributes.dueDate ?? task.dueDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </Badge>
+                ) : (
+                    <Badge variant="outline" className="flex items-center gap-1 border-dashed text-muted-foreground/60 hover:text-foreground cursor-pointer transition-colors" onClick={() => addNLPAttribute("by:")}>
+                        <Plus className="h-3 w-3" />
+                        Set Deadline
+                    </Badge>
                 )}
-                {(parsed.attributes.recurrence ?? task.recurrence) && (
-                    <Badge variant="outline" className="flex items-center gap-1 border-purple-500/30 text-purple-400">
+
+                {(parsed.attributes.recurrence ?? task.recurrence) ? (
+                    <Badge variant="outline" className="flex items-center gap-1 border-purple-500/30 text-purple-400 cursor-pointer" onClick={() => addNLPAttribute("repeat:")}>
                         <Repeat className="h-3 w-3" />
                         {formatRecurrence(parsed.attributes.recurrence ?? task.recurrence)}
                     </Badge>
+                ) : (
+                    <Badge variant="outline" className="flex items-center gap-1 border-dashed text-muted-foreground/60 hover:text-foreground cursor-pointer transition-colors" onClick={() => addNLPAttribute("repeat:")}>
+                        <Plus className="h-3 w-3" />
+                        Make Recurring
+                    </Badge>
                 )}
+
                 {task.blockedBy?.length > 0 && (
                     <Badge variant="outline" className="flex items-center gap-1 border-orange-500/30 text-orange-500">
                         <Layers className="h-3 w-3" />
@@ -289,10 +338,18 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
             <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
               <div className="grid gap-4">
                 <Textarea
-                  className="min-h-[300px] p-4 bg-muted/20"
+                  className="min-h-[48px] max-h-[144px] p-4 bg-muted/20 resize-none overflow-y-auto"
                   placeholder={`Task notes and details...`}
                   value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  onChange={(e) => {
+                      setNotes(e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${Math.min(144, Math.max(48, e.target.scrollHeight))}px`;
+                  }}
+                  onFocus={(e) => {
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${Math.min(144, Math.max(48, e.target.scrollHeight))}px`;
+                  }}
                 />
                 <div className="flex items-center">
                   <Button type="submit" size="sm" className="ml-auto" disabled={isSaving}>

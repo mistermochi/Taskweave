@@ -15,7 +15,7 @@ import {
   Trash2,
   Zap
 } from "lucide-react";
-import { useMailStore } from "../use-mail";
+import { useTaskAppStore } from "../use-task-app";
 
 import { DropdownMenuContent, DropdownMenuItem } from "@/shared/ui/ui/dropdown-menu";
 import { Badge } from "@/shared/ui/ui/badge";
@@ -34,15 +34,15 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { parseTaskInput } from "@/shared/lib/textParserUtils";
 import { formatRecurrence } from "@/shared/lib/timeUtils";
 
-interface MailDisplayProps {
-  mail: Task | null;
+interface TaskDisplayProps {
+  task: Task | null;
   tags: TagEntity[];
 }
 
-export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
+export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
   const [open, setOpen] = React.useState(false);
   const today = new Date();
-  const { selectedMail, setSelectedMail } = useMailStore();
+  const { selectedTask, setSelectedTask } = useTaskAppStore();
 
   const getTagInfo = (categoryId: string | undefined) => {
     if (!categoryId) return null;
@@ -56,36 +56,36 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (selectedMail) {
+    if (selectedTask) {
       setOpen(true);
-      setTitle(selectedMail.title);
-      setNotes(selectedMail.notes || "");
+      setTitle(selectedTask.title);
+      setNotes(selectedTask.notes || "");
     }
-  }, [selectedMail]);
+  }, [selectedTask]);
 
   useEffect(() => {
     if (!open) {
-      setSelectedMail(null);
+      setSelectedTask(null);
     }
-  }, [open, setSelectedMail]);
+  }, [open, setSelectedTask]);
 
   const parsed = useMemo(() => {
     return parseTaskInput(title);
   }, [title]);
 
   const handleSave = async () => {
-    if (!mail) return;
+    if (!task) return;
     setIsSaving(true);
     try {
-        await taskApi.updateTask(mail.id, {
+        await taskApi.updateTask(task.id, {
             title: parsed.cleanTitle,
             notes: notes,
-            energy: parsed.attributes.energy || mail.energy,
-            duration: parsed.attributes.duration ?? mail.duration,
-            dueDate: parsed.attributes.dueDate ?? mail.dueDate,
-            assignedDate: parsed.attributes.assignedDate ?? mail.assignedDate,
-            recurrence: parsed.attributes.recurrence ?? mail.recurrence,
-            category: parsed.attributes.tagKeyword || mail.category
+            energy: parsed.attributes.energy || task.energy,
+            duration: parsed.attributes.duration ?? task.duration,
+            dueDate: parsed.attributes.dueDate ?? task.dueDate,
+            assignedDate: parsed.attributes.assignedDate ?? task.assignedDate,
+            recurrence: parsed.attributes.recurrence ?? task.recurrence,
+            category: parsed.attributes.tagKeyword || task.category
         });
         setTitle(parsed.cleanTitle);
     } catch (e) {
@@ -100,7 +100,7 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
       <DrawerContent>
         <VisuallyHidden>
           <DialogHeader>
-            <DialogTitle>Mail Display</DialogTitle>
+            <DialogTitle>Task Display</DialogTitle>
           </DialogHeader>
         </VisuallyHidden>
 
@@ -109,7 +109,7 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
             <div className="flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" disabled={!mail}>
+                  <Button variant="ghost" size="icon" disabled={!task}>
                     <Archive className="h-4 w-4" />
                     <span className="sr-only">Archive</span>
                   </Button>
@@ -119,7 +119,7 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" disabled={!mail}>
+                  <Button variant="ghost" size="icon" disabled={!task}>
                     <ArchiveX className="h-4 w-4" />
                     <span className="sr-only">Move to junk</span>
                   </Button>
@@ -129,7 +129,7 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" disabled={!mail}>
+                  <Button variant="ghost" size="icon" disabled={!task}>
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Move to trash</span>
                   </Button>
@@ -143,7 +143,7 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
                 <Popover>
                   <PopoverTrigger asChild>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" disabled={!mail}>
+                      <Button variant="ghost" size="icon" disabled={!task}>
                         <Clock className="h-4 w-4" />
                         <span className="sr-only">Snooze</span>
                       </Button>
@@ -191,7 +191,7 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
             <div className="ml-auto flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" disabled={!mail}>
+                  <Button variant="ghost" size="icon" disabled={!task}>
                     <Reply className="h-4 w-4" />
                     <span className="sr-only">Reply</span>
                   </Button>
@@ -200,7 +200,7 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" disabled={!mail}>
+                  <Button variant="ghost" size="icon" disabled={!task}>
                     <ReplyAll className="h-4 w-4" />
                     <span className="sr-only">Reply all</span>
                   </Button>
@@ -209,7 +209,7 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" disabled={!mail}>
+                  <Button variant="ghost" size="icon" disabled={!task}>
                     <Forward className="h-4 w-4" />
                     <span className="sr-only">Forward</span>
                   </Button>
@@ -222,7 +222,7 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" disabled={!mail}>
+                <Button variant="ghost" size="icon" disabled={!task}>
                   <MoreVertical className="h-4 w-4" />
                   <span className="sr-only">More</span>
                 </Button>
@@ -237,7 +237,7 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
 
           <Separator />
 
-          {mail && (
+          {task && (
             <div className="flex flex-1 flex-col overflow-y-auto">
               <div className="flex flex-col gap-4 p-4">
                 <Textarea
@@ -249,8 +249,8 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
                 />
 
                 <div className="flex flex-wrap items-center gap-2">
-                    {(parsed.attributes.tagKeyword || mail.category) && (() => {
-                        const info = getTagInfo(parsed.attributes.tagKeyword || mail.category);
+                    {(parsed.attributes.tagKeyword || task.category) && (() => {
+                        const info = getTagInfo(parsed.attributes.tagKeyword || task.category);
                         return info ? (
                             <Badge
                                 variant="secondary"
@@ -262,40 +262,40 @@ export function MailDisplayMobile({ mail, tags }: MailDisplayProps) {
                             </Badge>
                         ) : null;
                     })()}
-                    {(parsed.attributes.energy || mail.energy) && (
+                    {(parsed.attributes.energy || task.energy) && (
                         <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-500">
                             <Zap className="h-3 w-3" />
-                            {parsed.attributes.energy || mail.energy}
+                            {parsed.attributes.energy || task.energy}
                         </Badge>
                     )}
-                    {((parsed.attributes.duration ?? mail.duration) > 0) && (
+                    {((parsed.attributes.duration ?? task.duration) > 0) && (
                         <Badge variant="outline" className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {parsed.attributes.duration ?? mail.duration}m
+                            {parsed.attributes.duration ?? task.duration}m
                         </Badge>
                     )}
-                    {(parsed.attributes.assignedDate ?? mail.assignedDate) && (
+                    {(parsed.attributes.assignedDate ?? task.assignedDate) && (
                         <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-400">
                             <Clock className="h-3 w-3" />
-                            {new Date(parsed.attributes.assignedDate ?? mail.assignedDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            {new Date(parsed.attributes.assignedDate ?? task.assignedDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </Badge>
                     )}
-                    {(parsed.attributes.dueDate ?? mail.dueDate) && (
+                    {(parsed.attributes.dueDate ?? task.dueDate) && (
                         <Badge variant="outline" className="flex items-center gap-1 border-red-500/30 text-red-500">
                             <CalendarIcon className="h-3 w-3" />
-                            {new Date(parsed.attributes.dueDate ?? mail.dueDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            {new Date(parsed.attributes.dueDate ?? task.dueDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </Badge>
                     )}
-                    {(parsed.attributes.recurrence ?? mail.recurrence) && (
+                    {(parsed.attributes.recurrence ?? task.recurrence) && (
                         <Badge variant="outline" className="flex items-center gap-1 border-purple-500/30 text-purple-400">
                             <Repeat className="h-3 w-3" />
-                            {formatRecurrence(parsed.attributes.recurrence ?? mail.recurrence)}
+                            {formatRecurrence(parsed.attributes.recurrence ?? task.recurrence)}
                         </Badge>
                     )}
-                    {mail.blockedBy?.length > 0 && (
+                    {task.blockedBy?.length > 0 && (
                         <Badge variant="outline" className="flex items-center gap-1 border-orange-500/30 text-orange-500">
                             <Layers className="h-3 w-3" />
-                            {mail.blockedBy.length}
+                            {task.blockedBy.length}
                         </Badge>
                     )}
                 </div>

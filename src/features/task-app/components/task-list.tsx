@@ -1,5 +1,5 @@
 import { ComponentProps, useMemo } from "react";
-import { formatDistanceToNow, isToday, isPast, isTomorrow, startOfToday } from "date-fns";
+import { isToday, isPast, isTomorrow, startOfToday } from "date-fns";
 import {
   Calendar,
   Clock,
@@ -10,14 +10,14 @@ import {
 } from "lucide-react";
 import { Task } from "@/entities/task";
 import { Tag } from "@/entities/tag";
-import { useMailStore } from "../use-mail";
+import { useTaskAppStore } from "../use-task-app";
 import { cn } from "@/shared/lib/utils";
 import { formatRecurrence } from "@/shared/lib/timeUtils";
 
 import { Badge } from "@/shared/ui/ui/badge";
 import { ScrollArea } from "@/shared/ui/ui/scroll-area";
 
-interface MailListProps {
+interface TaskListProps {
   items: Task[];
   tags: Tag[];
 }
@@ -27,8 +27,8 @@ type GroupedTasks = {
     tasks: Task[];
 };
 
-export function MailList({ items, tags }: MailListProps) {
-  const { selectedMail, setSelectedMail } = useMailStore();
+export function TaskList({ items, tags }: TaskListProps) {
+  const { selectedTask, setSelectedTask } = useTaskAppStore();
 
   const getTagInfo = (categoryId: string) => {
     const tag = tags.find(t => t.id === categoryId);
@@ -87,9 +87,9 @@ export function MailList({ items, tags }: MailListProps) {
                 key={item.id}
                 className={cn(
                   "hover:bg-accent/70 flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all",
-                  selectedMail?.id === item.id && "bg-accent/70"
+                  selectedTask?.id === item.id && "bg-accent/70"
                 )}
-                onClick={() => setSelectedMail(item)}>
+                onClick={() => setSelectedTask(item)}>
                 <div className="flex w-full flex-col gap-1">
                   <div className="flex items-center">
                     <div className="flex items-center gap-2">
@@ -161,16 +161,4 @@ export function MailList({ items, tags }: MailListProps) {
       </div>
     </ScrollArea>
   );
-}
-
-function getBadgeVariantFromLabel(label: string): ComponentProps<typeof Badge>["variant"] {
-  if (["work"].includes(label.toLowerCase())) {
-    return "default";
-  }
-
-  if (["personal"].includes(label.toLowerCase())) {
-    return "outline";
-  }
-
-  return "secondary";
 }

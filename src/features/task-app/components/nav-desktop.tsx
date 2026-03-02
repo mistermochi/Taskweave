@@ -1,16 +1,12 @@
 "use client";
 
 import {
-  AlertCircle,
   Archive,
   ArchiveX,
   File,
   Inbox,
-  MessagesSquare,
   Send,
-  ShoppingCart,
   Trash2,
-  Users2
 } from "lucide-react";
 
 import { Nav } from "./nav";
@@ -20,7 +16,7 @@ import { cn } from "@/shared/lib/utils";
 import { AccountSwitcher } from "./account-switcher";
 import { Tag } from "@/entities/tag";
 import { Task } from "@/entities/task";
-import { MailTagTree } from "./mail-tag-tree";
+import { TaskTagTree } from "./task-tag-tree";
 
 const accounts = [
   {
@@ -54,13 +50,13 @@ export function NavDesktop({ isCollapsed, tags, tasks }: NavDesktopProps) {
         links={[
           {
             title: "Inbox",
-            label: "128",
+            label: tasks.filter(t => t.status === 'active').length.toString(),
             icon: Inbox,
             variant: "default"
           },
           {
             title: "Drafts",
-            label: "9",
+            label: "",
             icon: File,
             variant: "ghost"
           },
@@ -72,7 +68,7 @@ export function NavDesktop({ isCollapsed, tags, tasks }: NavDesktopProps) {
           },
           {
             title: "Junk",
-            label: "23",
+            label: "",
             icon: ArchiveX,
             variant: "ghost"
           },
@@ -93,7 +89,7 @@ export function NavDesktop({ isCollapsed, tags, tasks }: NavDesktopProps) {
 
       <Separator />
 
-      <MailTagTree isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
+      <TaskTagTree isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
     </>
   );
 }

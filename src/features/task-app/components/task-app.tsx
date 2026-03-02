@@ -10,16 +10,16 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/shared/u
 import { Separator } from "@/shared/ui/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
 import { TooltipProvider } from "@/shared/ui/ui/tooltip";
-import { MailDisplay } from "./mail-display";
-import { MailList } from "./mail-list";
+import { TaskDisplay } from "./task-display";
+import { TaskList } from "./task-list";
 import { Task } from "@/entities/task";
 import { Tag } from "@/entities/tag";
-import { useMailStore } from "../use-mail";
+import { useTaskAppStore } from "../use-task-app";
 import { NavDesktop } from "./nav-desktop";
 import { NavMobile } from "./nav-mobile";
-import { MailDisplayMobile } from "./mail-display-mobile";
+import { TaskDisplayMobile } from "./task-display-mobile";
 
-interface MailProps {
+interface TaskAppProps {
   tasks: Task[];
   tags: Tag[];
   defaultLayout: number[] | undefined;
@@ -27,16 +27,16 @@ interface MailProps {
   navCollapsedSize: number;
 }
 
-export function Mail({
+export function TaskApp({
   tasks,
   tags,
   defaultLayout = [20, 32, 48],
   defaultCollapsed = false,
   navCollapsedSize
-}: MailProps) {
+}: TaskAppProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
   const isMobile = useIsMobile();
-  const { selectedMail, selectedTagId } = useMailStore();
+  const { selectedTask, selectedTagId } = useTaskAppStore();
   const [tab, setTab] = React.useState("active");
 
   const filteredTasks = React.useMemo(() => {
@@ -63,7 +63,7 @@ export function Mail({
         orientation="horizontal"
         className="items-stretch"
         onLayoutChanged={(layout) => {
-          document.cookie = `react-resizable-panels:layout:mail=${JSON.stringify(layout)}`;
+          document.cookie = `react-resizable-panels:layout:task=${JSON.stringify(layout)}`;
         }}
       >
         {!isMobile && (
@@ -115,7 +115,7 @@ export function Mail({
               </form>
             </div>
             <div className="min-h-0">
-              <MailList
+              <TaskList
                 items={filteredTasks}
                 tags={tags}
               />
@@ -126,16 +126,16 @@ export function Mail({
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
-              <MailDisplay
-                mail={tasks.find((item) => item.id === selectedMail?.id) || null}
+              <TaskDisplay
+                task={tasks.find((item) => item.id === selectedTask?.id) || null}
                 tags={tags}
               />
             </ResizablePanel>
           </>
         )}
         {isMobile && (
-          <MailDisplayMobile
-            mail={tasks.find((item) => item.id === selectedMail?.id) || null}
+          <TaskDisplayMobile
+            task={tasks.find((item) => item.id === selectedTask?.id) || null}
             tags={tags}
           />
         )}

@@ -8,20 +8,39 @@ import { contextApi } from '@/entities/context';
 import { LoadingScreen } from '@/shared/ui/ui/Feedback';
 import LoginView from '@/views/LoginView';
 import { AppProvider } from '@/context/AppProvider';
-import { AppContent } from '@/components/AppContent';
-import InboxPage from "./inbox/page";
+import { TaskApp } from "@/features/task-app/components/task-app";
+import { useFirestoreCollection } from "@/hooks/useFirestore";
+import { TaskEntity } from "@/entities/task";
+import { Tag } from "@/entities/tag";
+
+/**
+ * Main Content component that handles data fetching and renders the TaskApp.
+ */
+function MainContent() {
+  const defaultLayout = [20, 32, 48];
+  const defaultCollapsed = false;
+  const { data: tasks, loading: tasksLoading } = useFirestoreCollection<TaskEntity>("tasks");
+  const { data: tags, loading: tagsLoading } = useFirestoreCollection<Tag>("tags");
+
+  if (tasksLoading || tagsLoading) {
+      return <LoadingScreen text="Loading your workspace..." />;
+  }
+
+  return (
+    <div className="h-screen rounded-md border bg-background text-foreground">
+      <TaskApp
+        tasks={tasks}
+        tags={tags}
+        defaultLayout={defaultLayout}
+        defaultCollapsed={defaultCollapsed}
+        navCollapsedSize={4}
+      />
+    </div>
+  );
+}
 
 /**
  * The main entry page for the Focus Flow application.
- * It handles the top-level application lifecycle, including:
- * - Service Worker registration for PWA capabilities.
- * - Firebase Authentication state monitoring.
- * - One-time data migration for versioning and user-scoping.
- * - User profile synchronization on login.
- *
- * @logic
- * This component acts as the application's "Bootstrapper". It ensures all
- * required data and sensors are initialized before rendering the `AppContent`.
  */
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -29,19 +48,13 @@ export default function HomePage() {
   const [loadingText, setLoadingText] = useState('Initializing...');
 
   useEffect(() => {
-    /**
-     * Registers the Service Worker for offline and PWA support.
-     */
     const registerSW = async () => {
       if ('serviceWorker' in navigator) {
         try {
-          const registration = await navigator.serviceWorker.register('/sw.js');
-          console.log('Service Worker registered:', registration.scope);
+          await navigator.serviceWorker.register('/sw.js');
         } catch (error) {
           console.error('Service Worker registration failed:', error);
         }
-      } else {
-        console.warn('Service Workers not supported');
       }
     };
 
@@ -55,15 +68,9 @@ export default function HomePage() {
             const settingsSnap = await getDoc(settingsRef);
             const currentSettings = settingsSnap.data() || {};
 
-            /**
-             * ONE-TIME DATA MIGRATION Logic.
-             * If the user hasn't been migrated to the scoped structure,
-             * it moves global tasks/tags into their specific user document.
-             */
             if (!currentSettings.migration_v1_complete) {
                 setLoadingText('Migrating data...');
                 try {
-                    console.log("Starting one-time data migration...");
                     const collectionsToMigrate = ['tasks', 'tags', 'vitals', 'activityLogs'];
                     const batch = writeBatch(db);
 
@@ -72,7 +79,6 @@ export default function HomePage() {
                         const oldDocsSnap = await getDocs(oldColRef);
 
                         if (!oldDocsSnap.empty) {
-                            console.log(`Migrating ${oldDocsSnap.size} documents from '${collectionName}'...`);
                             oldDocsSnap.forEach(oldDoc => {
                                 const newDocRef = doc(db, 'users', user.uid, collectionName, oldDoc.id);
                                 batch.set(newDocRef, oldDoc.data());
@@ -81,19 +87,12 @@ export default function HomePage() {
                     }
 
                     batch.set(settingsRef, { migration_v1_complete: true }, { merge: true });
-
                     await batch.commit();
-                    console.log("Data migration complete.");
                 } catch (e) {
                     console.error("Data migration failed:", e);
                 }
             }
 
-            /**
-             * Profile Synchronization.
-             * Updates the user's display name and photo from their Google Auth profile
-             * if they haven't set a custom one yet.
-             */
             try {
                 const updates: Record<string, unknown> = {};
                 const newName = user.displayName?.split(' ')[0];
@@ -128,12 +127,12 @@ export default function HomePage() {
   }
 
   if (!user) {
-      return <InboxPage />;
+      return <LoginView />;
   }
 
   return (
     <AppProvider>
-      <AppContent />
+      <MainContent />
     </AppProvider>
   );
 };

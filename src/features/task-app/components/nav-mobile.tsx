@@ -8,6 +8,7 @@ import {
   Inbox,
   MenuIcon,
   Send,
+  Settings,
   Trash2,
 } from "lucide-react";
 
@@ -36,14 +37,16 @@ interface NavMobileProps {
 }
 
 export function NavMobile({ tags, tasks }: NavMobileProps) {
+  const [open, setOpen] = React.useState(false);
+
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon">
           <MenuIcon />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="overflow-auto [&>button:first-of-type]:hidden">
+      <SheetContent side="left" className="overflow-auto [&>button:first-of-type]:hidden" onClick={() => setOpen(false)}>
         <VisuallyHidden>
           <DialogHeader>
             <DialogTitle>Navigation</DialogTitle>
@@ -93,6 +96,12 @@ export function NavMobile({ tags, tasks }: NavMobileProps) {
               title: "Archive",
               label: "",
               icon: Archive,
+              variant: "ghost"
+            },
+            {
+              title: "Settings",
+              label: "",
+              icon: Settings,
               variant: "ghost"
             }
           ]}

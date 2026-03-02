@@ -33,23 +33,6 @@ export function Nav({ links, isCollapsed }: NavProps) {
           const isActive = (isSettings && showSettings) || (!showSettings && link.variant === "default");
           const variant = isActive ? "default" : "ghost";
 
-          const content = (
-            <>
-              {link.dot ?? <link.icon className="size-4 shrink-0" />}
-              {!isCollapsed && <span className="flex-1 ml-2">{link.title}</span>}
-              {!isCollapsed && link.label && (
-                <span
-                  className={cn(
-                    "ml-auto",
-                    variant === "default" && "text-background dark:text-white"
-                  )}>
-                  {link.label}
-                </span>
-              )}
-              {isCollapsed && <span className="sr-only">{link.title}</span>}
-            </>
-          );
-
           const handleClick = (e: React.MouseEvent) => {
             e.preventDefault();
             if (isSettings) {
@@ -63,7 +46,8 @@ export function Nav({ links, isCollapsed }: NavProps) {
             return (
               <Tooltip key={index} delayDuration={0}>
                 <TooltipTrigger asChild>
-                  <button
+                  <Link
+                    href="#"
                     onClick={handleClick}
                     className={cn(
                       buttonVariants({ variant: variant, size: "icon" }),
@@ -71,8 +55,9 @@ export function Nav({ links, isCollapsed }: NavProps) {
                       variant === "default" &&
                         "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
                     )}>
-                    {content}
-                  </button>
+                    {link.dot ?? <link.icon className="size-4" />}
+                    <span className="sr-only">{link.title}</span>
+                  </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right" className="flex items-center gap-4">
                   {link.title}
@@ -83,17 +68,28 @@ export function Nav({ links, isCollapsed }: NavProps) {
           }
 
           return (
-            <button
+            <Link
               key={index}
+              href="#"
               onClick={handleClick}
               className={cn(
                 buttonVariants({ variant: variant, size: "sm" }),
                 variant === "default" &&
                   "dark:bg-muted dark:hover:bg-muted dark:text-white dark:hover:text-white",
-                "justify-start px-3"
+                "justify-start"
               )}>
-              {content}
-            </button>
+              {link.dot ?? <link.icon className="mr-2 h-4 w-4" />}
+              <span className="flex-1">{link.title}</span>
+              {link.label && (
+                <span
+                  className={cn(
+                    "ml-auto",
+                    variant === "default" && "text-background dark:text-white"
+                  )}>
+                  {link.label}
+                </span>
+              )}
+            </Link>
           );
         })}
       </nav>

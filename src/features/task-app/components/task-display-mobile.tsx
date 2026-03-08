@@ -25,6 +25,7 @@ import { DropdownMenu, DropdownMenuTrigger } from "@/shared/ui/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/ui/popover";
 import { Separator } from "@/shared/ui/ui/separator";
 import { Textarea } from "@/shared/ui/ui/textarea";
+import { AutoResizeTextarea } from "@/shared/ui/ui/auto-resize-textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 import { Task, taskApi } from "@/entities/task";
 import { Tag as TagEntity } from "@/entities/tag";
@@ -78,7 +79,7 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
     setIsSaving(true);
     try {
         await taskApi.updateTask(task.id, {
-            title: parsed.cleanTitle,
+            title: title,
             notes: notes,
             energy: parsed.attributes.energy || task.energy,
             duration: parsed.attributes.duration ?? task.duration,
@@ -87,7 +88,6 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
             recurrence: parsed.attributes.recurrence ?? task.recurrence,
             category: parsed.attributes.tagKeyword || task.category
         });
-        setTitle(parsed.cleanTitle);
     } catch (e) {
         console.error("Failed to save task", e);
     } finally {
@@ -240,12 +240,13 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
           {task && (
             <div className="flex flex-1 flex-col overflow-y-auto">
               <div className="flex flex-col gap-4 p-4">
-                <Textarea
-                  className="resize-none border-none p-0 text-2xl font-bold focus-visible:ring-0 bg-transparent min-h-[40px]"
+                <AutoResizeTextarea
+                  className="resize-none border-none p-0 text-2xl font-bold focus-visible:ring-0 bg-transparent"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Task Title..."
-                  rows={1}
+                  minRows={1}
+                  maxRows={4}
                 />
 
                 <div className="flex flex-wrap items-center gap-2">
@@ -306,11 +307,13 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
               <div className="p-4">
                 <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
                   <div className="grid gap-4">
-                    <Textarea
-                      className="min-h-[300px] p-4 bg-muted/20"
+                    <AutoResizeTextarea
+                      className="p-4 bg-muted/20"
                       placeholder={`Task notes and details...`}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
+                      minRows={3}
+                      maxRows={8}
                     />
                     <div className="flex items-center">
                       <Button type="submit" size="sm" className="ml-auto" disabled={isSaving}>

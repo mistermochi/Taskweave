@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { cn } from "@/shared/lib/utils";
 
@@ -9,7 +9,8 @@ import { Input } from "@/shared/ui/ui/input";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/shared/ui/ui/resizable";
 import { Separator } from "@/shared/ui/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
-import { TooltipProvider } from "@/shared/ui/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/ui/tooltip";
+import { Button } from "@/shared/ui/ui/button";
 import { TaskDisplay } from "./task-display";
 import { TaskList } from "./task-list";
 import { SettingsView } from "@/features/settings";
@@ -90,10 +91,11 @@ export function TaskApp({
             <ResizableHandle withHandle />
           </>
         )}
-        <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
+        <ResizablePanel defaultSize={defaultLayout[1]} minSize={30} className="relative">
           {showSettings ? (
             <SettingsView />
           ) : (
+            <div className="relative h-full flex flex-col">
             <Tabs
               defaultValue="all"
               className="flex h-full flex-col gap-0"
@@ -118,13 +120,37 @@ export function TaskApp({
                   </div>
                 </form>
               </div>
-              <div className="min-h-0">
+              <div className="min-h-0 flex-1">
                 <TaskList
                   items={filteredTasks}
                   tags={tags}
                 />
               </div>
             </Tabs>
+            <div className="absolute bottom-6 right-6">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            size="icon"
+                            className="h-12 w-12 rounded-full shadow-lg"
+                            onClick={() => useTaskAppStore.getState().setSelectedTask({
+                                id: "new",
+                                title: "",
+                                status: "active",
+                                category: "",
+                                energy: "Medium",
+                                duration: 0,
+                                createdAt: Date.now(),
+                                blockedBy: []
+                            } as Task)}
+                        >
+                            <Plus className="h-6 w-6" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">Create Task</TooltipContent>
+                </Tooltip>
+            </div>
+            </div>
           )}
         </ResizablePanel>
         {!isMobile && (
@@ -132,7 +158,7 @@ export function TaskApp({
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
               <TaskDisplay
-                task={tasks.find((item) => item.id === selectedTask?.id) || null}
+                task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
                 tags={tags}
               />
             </ResizablePanel>
@@ -140,7 +166,7 @@ export function TaskApp({
         )}
         {isMobile && (
           <TaskDisplayMobile
-            task={tasks.find((item) => item.id === selectedTask?.id) || null}
+            task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
             tags={tags}
           />
         )}

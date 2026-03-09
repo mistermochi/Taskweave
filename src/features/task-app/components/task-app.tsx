@@ -40,9 +40,18 @@ export function TaskApp({
   const isMobile = useIsMobile();
   const { selectedTask, selectedTagId, showSettings, setShowSettings } = useTaskAppStore();
   const [tab, setTab] = React.useState("active");
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const filteredTasks = React.useMemo(() => {
     return tasks.filter(task => {
+        // Search filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const matchesTitle = task.title.toLowerCase().includes(query);
+            const matchesNotes = task.notes?.toLowerCase().includes(query) || false;
+            if (!matchesTitle && !matchesNotes) return false;
+        }
+
         // Status filter
         if (tab === "active" && task.status !== "active") return false;
         if (tab === "completed" && task.status !== "completed") return false;
@@ -57,7 +66,7 @@ export function TaskApp({
 
         return true;
     });
-  }, [tasks, tab, selectedTagId, tags]);
+  }, [tasks, tab, selectedTagId, tags, searchQuery]);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -113,10 +122,15 @@ export function TaskApp({
               </div>
               <Separator />
               <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 p-4 backdrop-blur">
-                <form>
+                <form onSubmit={(e) => e.preventDefault()}>
                   <div className="relative">
                     <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
-                    <Input placeholder="Search" className="pl-8" />
+                    <Input
+                        placeholder="Search"
+                        className="pl-8"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                   </div>
                 </form>
               </div>

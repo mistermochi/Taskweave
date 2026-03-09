@@ -46,18 +46,24 @@ export function TaskList({ items, tags }: TaskListProps) {
     const now = startOfToday();
 
     items.forEach(task => {
-        const date = task.dueDate || task.assignedDate || task.createdAt;
-        const taskDate = new Date(date);
-
         if (task.status === 'completed') {
             later.push(task);
-        } else if (isPast(taskDate) && !isToday(taskDate)) {
+            return;
+        }
+
+        const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+        const assignedDate = task.assignedDate ? new Date(task.assignedDate) : null;
+
+        if (dueDate && isPast(dueDate) && !isToday(dueDate)) {
             overdue.push(task);
-        } else if (isToday(taskDate)) {
+        } else if (
+            (dueDate && isToday(dueDate)) ||
+            (assignedDate && (isToday(assignedDate) || isPast(assignedDate)))
+        ) {
             today.push(task);
-        } else if (isTomorrow(taskDate)) {
+        } else if ((dueDate && isTomorrow(dueDate)) || (assignedDate && isTomorrow(assignedDate))) {
             tomorrow.push(task);
-        } else if (taskDate > now) {
+        } else if ((dueDate && dueDate > now) || (assignedDate && assignedDate > now)) {
             upcoming.push(task);
         } else {
             later.push(task);

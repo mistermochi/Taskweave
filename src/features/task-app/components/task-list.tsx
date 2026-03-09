@@ -64,12 +64,39 @@ export function TaskList({ items, tags }: TaskListProps) {
         }
     });
 
+    const energyMap = { 'High': 3, 'Medium': 2, 'Low': 1 };
+
+    const sortToday = (a: Task, b: Task) => {
+        if (a.isFocused && !b.isFocused) return -1;
+        if (!a.isFocused && b.isFocused) return 1;
+        const aTime = a.assignedDate || a.dueDate || Infinity;
+        const bTime = b.assignedDate || b.dueDate || Infinity;
+        if (aTime !== bTime) return aTime - bTime;
+        const energyDiff = (energyMap[b.energy] || 2) - (energyMap[a.energy] || 2);
+        if (energyDiff !== 0) return energyDiff;
+        return (a.createdAt || 0) - (b.createdAt || 0);
+    };
+
+    const sortOverdue = (a: Task, b: Task) => (a.dueDate || 0) - (b.dueDate || 0);
+
+    const sortInbox = (a: Task, b: Task) => {
+        const durationDiff = a.duration - b.duration;
+        if (durationDiff !== 0) return durationDiff;
+        return b.createdAt - a.createdAt;
+    };
+
     const result: GroupedTasks[] = [];
-    if (overdue.length) result.push({ label: "Overdue", tasks: overdue });
-    if (today.length) result.push({ label: "Today", tasks: today });
-    if (tomorrow.length) result.push({ label: "Tomorrow", tasks: tomorrow });
-    if (upcoming.length) result.push({ label: "Upcoming", tasks: upcoming });
-    if (later.length) result.push({ label: items[0]?.status === 'completed' ? "Completed" : "Later", tasks: later });
+    if (overdue.length) result.push({ label: "Overdue", tasks: overdue.sort(sortOverdue) });
+    if (today.length) result.push({ label: "Today", tasks: today.sort(sortToday) });
+    if (tomorrow.length) result.push({ label: "Tomorrow", tasks: tomorrow.sort(sortToday) });
+    if (upcoming.length) result.push({ label: "Upcoming", tasks: upcoming.sort(sortToday) });
+    if (later.length) {
+        const label = items[0]?.status === 'completed' ? "Completed" : "Later";
+        result.push({
+            label,
+            tasks: label === "Completed" ? later.sort((a,b) => (b.completedAt || 0) - (a.completedAt || 0)) : later.sort(sortInbox)
+        });
+    }
 
     return result;
   }, [items]);

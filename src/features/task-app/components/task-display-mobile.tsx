@@ -78,16 +78,31 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
     if (!task) return;
     setIsSaving(true);
     try {
-        await taskApi.updateTask(task.id, {
-            title: title,
-            notes: notes,
-            energy: parsed.attributes.energy || task.energy,
-            duration: parsed.attributes.duration ?? task.duration,
-            dueDate: parsed.attributes.dueDate ?? task.dueDate,
-            assignedDate: parsed.attributes.assignedDate ?? task.assignedDate,
-            recurrence: parsed.attributes.recurrence ?? task.recurrence,
-            category: parsed.attributes.tagKeyword || task.category
-        });
+        if (task.id === "new") {
+            const energyValue = (parsed.attributes.energy || task.energy) === "High" ? 80 : (parsed.attributes.energy || task.energy) === "Low" ? 30 : 50;
+            await taskApi.addTask(
+                parsed.cleanTitle,
+                (parsed.attributes.tagKeyword || task.category || ""),
+                parsed.attributes.duration ?? task.duration ?? 0,
+                energyValue,
+                notes,
+                parsed.attributes.dueDate ?? task.dueDate,
+                parsed.attributes.assignedDate ?? task.assignedDate,
+                parsed.attributes.recurrence ?? task.recurrence
+            );
+            useTaskAppStore.getState().setSelectedTask(null);
+        } else {
+            await taskApi.updateTask(task.id, {
+                title: parsed.cleanTitle,
+                notes: notes,
+                energy: parsed.attributes.energy || task.energy,
+                duration: parsed.attributes.duration ?? task.duration,
+                dueDate: parsed.attributes.dueDate ?? task.dueDate,
+                assignedDate: parsed.attributes.assignedDate ?? task.assignedDate,
+                recurrence: parsed.attributes.recurrence ?? task.recurrence,
+                category: parsed.attributes.tagKeyword || task.category
+            });
+        }
     } catch (e) {
         console.error("Failed to save task", e);
     } finally {
@@ -317,7 +332,7 @@ export function TaskDisplayMobile({ task, tags }: TaskDisplayProps) {
                     />
                     <div className="flex items-center">
                       <Button type="submit" size="sm" className="ml-auto" disabled={isSaving}>
-                        {isSaving ? "Saving..." : "Save"}
+                        {isSaving ? "Saving..." : (task.id === "new" ? "Create Task" : "Save")}
                       </Button>
                     </div>
                   </div>

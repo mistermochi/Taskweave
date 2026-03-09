@@ -35,7 +35,17 @@ const AutoResizeTextarea = React.forwardRef<HTMLTextAreaElement, AutoResizeTexta
       const maxHeight = maxRows ? maxRows * lineHeight + paddingTop + paddingBottom + borderTop + borderBottom : Infinity
 
       const isBorderBox = computedStyle.boxSizing === "border-box"
-      const newHeight = Math.min(Math.max(textarea.scrollHeight + (isBorderBox ? borderTop + borderBottom : 0), minHeight), maxHeight)
+      let heightValue = textarea.scrollHeight
+      if (isBorderBox) {
+        // scrollHeight includes content and padding, but not border.
+        // border-box height includes content, padding and border.
+        heightValue += borderTop + borderBottom
+      } else {
+        // content-box height only includes content.
+        heightValue -= (paddingTop + paddingBottom)
+      }
+
+      const newHeight = Math.min(Math.max(heightValue, minHeight), maxHeight)
       textarea.style.height = `${newHeight}px`
 
       if (maxRows && textarea.scrollHeight > maxHeight) {

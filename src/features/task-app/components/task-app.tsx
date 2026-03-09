@@ -160,6 +160,7 @@ export function TaskApp({
               <TaskDisplay
                 task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
                 tags={tags}
+                allTasks={tasks}
               />
             </ResizablePanel>
           </>
@@ -168,6 +169,7 @@ export function TaskApp({
           <TaskDisplayMobile
             task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
             tags={tags}
+            allTasks={tasks}
           />
         )}
       </ResizablePanelGroup>

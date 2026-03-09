@@ -4,6 +4,7 @@ import {
   Archive,
   ArchiveX,
   Calendar as CalendarIcon,
+  Check,
   Clock,
   Forward,
   Layers,
@@ -14,6 +15,7 @@ import {
   ReplyAll,
   Tag,
   Trash2,
+  Undo2,
   Zap
 } from "lucide-react";
 
@@ -36,9 +38,10 @@ import { formatRecurrence } from "@/shared/lib/timeUtils";
 interface TaskDisplayProps {
   task: Task | null;
   tags: TagEntity[];
+  allTasks: Task[];
 }
 
-export function TaskDisplay({ task, tags }: TaskDisplayProps) {
+export function TaskDisplay({ task, tags, allTasks }: TaskDisplayProps) {
   const today = new Date();
   const [title, setTitle] = useState("");
 
@@ -64,6 +67,21 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
   const parsed = useMemo(() => {
     return parseTaskInput(title);
   }, [title]);
+
+  const handleToggleComplete = async () => {
+    if (!task || task.id === "new") return;
+    try {
+        if (task.status === "completed") {
+            await taskApi.uncompleteTask(task.id);
+        } else {
+            // Use 0 as default actual duration if not specified
+            await taskApi.completeTask(task, 0, allTasks);
+            useTaskAppStore.getState().setSelectedTask(null);
+        }
+    } catch (e) {
+        console.error("Failed to toggle task completion", e);
+    }
+  };
 
   const handleSave = async () => {
     if (!task) return;
@@ -105,9 +123,29 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 p-2">
         <div className="flex items-center gap-2">
+          {task && task.id !== "new" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={handleToggleComplete}>
+                  {task.status === "completed" ? (
+                    <Undo2 className="h-4 w-4 text-orange-500" />
+                  ) : (
+                    <Check className="h-4 w-4 text-green-500" />
+                  )}
+                  <span className="sr-only">
+                    {task.status === "completed" ? "Mark Active" : "Mark Done"}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {task.status === "completed" ? "Mark Active" : "Mark Done"}
+              </TooltipContent>
+            </Tooltip>
+          )}
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!task}>
+              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
                 <Archive className="h-4 w-4" />
                 <span className="sr-only">Archive</span>
               </Button>
@@ -117,7 +155,7 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!task}>
+              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
                 <ArchiveX className="h-4 w-4" />
                 <span className="sr-only">Move to junk</span>
               </Button>
@@ -127,7 +165,7 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!task}>
+              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
                 <Trash2 className="h-4 w-4" />
                 <span className="sr-only">Move to trash</span>
               </Button>
@@ -142,7 +180,7 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
           <Popover>
             <PopoverTrigger asChild>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" disabled={!task}>
+                <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
                   <Clock className="h-4 w-4" />
                   <span className="sr-only">Snooze</span>
                 </Button>
@@ -189,7 +227,7 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
         <div className="ml-auto flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!task}>
+              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
                 <Reply className="h-4 w-4" />
                 <span className="sr-only">Reply</span>
               </Button>
@@ -199,7 +237,7 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!task}>
+              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
                 <ReplyAll className="h-4 w-4" />
                 <span className="sr-only">Reply all</span>
               </Button>
@@ -209,7 +247,7 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!task}>
+              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
                 <Forward className="h-4 w-4" />
                 <span className="sr-only">Forward</span>
               </Button>
@@ -222,7 +260,7 @@ export function TaskDisplay({ task, tags }: TaskDisplayProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" disabled={!task}>
+            <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
               <MoreVertical className="h-4 w-4" />
               <span className="sr-only">More</span>
             </Button>

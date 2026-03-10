@@ -16,7 +16,8 @@ import {
   Tag,
   Trash2,
   Undo2,
-  Zap
+  Zap,
+  X
 } from "lucide-react";
 
 import { DropdownMenuContent, DropdownMenuItem } from "@/shared/ui/ui/dropdown-menu";
@@ -28,11 +29,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/ui/popover"
 import { Separator } from "@/shared/ui/ui/separator";
 import { AutoResizeTextarea } from "@/shared/ui/ui/auto-resize-textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
-import { Task, taskApi } from "@/entities/task";
+import { Task, taskApi, EnergyLevel, RecurrenceConfig } from "@/entities/task";
 import { Tag as TagEntity } from "@/entities/tag";
 import { useTaskAppStore } from "../use-task-app";
-import { parseTaskInput } from "@/shared/lib/textParserUtils";
+import { parseTaskInput, ParsedTaskInput } from "@/shared/lib/textParserUtils";
 import { formatRecurrence } from "@/shared/lib/timeUtils";
+
+import { TagPicker } from "@/components/pickers/TagPicker";
+import { EnergyPicker } from "@/components/pickers/EnergyPicker";
+import { DurationPicker } from "@/components/pickers/DurationPicker";
+import { DatePicker } from "@/components/pickers/DatePicker";
+import { RecurrencePicker as RecurrenceInlinePicker } from "@/components/pickers/RecurrencePicker";
 
 interface TaskDetailViewProps {
   task: Task | null;
@@ -47,6 +54,16 @@ export function TaskDetailView({ task, tags, allTasks, onClose }: TaskDetailView
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  const [localCategory, setLocalCategory] = useState<string | undefined>();
+  const [localEnergy, setLocalEnergy] = useState<EnergyLevel | undefined>();
+  const [localDuration, setLocalDuration] = useState<number | undefined>();
+  const [localAssignedDate, setLocalAssignedDate] = useState<number | undefined>();
+  const [localDueDate, setLocalDueDate] = useState<number | undefined>();
+  const [localRecurrence, setLocalRecurrence] = useState<RecurrenceConfig | undefined>();
+
+  const [activeEditor, setActiveEditor] = useState<string | null>(null);
+  const [lastParsedAttributes, setLastParsedAttributes] = useState<ParsedTaskInput['attributes']>({});
+
   const getTagInfo = (categoryId: string | undefined) => {
     if (!categoryId) return null;
     const tag = tags.find(t => t.id === categoryId);
@@ -58,15 +75,54 @@ export function TaskDetailView({ task, tags, allTasks, onClose }: TaskDetailView
     if (task) {
         setTitle(task.title);
         setNotes(task.notes || "");
+        setLocalCategory(task.category);
+        setLocalEnergy(task.energy);
+        setLocalDuration(task.duration);
+        setLocalAssignedDate(task.assignedDate || undefined);
+        setLocalDueDate(task.dueDate || undefined);
+        setLocalRecurrence(task.recurrence || undefined);
     } else {
         setTitle("");
         setNotes("");
+        setLocalCategory(undefined);
+        setLocalEnergy(undefined);
+        setLocalDuration(undefined);
+        setLocalAssignedDate(undefined);
+        setLocalDueDate(undefined);
+        setLocalRecurrence(undefined);
     }
+    setActiveEditor(null);
+    setLastParsedAttributes({});
   }, [task]);
 
   const parsed = useMemo(() => {
     return parseTaskInput(title);
   }, [title]);
+
+  useEffect(() => {
+    const { attributes } = parsed;
+
+    if (attributes.tagKeyword !== lastParsedAttributes.tagKeyword) {
+        setLocalCategory(attributes.tagKeyword);
+    }
+    if (attributes.energy !== lastParsedAttributes.energy) {
+        setLocalEnergy(attributes.energy);
+    }
+    if (attributes.duration !== lastParsedAttributes.duration) {
+        setLocalDuration(attributes.duration);
+    }
+    if (attributes.assignedDate !== lastParsedAttributes.assignedDate) {
+        setLocalAssignedDate(attributes.assignedDate);
+    }
+    if (attributes.dueDate !== lastParsedAttributes.dueDate) {
+        setLocalDueDate(attributes.dueDate);
+    }
+    if (attributes.recurrence !== lastParsedAttributes.recurrence) {
+        setLocalRecurrence(attributes.recurrence);
+    }
+
+    setLastParsedAttributes(attributes);
+  }, [parsed, lastParsedAttributes]);
 
   const handleToggleComplete = async () => {
     if (!task || task.id === "new") return;
@@ -89,16 +145,16 @@ export function TaskDetailView({ task, tags, allTasks, onClose }: TaskDetailView
     setIsSaving(true);
     try {
         if (task.id === "new") {
-            const energyValue = (parsed.attributes.energy || task.energy) === "High" ? 80 : (parsed.attributes.energy || task.energy) === "Low" ? 30 : 50;
+            const energyValue = localEnergy === "High" ? 80 : localEnergy === "Low" ? 30 : 50;
             await taskApi.addTask(
                 parsed.cleanTitle,
-                (parsed.attributes.tagKeyword || task.category || ""),
-                parsed.attributes.duration ?? task.duration ?? 0,
+                (localCategory || ""),
+                localDuration ?? 0,
                 energyValue,
                 notes,
-                parsed.attributes.dueDate ?? task.dueDate,
-                parsed.attributes.assignedDate ?? task.assignedDate,
-                parsed.attributes.recurrence ?? task.recurrence
+                localDueDate ?? null,
+                localAssignedDate ?? null,
+                localRecurrence ?? null
             );
             useTaskAppStore.getState().setSelectedTask(null);
             onClose?.();
@@ -106,12 +162,12 @@ export function TaskDetailView({ task, tags, allTasks, onClose }: TaskDetailView
             await taskApi.updateTask(task.id, {
                 title: parsed.cleanTitle,
                 notes: notes,
-                energy: parsed.attributes.energy || task.energy,
-                duration: parsed.attributes.duration ?? task.duration,
-                dueDate: parsed.attributes.dueDate ?? task.dueDate,
-                assignedDate: parsed.attributes.assignedDate ?? task.assignedDate,
-                recurrence: parsed.attributes.recurrence ?? task.recurrence,
-                category: parsed.attributes.tagKeyword || task.category
+                energy: localEnergy,
+                duration: localDuration,
+                dueDate: localDueDate ?? null,
+                assignedDate: localAssignedDate ?? null,
+                recurrence: (localDueDate ? localRecurrence : undefined) ?? null,
+                category: localCategory
             });
         }
     } catch (e) {
@@ -290,49 +346,130 @@ export function TaskDetailView({ task, tags, allTasks, onClose }: TaskDetailView
             />
 
             <div className="flex flex-wrap items-center gap-2">
-                {(parsed.attributes.tagKeyword || task.category) && (() => {
-                    const info = getTagInfo(parsed.attributes.tagKeyword || task.category);
+                {(() => {
+                    const info = getTagInfo(localCategory);
                     return info ? (
                         <Badge
                             variant="secondary"
-                            className="flex items-center gap-1"
+                            className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
                             style={info.color ? { backgroundColor: `${info.color}33`, color: info.color, borderColor: `${info.color}66` } : {}}
+                            onClick={() => setActiveEditor(activeEditor === 'category' ? null : 'category')}
                         >
                             <Tag className="h-3 w-3" />
                             {info.name}
                         </Badge>
-                    ) : null;
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                        onClick={() => setActiveEditor(activeEditor === 'category' ? null : 'category')}
+                      >
+                        <Tag className="h-3 w-3" />
+                        Add Project
+                      </Badge>
+                    );
                 })()}
-                {(parsed.attributes.energy || task.energy) && (
-                    <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-500">
+
+                {localEnergy ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 border-blue-500/30 text-blue-500 cursor-pointer hover:bg-blue-500/10 transition-colors"
+                      onClick={() => setActiveEditor(activeEditor === 'energy' ? null : 'energy')}
+                    >
                         <Zap className="h-3 w-3" />
-                        {parsed.attributes.energy || task.energy}
+                        {localEnergy}
                     </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                    onClick={() => setActiveEditor(activeEditor === 'energy' ? null : 'energy')}
+                  >
+                    <Zap className="h-3 w-3" />
+                    Add Energy
+                  </Badge>
                 )}
-                {((parsed.attributes.duration ?? task.duration) > 0) && (
-                    <Badge variant="outline" className="flex items-center gap-1">
+
+                {localDuration && localDuration > 0 ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors"
+                      onClick={() => setActiveEditor(activeEditor === 'duration' ? null : 'duration')}
+                    >
                         <Clock className="h-3 w-3" />
-                        {parsed.attributes.duration ?? task.duration}m
+                        {localDuration}m
                     </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                    onClick={() => setActiveEditor(activeEditor === 'duration' ? null : 'duration')}
+                  >
+                    <Clock className="h-3 w-3" />
+                    Add Duration
+                  </Badge>
                 )}
-                {(parsed.attributes.assignedDate ?? task.assignedDate) && (
-                    <Badge variant="outline" className="flex items-center gap-1 border-blue-500/30 text-blue-400">
+
+                {localAssignedDate ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 border-blue-500/30 text-blue-400 cursor-pointer hover:bg-blue-400/10 transition-colors"
+                      onClick={() => setActiveEditor(activeEditor === 'assignedDate' ? null : 'assignedDate')}
+                    >
                         <Clock className="h-3 w-3" />
-                        {new Date(parsed.attributes.assignedDate ?? task.assignedDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        {new Date(localAssignedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                    onClick={() => setActiveEditor(activeEditor === 'assignedDate' ? null : 'assignedDate')}
+                  >
+                    <Clock className="h-3 w-3" />
+                    Set Schedule
+                  </Badge>
                 )}
-                {(parsed.attributes.dueDate ?? task.dueDate) && (
-                    <Badge variant="outline" className="flex items-center gap-1 border-red-500/30 text-red-500">
+
+                {localDueDate ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 border-red-500/30 text-red-500 cursor-pointer hover:bg-red-500/10 transition-colors"
+                      onClick={() => setActiveEditor(activeEditor === 'dueDate' ? null : 'dueDate')}
+                    >
                         <CalendarIcon className="h-3 w-3" />
-                        {new Date(parsed.attributes.dueDate ?? task.dueDate!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        {new Date(localDueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                    onClick={() => setActiveEditor(activeEditor === 'dueDate' ? null : 'dueDate')}
+                  >
+                    <CalendarIcon className="h-3 w-3" />
+                    Set Deadline
+                  </Badge>
                 )}
-                {(parsed.attributes.recurrence ?? task.recurrence) && (
-                    <Badge variant="outline" className="flex items-center gap-1 border-purple-500/30 text-purple-400">
+
+                {localDueDate && (localRecurrence ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 border-purple-500/30 text-purple-400 cursor-pointer hover:bg-purple-400/10 transition-colors"
+                      onClick={() => setActiveEditor(activeEditor === 'recurrence' ? null : 'recurrence')}
+                    >
                         <Repeat className="h-3 w-3" />
-                        {formatRecurrence(parsed.attributes.recurrence ?? task.recurrence)}
+                        {formatRecurrence(localRecurrence)}
                     </Badge>
-                )}
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                    onClick={() => setActiveEditor(activeEditor === 'recurrence' ? null : 'recurrence')}
+                  >
+                    <Repeat className="h-3 w-3" />
+                    Add Repeat
+                  </Badge>
+                ))}
+
                 {task.blockedBy?.length > 0 && (
                     <Badge variant="outline" className="flex items-center gap-1 border-orange-500/30 text-orange-500">
                         <Layers className="h-3 w-3" />
@@ -340,6 +477,61 @@ export function TaskDetailView({ task, tags, allTasks, onClose }: TaskDetailView
                     </Badge>
                 )}
             </div>
+
+            {activeEditor && (
+                <div className="rounded-lg border bg-card p-3 shadow-sm relative animate-in fade-in slide-in-from-top-1 duration-200">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1 top-1 h-6 w-6"
+                        onClick={() => setActiveEditor(null)}
+                    >
+                        <X className="h-3 w-3" />
+                    </Button>
+
+                    {activeEditor === 'category' && (
+                        <TagPicker
+                            tags={tags}
+                            selectedTagId={localCategory}
+                            onSelect={(id) => { setLocalCategory(id); setActiveEditor(null); }}
+                        />
+                    )}
+                    {activeEditor === 'energy' && (
+                        <EnergyPicker
+                            energy={localEnergy || 'Medium'}
+                            onChange={(val) => { setLocalEnergy(val); setActiveEditor(null); }}
+                        />
+                    )}
+                    {activeEditor === 'duration' && (
+                        <DurationPicker
+                            duration={localDuration || 0}
+                            onChange={(val) => { setLocalDuration(val); }}
+                        />
+                    )}
+                    {activeEditor === 'assignedDate' && (
+                        <DatePicker
+                            value={localAssignedDate}
+                            type="assigned"
+                            onChange={(val) => { setLocalAssignedDate(val); if (val) setActiveEditor(null); }}
+                        />
+                    )}
+                    {activeEditor === 'dueDate' && (
+                        <DatePicker
+                            value={localDueDate}
+                            type="due"
+                            onChange={(val) => { setLocalDueDate(val); if (val) setActiveEditor(null); }}
+                        />
+                    )}
+                    {activeEditor === 'recurrence' && localDueDate && (
+                        <RecurrenceInlinePicker
+                            standalone
+                            value={localRecurrence}
+                            baseDate={new Date(localDueDate)}
+                            onChange={(val) => { setLocalRecurrence(val); setActiveEditor(null); }}
+                        />
+                    )}
+                </div>
+            )}
           </div>
           <Separator className="mt-auto" />
           <div className="p-4">

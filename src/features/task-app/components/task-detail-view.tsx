@@ -13,6 +13,7 @@ import {
   Repeat,
   Reply,
   ReplyAll,
+  Share,
   Tag,
   Trash2,
   Undo2,
@@ -31,6 +32,7 @@ import { AutoResizeTextarea } from "@/shared/ui/ui/auto-resize-textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 import { Task, taskApi, EnergyLevel, RecurrenceConfig } from "@/entities/task";
 import { Tag as TagEntity } from "@/entities/tag";
+import { useNavigation } from "@/context/NavigationContext";
 import { useTaskAppStore } from "../use-task-app";
 import { parseTaskInput, ParsedTaskInput } from "@/shared/lib/textParserUtils";
 import { formatRecurrence } from "@/shared/lib/timeUtils";
@@ -63,6 +65,8 @@ export function TaskDetailView({ task, tags, allTasks, onClose }: TaskDetailView
 
   const [activeEditor, setActiveEditor] = useState<string | null>(null);
   const [lastParsedAttributes, setLastParsedAttributes] = useState<ParsedTaskInput['attributes']>({});
+
+  const navigation = useNavigation();
 
   const getTagInfo = (categoryId: string | undefined) => {
     if (!categoryId) return null;
@@ -140,6 +144,41 @@ export function TaskDetailView({ task, tags, allTasks, onClose }: TaskDetailView
     }
   };
 
+  const handleToggleArchive = async () => {
+    if (!task || task.id === "new") return;
+    try {
+        if (task.status === "archived") {
+            await taskApi.unarchiveTask(task.id);
+        } else {
+            await taskApi.archiveTask(task.id);
+            useTaskAppStore.getState().setSelectedTask(null);
+            onClose?.();
+        }
+    } catch (e) {
+        console.error("Failed to toggle archive", e);
+    }
+  };
+
+  const handleStartFocus = () => {
+    if (!task || task.id === "new") return;
+    navigation.focusOnTask(task.id);
+  };
+
+  const handlePlanToday = () => {
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    setLocalAssignedDate(today.getTime());
+  };
+
+  const handleShare = () => {
+    if (!task) return;
+    const tagInfo = getTagInfo(localCategory);
+    const text = `Task: ${title}\nProject: ${tagInfo?.name || "None"}\nEnergy: ${localEnergy || "None"}\nNotes: ${notes}`;
+    navigator.clipboard.writeText(text).then(() => {
+        // Could add a toast here if available
+    });
+  };
+
   const handleSave = async () => {
     if (!task) return;
     setIsSaving(true);
@@ -203,32 +242,55 @@ export function TaskDetailView({ task, tags, allTasks, onClose }: TaskDetailView
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
-                <Archive className="h-4 w-4" />
-                <span className="sr-only">Archive</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={!task || task.id === "new"}
+                onClick={handleToggleArchive}
+              >
+                {task?.status === "archived" ? (
+                  <ArchiveX className="h-4 w-4 text-orange-500" />
+                ) : (
+                  <Archive className="h-4 w-4" />
+                )}
+                <span className="sr-only">
+                  {task?.status === "archived" ? "Remove from Archive" : "Archive"}
+                </span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Archive</TooltipContent>
+            <TooltipContent>
+              {task?.status === "archived" ? "Remove from Archive" : "Archive"}
+            </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
-                <ArchiveX className="h-4 w-4" />
-                <span className="sr-only">Move to junk</span>
+              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"} onClick={handleStartFocus}>
+                <Zap className="h-4 w-4" />
+                <span className="sr-only">Focus</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Move to junk</TooltipContent>
+            <TooltipContent>Focus</TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"}>
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Move to trash</span>
+              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"} onClick={handlePlanToday}>
+                <CalendarIcon className="h-4 w-4" />
+                <span className="sr-only">Plan today</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Move to trash</TooltipContent>
+            <TooltipContent>Plan today</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" disabled={!task || task.id === "new"} onClick={handleShare}>
+                <Share className="h-4 w-4" />
+                <span className="sr-only">Share</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Share</TooltipContent>
           </Tooltip>
         </div>
 

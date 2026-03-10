@@ -2,26 +2,23 @@
 
 import * as React from "react";
 import { Search, Plus, X } from "lucide-react";
-import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { cn } from "@/shared/lib/utils";
 
 import { Input } from "@/shared/ui/ui/input";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/shared/ui/ui/resizable";
 import { Separator } from "@/shared/ui/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/ui/tooltip";
+import { TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { Button } from "@/shared/ui/ui/button";
 import { Fab } from "@/shared/ui/ui/fab";
 import { EmptyState } from "@/shared/ui/ui/Feedback";
-import { TaskDisplay } from "./task-display";
 import { TaskList } from "./task-list";
 import { SettingsView } from "@/features/settings";
 import { Task } from "@/entities/task";
 import { Tag } from "@/entities/tag";
 import { useTaskAppStore } from "../use-task-app";
-import { NavDesktop } from "./nav-desktop";
-import { NavMobile } from "./nav-mobile";
-import { TaskDisplayMobile } from "./task-display-mobile";
+import { TaskNavigation } from "./task-navigation";
+import { TaskDetail } from "./task-detail";
 
 interface TaskAppProps {
   tasks: Task[];
@@ -39,8 +36,7 @@ export function TaskApp({
   navCollapsedSize
 }: TaskAppProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
-  const isMobile = useIsMobile();
-  const { selectedTask, selectedTagId, showSettings, setShowSettings } = useTaskAppStore();
+  const { selectedTask, selectedTagId, showSettings } = useTaskAppStore();
   const [tab, setTab] = React.useState("active");
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -79,41 +75,39 @@ export function TaskApp({
           document.cookie = `react-resizable-panels:layout:task=${JSON.stringify(layout)}`;
         }}
       >
-        {!isMobile && (
-          <>
-            <ResizablePanel
-              defaultSize={defaultLayout[0]}
-              collapsedSize={navCollapsedSize}
-              collapsible={true}
-              minSize={15}
-              maxSize={20}
-              onResize={(size) => {
-                const isNowCollapsed = size.asPercentage <= navCollapsedSize;
-                setIsCollapsed(isNowCollapsed);
-                document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
-              }}
-              className={cn(
-                "flex flex-col h-full",
-                isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out"
-              )}
-            >
-              <NavDesktop isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-          </>
-        )}
+        <ResizablePanel
+          defaultSize={defaultLayout[0]}
+          collapsedSize={navCollapsedSize}
+          collapsible={true}
+          minSize={15}
+          maxSize={20}
+          onResize={(size) => {
+            const isNowCollapsed = size.asPercentage <= navCollapsedSize;
+            setIsCollapsed(isNowCollapsed);
+            document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
+          }}
+          className={cn(
+            "flex flex-col h-full md:block hidden",
+            isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out"
+          )}
+        >
+          <TaskNavigation isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
+        </ResizablePanel>
+        <ResizableHandle withHandle className="md:block hidden" />
         <ResizablePanel defaultSize={defaultLayout[1]} minSize={30} className="relative">
           {showSettings ? (
             <SettingsView />
           ) : (
             <div className="relative h-full flex flex-col">
             <Tabs
-              defaultValue="all"
+              defaultValue="active"
               className="flex h-full flex-col gap-0"
               onValueChange={(value) => setTab(value)}>
               <div className="flex items-center px-4 py-2">
                 <div className="flex items-center gap-2">
-                  {isMobile && <NavMobile tags={tags} tasks={tasks} />}
+                  <div className="md:hidden">
+                    <TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />
+                  </div>
                   <h1 className="text-xl font-bold">Inbox</h1>
                 </div>
                 <TabsList className="ml-auto">
@@ -189,26 +183,23 @@ export function TaskApp({
             </div>
           )}
         </ResizablePanel>
-        {!isMobile && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
-              <TaskDisplay
+        <ResizableHandle withHandle className="md:block hidden" />
+        <ResizablePanel defaultSize={defaultLayout[2]} minSize={30} className="md:block hidden">
+            <TaskDetail
                 task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
                 tags={tags}
                 allTasks={tasks}
-              />
-            </ResizablePanel>
-          </>
-        )}
-        {isMobile && (
-          <TaskDisplayMobile
-            task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
-            tags={tags}
-            allTasks={tasks}
-          />
-        )}
+            />
+        </ResizablePanel>
       </ResizablePanelGroup>
+      {/* Mobile-only portal for Task Detail Drawer */}
+      <div className="md:hidden">
+          <TaskDetail
+              task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
+              tags={tags}
+              allTasks={tasks}
+          />
+      </div>
     </TooltipProvider>
   );
 }

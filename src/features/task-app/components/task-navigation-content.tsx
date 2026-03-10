@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import {
   Archive,
   ArchiveX,
@@ -12,7 +13,6 @@ import {
 
 import { Nav } from "./nav";
 import { Separator } from "@/shared/ui/ui/separator";
-import * as React from "react";
 import { cn } from "@/shared/lib/utils";
 import { AccountSwitcher } from "./account-switcher";
 import { Tag } from "@/entities/tag";
@@ -27,13 +27,13 @@ const accounts = [
   }
 ];
 
-interface NavDesktopProps {
+interface TaskNavigationContentProps {
   isCollapsed: boolean;
   tags: Tag[];
   tasks: Task[];
 }
 
-export function NavDesktop({ isCollapsed, tags, tasks }: NavDesktopProps) {
+export function TaskNavigationContent({ isCollapsed, tags, tasks }: TaskNavigationContentProps) {
   return (
     <>
       <div

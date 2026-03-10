@@ -119,7 +119,7 @@ export function TaskList({ items, tags }: TaskListProps) {
               <button
                 key={item.id}
                 className={cn(
-                  "hover:bg-accent/70 flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all",
+                  "hover:bg-accent/70 flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all w-full",
                   selectedTask?.id === item.id && "bg-accent/70"
                 )}
                 onClick={() => setSelectedTask(item)}>

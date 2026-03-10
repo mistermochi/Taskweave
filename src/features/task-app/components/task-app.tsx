@@ -66,139 +66,144 @@ export function TaskApp({
     });
   }, [tasks, tab, selectedTagId, tags, searchQuery]);
 
+  const mainContent = (
+    <div className="relative h-full flex flex-col w-full">
+    <Tabs
+      defaultValue="active"
+      className="flex h-full flex-col gap-0"
+      onValueChange={(value) => setTab(value)}>
+      <div className="flex items-center px-4 py-2">
+        <div className="flex items-center gap-2">
+          <div className="md:hidden">
+            <TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />
+          </div>
+          <h1 className="text-xl font-bold">Inbox</h1>
+        </div>
+        <TabsList className="ml-auto">
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+          <TabsTrigger value="archived">Archived</TabsTrigger>
+        </TabsList>
+      </div>
+      <Separator />
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 p-4 backdrop-blur">
+        <form onSubmit={(e) => e.preventDefault()}>
+          <div className="relative">
+            <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+            <Input
+                placeholder="Search tasks..."
+                aria-label="Search tasks"
+                className="pl-9 pr-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1 h-8 w-8 hover:bg-transparent"
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+              </Button>
+            )}
+          </div>
+        </form>
+      </div>
+      <div className="min-h-0 flex-1">
+        {filteredTasks.length > 0 ? (
+          <TaskList
+            items={filteredTasks}
+            tags={tags}
+          />
+        ) : (
+          <EmptyState
+            icon={Search}
+            title={searchQuery ? "No results found" : `No ${tab} tasks`}
+            message={searchQuery
+              ? `We couldn't find any tasks matching "${searchQuery}".`
+              : `You don't have any tasks in your ${tab} list yet.`
+            }
+            action={searchQuery && (
+              <Button variant="outline" size="sm" onClick={() => setSearchQuery("")}>
+                Clear search
+              </Button>
+            )}
+          />
+        )}
+      </div>
+    </Tabs>
+    <Fab
+        icon={<Plus />}
+        label="Create Task"
+        tooltip="Create Task"
+        onClick={() => useTaskAppStore.getState().setSelectedTask({
+            id: "new",
+            title: "",
+            status: "active",
+            category: "",
+            energy: "Medium",
+            duration: 0,
+            createdAt: Date.now(),
+            blockedBy: []
+        } as Task)}
+    />
+    </div>
+  );
+
   return (
     <TooltipProvider delayDuration={0}>
-      <ResizablePanelGroup
-        orientation="horizontal"
-        className="items-stretch"
-        onLayoutChanged={(layout) => {
-          document.cookie = `react-resizable-panels:layout:task=${JSON.stringify(layout)}`;
-        }}
-      >
-        <ResizablePanel
-          defaultSize={defaultLayout[0]}
-          collapsedSize={navCollapsedSize}
-          collapsible={true}
-          minSize={15}
-          maxSize={20}
-          onResize={(size) => {
-            const isNowCollapsed = size.asPercentage <= navCollapsedSize;
-            setIsCollapsed(isNowCollapsed);
-            document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
-          }}
-          className={cn(
-            "flex flex-col h-full md:block hidden",
-            isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out"
-          )}
+      {/* Desktop Layout */}
+      <div className="hidden md:flex h-full w-full">
+        <ResizablePanelGroup
+            orientation="horizontal"
+            className="items-stretch"
+            onLayoutChanged={(layout) => {
+                document.cookie = `react-resizable-panels:layout:task=${JSON.stringify(layout)}`;
+            }}
         >
-          <TaskNavigation isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
-        </ResizablePanel>
-        <ResizableHandle withHandle className="md:block hidden" />
-        <ResizablePanel defaultSize={defaultLayout[1]} minSize={30} className="relative">
-          {showSettings ? (
-            <SettingsView />
-          ) : (
-            <div className="relative h-full flex flex-col">
-            <Tabs
-              defaultValue="active"
-              className="flex h-full flex-col gap-0"
-              onValueChange={(value) => setTab(value)}>
-              <div className="flex items-center px-4 py-2">
-                <div className="flex items-center gap-2">
-                  <div className="md:hidden">
-                    <TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />
-                  </div>
-                  <h1 className="text-xl font-bold">Inbox</h1>
-                </div>
-                <TabsList className="ml-auto">
-                  <TabsTrigger value="active">Active</TabsTrigger>
-                  <TabsTrigger value="completed">Completed</TabsTrigger>
-                  <TabsTrigger value="archived">Archived</TabsTrigger>
-                </TabsList>
-              </div>
-              <Separator />
-              <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 p-4 backdrop-blur">
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className="relative">
-                    <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
-                    <Input
-                        placeholder="Search tasks..."
-                        aria-label="Search tasks"
-                        className="pl-9 pr-9"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    {searchQuery && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-1 top-1 h-8 w-8 hover:bg-transparent"
-                        onClick={() => setSearchQuery("")}
-                        aria-label="Clear search"
-                      >
-                        <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                      </Button>
-                    )}
-                  </div>
-                </form>
-              </div>
-              <div className="min-h-0 flex-1">
-                {filteredTasks.length > 0 ? (
-                  <TaskList
-                    items={filteredTasks}
-                    tags={tags}
-                  />
-                ) : (
-                  <EmptyState
-                    icon={Search}
-                    title={searchQuery ? "No results found" : `No ${tab} tasks`}
-                    message={searchQuery
-                      ? `We couldn't find any tasks matching "${searchQuery}".`
-                      : `You don't have any tasks in your ${tab} list yet.`
-                    }
-                    action={searchQuery && (
-                      <Button variant="outline" size="sm" onClick={() => setSearchQuery("")}>
-                        Clear search
-                      </Button>
-                    )}
-                  />
+            <ResizablePanel
+                defaultSize={defaultLayout[0]}
+                collapsedSize={navCollapsedSize}
+                collapsible={true}
+                minSize={15}
+                maxSize={20}
+                onResize={(size) => {
+                    const isNowCollapsed = size.asPercentage <= navCollapsedSize;
+                    setIsCollapsed(isNowCollapsed);
+                    document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
+                }}
+                className={cn(
+                    "flex flex-col h-full",
+                    isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out"
                 )}
-              </div>
-            </Tabs>
-            <Fab
-                icon={<Plus />}
-                label="Create Task"
-                tooltip="Create Task"
-                onClick={() => useTaskAppStore.getState().setSelectedTask({
-                    id: "new",
-                    title: "",
-                    status: "active",
-                    category: "",
-                    energy: "Medium",
-                    duration: 0,
-                    createdAt: Date.now(),
-                    blockedBy: []
-                } as Task)}
-            />
-            </div>
-          )}
-        </ResizablePanel>
-        <ResizableHandle withHandle className="md:block hidden" />
-        <ResizablePanel defaultSize={defaultLayout[2]} minSize={30} className="md:block hidden">
-            <TaskDetail
-                task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
-                tags={tags}
-                allTasks={tasks}
-            />
-        </ResizablePanel>
-      </ResizablePanelGroup>
-      {/* Mobile-only portal for Task Detail Drawer */}
-      <div className="md:hidden">
-          <TaskDetail
-              task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
-              tags={tags}
-              allTasks={tasks}
-          />
+            >
+                <TaskNavigation isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={defaultLayout[1]} minSize={30} className="relative">
+                {showSettings ? <SettingsView /> : mainContent}
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
+                <TaskDetail
+                    task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
+                    tags={tags}
+                    allTasks={tasks}
+                />
+            </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="md:hidden flex h-full w-full flex-col overflow-hidden">
+        {showSettings ? <SettingsView /> : mainContent}
+        <TaskDetail
+            task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
+            tags={tags}
+            allTasks={tasks}
+        />
       </div>
     </TooltipProvider>
   );

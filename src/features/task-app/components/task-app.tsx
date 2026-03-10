@@ -19,6 +19,7 @@ import { Tag } from "@/entities/tag";
 import { useTaskAppStore } from "../use-task-app";
 import { TaskNavigation } from "./task-navigation";
 import { TaskDetail } from "./task-detail";
+import { useIsMobile } from "@/shared/hooks/use-mobile";
 
 interface TaskAppProps {
   tasks: Task[];
@@ -39,6 +40,7 @@ export function TaskApp({
   const { selectedTask, selectedTagId, showSettings } = useTaskAppStore();
   const [tab, setTab] = React.useState("active");
   const [searchQuery, setSearchQuery] = React.useState("");
+  const isMobile = useIsMobile();
 
   const filteredTasks = React.useMemo(() => {
     return tasks.filter(task => {
@@ -65,6 +67,14 @@ export function TaskApp({
         return true;
     });
   }, [tasks, tab, selectedTagId, tags, searchQuery]);
+
+  const taskDetail = (
+    <TaskDetail
+        task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
+        tags={tags}
+        allTasks={tasks}
+    />
+  );
 
   const mainContent = (
     <div className="relative h-full flex flex-col w-full">
@@ -154,57 +164,51 @@ export function TaskApp({
 
   return (
     <TooltipProvider delayDuration={0}>
-      {/* Desktop Layout */}
-      <div className="hidden md:flex h-full w-full">
-        <ResizablePanelGroup
-            orientation="horizontal"
-            className="items-stretch"
-            onLayoutChanged={(layout) => {
-                document.cookie = `react-resizable-panels:layout:task=${JSON.stringify(layout)}`;
-            }}
-        >
-            <ResizablePanel
-                defaultSize={defaultLayout[0]}
-                collapsedSize={navCollapsedSize}
-                collapsible={true}
-                minSize={15}
-                maxSize={20}
-                onResize={(size) => {
-                    const isNowCollapsed = size.asPercentage <= navCollapsedSize;
-                    setIsCollapsed(isNowCollapsed);
-                    document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
-                }}
-                className={cn(
-                    "flex flex-col h-full",
-                    isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out"
-                )}
-            >
-                <TaskNavigation isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={defaultLayout[1]} minSize={30} className="relative">
-                {showSettings ? <SettingsView /> : mainContent}
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
-                <TaskDetail
-                    task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
-                    tags={tags}
-                    allTasks={tasks}
-                />
-            </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
-
-      {/* Mobile Layout */}
-      <div className="md:hidden flex h-full w-full flex-col overflow-hidden">
-        {showSettings ? <SettingsView /> : mainContent}
-        <TaskDetail
-            task={selectedTask?.id === "new" ? selectedTask : (tasks.find((item) => item.id === selectedTask?.id) || null)}
-            tags={tags}
-            allTasks={tasks}
-        />
-      </div>
+      {!isMobile ? (
+        /* Desktop Layout */
+        <div className="flex h-full w-full">
+          <ResizablePanelGroup
+              orientation="horizontal"
+              className="items-stretch"
+              onLayoutChanged={(layout) => {
+                  document.cookie = `react-resizable-panels:layout:task=${JSON.stringify(layout)}`;
+              }}
+          >
+              <ResizablePanel
+                  defaultSize={defaultLayout[0]}
+                  collapsedSize={navCollapsedSize}
+                  collapsible={true}
+                  minSize={15}
+                  maxSize={20}
+                  onResize={(size) => {
+                      const isNowCollapsed = size.asPercentage <= navCollapsedSize;
+                      setIsCollapsed(isNowCollapsed);
+                      document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
+                  }}
+                  className={cn(
+                      "flex flex-col h-full",
+                      isCollapsed && "min-w-[50px] transition-all duration-300 ease-in-out"
+                  )}
+              >
+                  <TaskNavigation isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={defaultLayout[1]} minSize={30} className="relative">
+                  {showSettings ? <SettingsView /> : mainContent}
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
+                {taskDetail}
+              </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+      ) : (
+        /* Mobile Layout */
+        <div className="flex h-full w-full flex-col overflow-hidden">
+          {showSettings ? <SettingsView /> : mainContent}
+        {taskDetail}
+        </div>
+      )}
     </TooltipProvider>
   );
 }

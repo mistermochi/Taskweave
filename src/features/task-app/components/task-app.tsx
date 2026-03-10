@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, X } from "lucide-react";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { cn } from "@/shared/lib/utils";
 
@@ -11,6 +11,7 @@ import { Separator } from "@/shared/ui/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 import { Button } from "@/shared/ui/ui/button";
+import { EmptyState } from "@/shared/ui/ui/Feedback";
 import { TaskDisplay } from "./task-display";
 import { TaskList } from "./task-list";
 import { SettingsView } from "@/features/settings";
@@ -124,21 +125,49 @@ export function TaskApp({
               <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 p-4 backdrop-blur">
                 <form onSubmit={(e) => e.preventDefault()}>
                   <div className="relative">
-                    <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
+                    <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
                     <Input
-                        placeholder="Search"
-                        className="pl-8"
+                        placeholder="Search tasks..."
+                        aria-label="Search tasks"
+                        className="pl-9 pr-9"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
+                    {searchQuery && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1 top-1 h-8 w-8 hover:bg-transparent"
+                        onClick={() => setSearchQuery("")}
+                        aria-label="Clear search"
+                      >
+                        <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      </Button>
+                    )}
                   </div>
                 </form>
               </div>
               <div className="min-h-0 flex-1">
-                <TaskList
-                  items={filteredTasks}
-                  tags={tags}
-                />
+                {filteredTasks.length > 0 ? (
+                  <TaskList
+                    items={filteredTasks}
+                    tags={tags}
+                  />
+                ) : (
+                  <EmptyState
+                    icon={Search}
+                    title={searchQuery ? "No results found" : `No ${tab} tasks`}
+                    message={searchQuery
+                      ? `We couldn't find any tasks matching "${searchQuery}".`
+                      : `You don't have any tasks in your ${tab} list yet.`
+                    }
+                    action={searchQuery && (
+                      <Button variant="outline" size="sm" onClick={() => setSearchQuery("")}>
+                        Clear search
+                      </Button>
+                    )}
+                  />
+                )}
               </div>
             </Tabs>
             <div className="absolute bottom-6 right-6">
@@ -159,6 +188,7 @@ export function TaskApp({
                             } as Task)}
                         >
                             <Plus className="h-6 w-6" />
+                            <span className="sr-only">Create Task</span>
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent side="left">Create Task</TooltipContent>

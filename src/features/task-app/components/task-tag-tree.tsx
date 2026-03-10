@@ -232,6 +232,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
             onClick={() => tagApi.createTag("New Project", null)}
           >
             <Plus size={14} />
+            <span className="sr-only">Add Project</span>
           </Button>
         </div>
         <div

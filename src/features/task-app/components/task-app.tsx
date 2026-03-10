@@ -72,21 +72,20 @@ export function TaskApp({
       defaultValue="active"
       className="flex h-full flex-col gap-0"
       onValueChange={(value) => setTab(value)}>
-      <div className="flex items-center px-4 py-2">
+      <div className="flex items-center px-4 py-2 border-b">
         <div className="flex items-center gap-2">
           <div className="md:hidden">
             <TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />
           </div>
-          <h1 className="text-xl font-bold">Inbox</h1>
+          <h1 className="text-xl font-bold tracking-tight">Inbox</h1>
         </div>
-        <TabsList className="ml-auto">
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="archived">Archived</TabsTrigger>
+        <TabsList className="ml-auto bg-transparent border-none">
+          <TabsTrigger value="active" className="data-[state=active]:bg-accent/50">Active</TabsTrigger>
+          <TabsTrigger value="completed" className="data-[state=active]:bg-accent/50 hidden sm:inline-flex">Completed</TabsTrigger>
+          <TabsTrigger value="archived" className="data-[state=active]:bg-accent/50 hidden sm:inline-flex">Archived</TabsTrigger>
         </TabsList>
       </div>
-      <Separator />
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 p-4 backdrop-blur">
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 px-4 py-3 backdrop-blur">
         <form onSubmit={(e) => e.preventDefault()}>
           <div className="relative">
             <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />

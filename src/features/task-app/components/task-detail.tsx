@@ -2,8 +2,7 @@ import React, { useEffect } from "react";
 import { useTaskAppStore } from "../use-task-app";
 import { Task } from "@/entities/task";
 import { Tag as TagEntity } from "@/entities/tag";
-import { Drawer, DrawerContent } from "@/shared/ui/ui/drawer";
-import { DialogHeader, DialogTitle } from "@/shared/ui/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/ui/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { TaskDetailView } from "./task-detail-view";
 
@@ -43,14 +42,14 @@ export function TaskDetail({ task, tags, allTasks }: TaskDetailProps) {
         />
       </div>
 
-      {/* Mobile Drawer Detail View */}
+      {/* Mobile Popup Sheet Detail View */}
       <div className="md:hidden">
-        <Drawer open={open} onOpenChange={handleOpenChange}>
-          <DrawerContent>
+        <Sheet open={open} onOpenChange={handleOpenChange}>
+          <SheetContent side="right" className="w-[90%] sm:max-w-md overflow-y-auto">
             <VisuallyHidden>
-              <DialogHeader>
-                <DialogTitle>Task Display</DialogTitle>
-              </DialogHeader>
+              <SheetHeader>
+                <SheetTitle>Task Display</SheetTitle>
+              </SheetHeader>
             </VisuallyHidden>
             <TaskDetailView
               task={task}
@@ -58,8 +57,8 @@ export function TaskDetail({ task, tags, allTasks }: TaskDetailProps) {
               allTasks={allTasks}
               onClose={() => handleOpenChange(false)}
             />
-          </DrawerContent>
-        </Drawer>
+          </SheetContent>
+        </Sheet>
       </div>
     </>
   );

@@ -109,10 +109,10 @@ export function TaskList({ items, tags }: TaskListProps) {
 
   return (
     <ScrollArea className="h-full">
-      <div className="flex flex-col gap-2 p-4 pt-0">
+      <div className="flex flex-col gap-2 px-4 py-2">
         {groups.map((group) => (
-          <div key={group.label} className="flex flex-col gap-2">
-            <div className="text-muted-foreground sticky top-0 bg-background/95 z-10 py-2 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
+          <div key={group.label} className="flex flex-col gap-1">
+            <div className="text-muted-foreground sticky top-0 bg-background/95 z-10 py-2 text-[10px] font-bold uppercase tracking-wider backdrop-blur px-1">
                 {group.label}
             </div>
             {group.tasks.map((item) => (

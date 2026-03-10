@@ -26,7 +26,6 @@ import { Calendar } from "@/shared/ui/ui/calendar";
 import { DropdownMenu, DropdownMenuTrigger } from "@/shared/ui/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/ui/popover";
 import { Separator } from "@/shared/ui/ui/separator";
-import { Textarea } from "@/shared/ui/ui/textarea";
 import { AutoResizeTextarea } from "@/shared/ui/ui/auto-resize-textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 import { Task, taskApi } from "@/entities/task";
@@ -35,15 +34,18 @@ import { useTaskAppStore } from "../use-task-app";
 import { parseTaskInput } from "@/shared/lib/textParserUtils";
 import { formatRecurrence } from "@/shared/lib/timeUtils";
 
-interface TaskDisplayProps {
+interface TaskDetailViewProps {
   task: Task | null;
   tags: TagEntity[];
   allTasks: Task[];
+  onClose?: () => void;
 }
 
-export function TaskDisplay({ task, tags, allTasks }: TaskDisplayProps) {
+export function TaskDetailView({ task, tags, allTasks, onClose }: TaskDetailViewProps) {
   const today = new Date();
   const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const getTagInfo = (categoryId: string | undefined) => {
     if (!categoryId) return null;
@@ -51,8 +53,6 @@ export function TaskDisplay({ task, tags, allTasks }: TaskDisplayProps) {
     if (tag) return { name: tag.name, color: tag.color };
     return { name: categoryId, color: undefined };
   };
-  const [notes, setNotes] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -77,6 +77,7 @@ export function TaskDisplay({ task, tags, allTasks }: TaskDisplayProps) {
             // Use 0 as default actual duration if not specified
             await taskApi.completeTask(task, 0, allTasks);
             useTaskAppStore.getState().setSelectedTask(null);
+            onClose?.();
         }
     } catch (e) {
         console.error("Failed to toggle task completion", e);
@@ -100,6 +101,7 @@ export function TaskDisplay({ task, tags, allTasks }: TaskDisplayProps) {
                 parsed.attributes.recurrence ?? task.recurrence
             );
             useTaskAppStore.getState().setSelectedTask(null);
+            onClose?.();
         } else {
             await taskApi.updateTask(task.id, {
                 title: parsed.cleanTitle,

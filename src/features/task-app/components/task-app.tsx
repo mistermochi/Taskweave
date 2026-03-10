@@ -11,6 +11,7 @@ import { Separator } from "@/shared/ui/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 import { Button } from "@/shared/ui/ui/button";
+import { Fab } from "@/shared/ui/ui/fab";
 import { EmptyState } from "@/shared/ui/ui/Feedback";
 import { TaskDisplay } from "./task-display";
 import { TaskList } from "./task-list";
@@ -170,30 +171,21 @@ export function TaskApp({
                 )}
               </div>
             </Tabs>
-            <div className="absolute bottom-6 right-6">
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            size="icon"
-                            className="h-12 w-12 rounded-full shadow-lg"
-                            onClick={() => useTaskAppStore.getState().setSelectedTask({
-                                id: "new",
-                                title: "",
-                                status: "active",
-                                category: "",
-                                energy: "Medium",
-                                duration: 0,
-                                createdAt: Date.now(),
-                                blockedBy: []
-                            } as Task)}
-                        >
-                            <Plus className="h-6 w-6" />
-                            <span className="sr-only">Create Task</span>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left">Create Task</TooltipContent>
-                </Tooltip>
-            </div>
+            <Fab
+                icon={<Plus />}
+                label="Create Task"
+                tooltip="Create Task"
+                onClick={() => useTaskAppStore.getState().setSelectedTask({
+                    id: "new",
+                    title: "",
+                    status: "active",
+                    category: "",
+                    energy: "Medium",
+                    duration: 0,
+                    createdAt: Date.now(),
+                    blockedBy: []
+                } as Task)}
+            />
             </div>
           )}
         </ResizablePanel>

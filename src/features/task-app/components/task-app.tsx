@@ -48,6 +48,10 @@ export function TaskApp({
   const isMobile = useIsMobile();
 
   const filteredTasks = React.useMemo(() => {
+    const selectedTag = selectedTagId
+      ? tags.find((t) => t.id === selectedTagId)
+      : null;
+
     return tasks.filter((task) => {
       // Search filter
       if (searchQuery) {
@@ -64,9 +68,11 @@ export function TaskApp({
 
       // Tag filter
       if (selectedTagId) {
-        const tag = tags.find((t) => t.id === selectedTagId);
-        if (!tag) return false;
-        if (task.category !== tag.id && task.category !== tag.name)
+        if (!selectedTag) return false;
+        if (
+          task.category !== selectedTag.id &&
+          task.category !== selectedTag.name
+        )
           return false;
       }
 

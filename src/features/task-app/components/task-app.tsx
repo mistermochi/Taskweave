@@ -15,7 +15,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
 import { TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { Button } from "@/shared/ui/ui/button";
 import { Fab } from "@/shared/ui/ui/fab";
-import { EmptyState, Toast } from "@/shared/ui/ui/Feedback";
+import { EmptyState } from "@/shared/ui/ui/Feedback";
+import { Toaster } from "@/shared/ui/ui/sonner";
 import { TaskList } from "./task-list";
 import { SettingsView } from "@/features/settings";
 import { Task } from "@/entities/task";
@@ -41,8 +42,7 @@ export function TaskApp({
   navCollapsedSize,
 }: TaskAppProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
-  const { selectedTask, selectedTagId, showSettings, toast } =
-    useTaskAppStore();
+  const { selectedTask, selectedTagId, showSettings } = useTaskAppStore();
   const [tab, setTab] = React.useState("active");
   const [searchQuery, setSearchQuery] = React.useState("");
   const isMobile = useIsMobile();
@@ -181,11 +181,7 @@ export function TaskApp({
 
   return (
     <TooltipProvider delayDuration={0}>
-      <Toast
-        message={toast.message}
-        isVisible={toast.isVisible}
-        onUndo={toast.onUndo}
-      />
+      <Toaster />
       {!isMobile ? (
         /* Desktop Layout */
         <div className="flex h-full w-full">

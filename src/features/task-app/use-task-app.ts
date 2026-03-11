@@ -1,11 +1,6 @@
 import { create } from "zustand";
 import { Task } from "@/entities/task";
-
-type ToastState = {
-  message: string;
-  isVisible: boolean;
-  onUndo?: () => void;
-};
+import { toast } from "sonner";
 
 type TaskAppStore = {
   selectedTask: Task | null;
@@ -14,14 +9,10 @@ type TaskAppStore = {
   setSelectedTagId: (tagId: string | null) => void;
   showSettings: boolean;
   setShowSettings: (show: boolean) => void;
-  toast: ToastState;
   showToast: (message: string, onUndo?: () => void) => void;
-  hideToast: () => void;
 };
 
-let toastTimeout: NodeJS.Timeout | null = null;
-
-export const useTaskAppStore = create<TaskAppStore>((set, get) => ({
+export const useTaskAppStore = create<TaskAppStore>((set) => ({
   selectedTask: null,
   setSelectedTask: (task) => set({ selectedTask: task }),
   selectedTagId: null,
@@ -29,18 +20,16 @@ export const useTaskAppStore = create<TaskAppStore>((set, get) => ({
   showSettings: false,
   setShowSettings: (show) =>
     set({ showSettings: show, selectedTask: show ? null : null }),
-  toast: {
-    message: "",
-    isVisible: false,
-  },
   showToast: (message, onUndo) => {
-    if (toastTimeout) clearTimeout(toastTimeout);
-    set({ toast: { message, isVisible: true, onUndo } });
-    toastTimeout = setTimeout(() => {
-      get().hideToast();
-    }, 5000);
-  },
-  hideToast: () => {
-    set((state) => ({ toast: { ...state.toast, isVisible: false } }));
+    if (onUndo) {
+      toast(message, {
+        action: {
+          label: "Undo",
+          onClick: onUndo,
+        },
+      });
+    } else {
+      toast(message);
+    }
   },
 }));

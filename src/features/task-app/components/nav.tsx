@@ -26,8 +26,9 @@ export function Nav({ links, isCollapsed }: NavProps) {
   return (
     <div
       data-collapsed={isCollapsed}
-      className="group flex flex-col gap-1 py-0 data-[collapsed=true]:py-0">
-      <nav className="grid gap-1 px-0 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-0">
+      className="group flex flex-col gap-4 py-2 data-[collapsed=true]:py-2"
+    >
+      <nav className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2">
         {links.map((link, index) => {
           const isSettings = link.title === "Settings";
           const isActive = (isSettings && showSettings) || (!showSettings && link.variant === "default");
@@ -55,13 +56,17 @@ export function Nav({ links, isCollapsed }: NavProps) {
                       variant === "default" &&
                         "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
                     )}>
-                    {link.dot ?? <link.icon className="size-4" />}
+                    {link.dot ?? <link.icon className="h-4 w-4" />}
                     <span className="sr-only">{link.title}</span>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right" className="flex items-center gap-4">
                   {link.title}
-                  {link.label && <span className="text-muted-foreground ml-auto">{link.label}</span>}
+                  {link.label && (
+                    <span className="ml-auto text-muted-foreground">
+                      {link.label}
+                    </span>
+                  )}
                 </TooltipContent>
               </Tooltip>
             );
@@ -75,11 +80,11 @@ export function Nav({ links, isCollapsed }: NavProps) {
               className={cn(
                 buttonVariants({ variant: variant, size: "sm" }),
                 variant === "default" &&
-                  "dark:bg-muted dark:hover:bg-muted dark:text-white dark:hover:text-white",
+                  "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white",
                 "justify-start"
               )}>
               {link.dot ?? <link.icon className="mr-2 h-4 w-4" />}
-              <span className="flex-1">{link.title}</span>
+              {link.title}
               {link.label && (
                 <span
                   className={cn(

@@ -46,6 +46,26 @@ export function TaskApp({
   const [tab, setTab] = React.useState("active");
   const [searchQuery, setSearchQuery] = React.useState("");
   const isMobile = useIsMobile();
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Focus search on '/'
+      if (e.key === "/" && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+
+      // Clear search and blur on 'Escape'
+      if (e.key === "Escape" && document.activeElement === searchInputRef.current) {
+        setSearchQuery("");
+        searchInputRef.current?.blur();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const filteredTasks = React.useMemo(() => {
     return tasks.filter((task) => {
@@ -127,7 +147,8 @@ export function TaskApp({
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search tasks..."
+                ref={searchInputRef}
+                placeholder={isMobile ? "Search tasks..." : "Search tasks... (/)"}
                 aria-label="Search tasks"
                 className="pl-8"
                 value={searchQuery}
@@ -138,7 +159,10 @@ export function TaskApp({
                   variant="ghost"
                   size="icon"
                   className="absolute right-1 top-1 h-8 w-8 hover:bg-transparent"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    setSearchQuery("");
+                    searchInputRef.current?.focus();
+                  }}
                   aria-label="Clear search"
                 >
                   <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />

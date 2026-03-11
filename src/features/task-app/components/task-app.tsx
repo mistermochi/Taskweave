@@ -93,7 +93,7 @@ export function TaskApp({
         className="flex h-full flex-col gap-0"
         onValueChange={(value) => setTab(value)}
       >
-        <div className="flex items-center px-4 py-2">
+        <div className="flex h-[52px] items-center px-4 py-2">
           <div className="flex items-center gap-2">
             <div className="md:hidden">
               <TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />
@@ -101,20 +101,35 @@ export function TaskApp({
             <h1 className="text-xl font-bold">Inbox</h1>
           </div>
           <TabsList className="ml-auto">
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="archived">Archived</TabsTrigger>
+            <TabsTrigger
+              value="active"
+              className="text-zinc-600 dark:text-zinc-200"
+            >
+              Active
+            </TabsTrigger>
+            <TabsTrigger
+              value="completed"
+              className="text-zinc-600 dark:text-zinc-200"
+            >
+              Completed
+            </TabsTrigger>
+            <TabsTrigger
+              value="archived"
+              className="text-zinc-600 dark:text-zinc-200"
+            >
+              Archived
+            </TabsTrigger>
           </TabsList>
         </div>
         <Separator />
-        <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 p-4 backdrop-blur">
+        <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <form onSubmit={(e) => e.preventDefault()}>
             <div className="relative">
-              <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search tasks..."
                 aria-label="Search tasks"
-                className="pl-9 pr-9"
+                className="pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -187,7 +202,7 @@ export function TaskApp({
         <div className="flex h-full w-full">
           <ResizablePanelGroup
             orientation="horizontal"
-            className="items-stretch"
+            className="h-full items-stretch"
             onLayoutChanged={(layout) => {
               document.cookie = `react-resizable-panels:layout:task=${JSON.stringify(layout)}`;
             }}
@@ -204,7 +219,6 @@ export function TaskApp({
                 document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
               }}
               className={cn(
-                "flex flex-col h-full",
                 isCollapsed &&
                   "min-w-[50px] transition-all duration-300 ease-in-out",
               )}
@@ -221,11 +235,11 @@ export function TaskApp({
               minSize={30}
               className="relative"
             >
-              {showSettings ? <SettingsView /> : mainContent}
+              {mainContent}
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={defaultLayout[2]} minSize={30}>
-              {taskDetail}
+              {showSettings ? <SettingsView /> : taskDetail}
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>

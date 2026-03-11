@@ -114,9 +114,9 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
               <ContextMenuTrigger>
                 <div
                   className={cn(
-                    "group flex items-center gap-2 py-1 px-2 rounded-md cursor-pointer transition-all relative select-none",
+                    "group flex items-center gap-2 py-1.5 px-2 rounded-md cursor-pointer transition-all relative select-none",
                     isActive
-                      ? "bg-accent text-accent-foreground"
+                      ? "bg-accent text-accent-foreground dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
                     draggedTagId === tag.id && "opacity-50"
                   )}
@@ -220,8 +220,8 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
 
   return (
     <>
-      <div className="flex flex-col gap-1 px-0 py-2">
-        <div className="flex items-center justify-between px-2 mb-1 group">
+      <div className="flex flex-col gap-4 px-0 py-2">
+        <div className="flex items-center justify-between px-4 mb-1 group">
           <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60">
             Projects
           </span>

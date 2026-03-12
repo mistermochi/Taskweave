@@ -222,6 +222,7 @@ export function TaskApp({
         icon={<Plus />}
         label="Create Task"
         tooltip="Create Task"
+        position={isMobile ? "fixed" : "absolute"}
         onClick={() =>
           useTaskAppStore.getState().setSelectedTask({
             id: "new",

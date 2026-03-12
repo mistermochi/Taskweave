@@ -5,7 +5,7 @@ import { Button } from "./button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip"
 
 const fabVariants = cva(
-  "fixed z-50 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95",
+  "z-50 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95",
   {
     variants: {
       size: {
@@ -14,15 +14,14 @@ const fabVariants = cva(
         lg: "h-16 w-16",
       },
       position: {
-        bottomRight: "bottom-6 right-6",
-        bottomLeft: "bottom-6 left-6",
-        topRight: "top-6 right-6",
-        topLeft: "top-6 left-6",
+        fixed: "fixed bottom-6 right-6",
+        absolute: "absolute bottom-6 right-6",
+        static: "",
       }
     },
     defaultVariants: {
       size: "default",
-      position: "bottomRight",
+      position: "fixed",
     },
   }
 )

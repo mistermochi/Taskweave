@@ -1,7 +1,15 @@
-'use client';
+"use client";
 
 import React from 'react';
 import { Tag } from '@/entities/tag';
+import { Checkbox } from "@/shared/ui/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/ui/select";
 
 /**
  * Interface for CalendarMappingRow props.
@@ -38,29 +46,30 @@ export const CalendarMappingRow: React.FC<CalendarMappingRowProps> = ({
   return (
     <div className="flex items-center justify-between py-3 border-b border-border last:border-0 gap-4">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-            <input
-                type="checkbox"
+            <Checkbox
                 checked={isEnabled}
-                onChange={() => onToggleEnabled(calendar.id)}
-                className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-foreground/5"
+                onCheckedChange={() => onToggleEnabled(calendar.id)}
             />
             <div className="flex flex-col min-w-0">
                 <span className="text-sm font-medium text-foreground truncate">{calendar.summary}</span>
-                <span className="text-[10px] text-secondary/50 font-mono truncate">{calendar.id}</span>
+                <span className="text-[10px] text-muted-foreground font-mono truncate">{calendar.id}</span>
             </div>
         </div>
-        <div className="relative shrink-0">
-            <select 
+        <div className="shrink-0">
+            <Select
                 value={selectedProject}
-                onChange={(e) => onMappingChange(calendar.id, e.target.value)}
-                className="bg-foreground/5 border border-border rounded-lg px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary appearance-none pr-8 cursor-pointer max-w-[150px]"
+                onValueChange={(value) => onMappingChange(calendar.id, value)}
             >
-                <option value="">No Project Mapping</option>
-                {projects.map(tag => (
-                    <option key={tag.id} value={tag.id}>{tag.name}</option>
-                ))}
-            </select>
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] text-secondary pointer-events-none">▼</span>
+                <SelectTrigger className="h-8 text-xs min-w-[140px]">
+                    <SelectValue placeholder="No Project Mapping" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="none">No Project Mapping</SelectItem>
+                    {projects.map(tag => (
+                        <SelectItem key={tag.id} value={tag.id}>{tag.name}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
     </div>
   );

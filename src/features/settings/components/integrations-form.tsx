@@ -44,9 +44,10 @@ export function IntegrationsForm() {
   };
 
   const handleMappingChange = async (calendarId: string, projectId: string) => {
+    const finalProjectId = projectId === "none" ? "" : projectId;
     const newMapping = {
       ...(settings.calendarProjectMapping || {}),
-      [calendarId]: projectId,
+      [calendarId]: finalProjectId,
     };
     await updateSettings({ calendarProjectMapping: newMapping });
   };

@@ -14,6 +14,7 @@ import { EmptyState } from "@/shared/ui/ui/Feedback";
 import { Toaster } from "@/shared/ui/ui/sonner";
 import { TaskList } from "./task-list";
 import { SettingsView } from "@/features/settings";
+import { DashboardView } from "@/features/dashboard/components/dashboard-view";
 import { Task } from "@/entities/task";
 import { Tag } from "@/entities/tag";
 import { useTaskAppStore } from "../use-task-app";
@@ -39,7 +40,7 @@ export function TaskApp({
   const {
     selectedTask,
     selectedTagId,
-    showSettings,
+    activeView,
     isCollapsed,
     setIsCollapsed,
   } = useTaskAppStore();
@@ -258,17 +259,33 @@ export function TaskApp({
               onToggleCollapsed={toggleCollapsed}
             />
           </aside>
-          <div className="flex h-full w-[400px] flex-col border-r">
-            {mainContent}
-          </div>
-          <main className="flex h-full flex-1 flex-col min-w-0">
-            {showSettings ? <SettingsView /> : taskDetail}
-          </main>
+          {activeView === 'tasks' ? (
+            <>
+              <div className="flex h-full w-[400px] flex-col border-r">
+                {mainContent}
+              </div>
+              <main className="flex h-full flex-1 flex-col min-w-0">
+                {taskDetail}
+              </main>
+            </>
+          ) : (
+            <>
+              <main className="flex h-full flex-1 flex-col min-w-0">
+                {activeView === 'settings' && <SettingsView />}
+                {activeView === 'dashboard' && <DashboardView />}
+                {activeView === 'insights' && <div className="p-8">Insights Placeholder</div>}
+              </main>
+              {activeView === 'dashboard' && <aside className="flex h-full flex-1 flex-col min-w-0 border-l">{taskDetail}</aside>}
+            </>
+          )}
         </div>
       ) : (
         /* Mobile Layout */
         <div className="flex h-full w-full flex-col overflow-hidden">
-          {showSettings ? <SettingsView /> : mainContent}
+          {activeView === 'settings' && <SettingsView />}
+          {activeView === 'tasks' && mainContent}
+          {activeView === 'dashboard' && <DashboardView />}
+          {activeView === 'insights' && <div className="p-8">Insights Placeholder</div>}
           {taskDetail}
         </div>
       )}

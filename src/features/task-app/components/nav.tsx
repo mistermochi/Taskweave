@@ -7,7 +7,7 @@ import { ReactNode } from "react";
 
 import { buttonVariants } from "@/shared/ui/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
-import { useTaskAppStore } from "../use-task-app";
+import { useTaskAppStore, TaskView } from "../use-task-app";
 
 interface NavProps {
   isCollapsed: boolean;
@@ -21,7 +21,7 @@ interface NavProps {
 }
 
 export function Nav({ links, isCollapsed }: NavProps) {
-  const { showSettings, setShowSettings } = useTaskAppStore();
+  const { activeView, setActiveView } = useTaskAppStore();
 
   return (
     <div
@@ -30,17 +30,13 @@ export function Nav({ links, isCollapsed }: NavProps) {
     >
       <nav className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2">
         {links.map((link, index) => {
-          const isSettings = link.title === "Settings";
-          const isActive = (isSettings && showSettings) || (!showSettings && link.variant === "default");
+          const viewId = link.title.toLowerCase() as TaskView;
+          const isActive = activeView === viewId;
           const variant = isActive ? "default" : "ghost";
 
           const handleClick = (e: React.MouseEvent) => {
             e.preventDefault();
-            if (isSettings) {
-              setShowSettings(true);
-            } else {
-              setShowSettings(false);
-            }
+            setActiveView(viewId);
           };
 
           if (isCollapsed) {

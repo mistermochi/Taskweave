@@ -27,11 +27,21 @@ type GroupedTasks = {
     tasks: Task[];
 };
 
+const ENERGY_MAP: Record<string, number> = { 'High': 3, 'Medium': 2, 'Low': 1 };
+
 export function TaskList({ items, tags }: TaskListProps) {
-  const { selectedTask, setSelectedTask } = useTaskAppStore();
+  const selectedTaskId = useTaskAppStore((state) => state.selectedTask?.id);
+  const setSelectedTask = useTaskAppStore((state) => state.setSelectedTask);
+
+  const tagsMap = useMemo(() => {
+    return tags.reduce((acc, tag) => {
+      acc[tag.id] = tag;
+      return acc;
+    }, {} as Record<string, Tag>);
+  }, [tags]);
 
   const getTagInfo = (categoryId: string) => {
-    const tag = tags.find(t => t.id === categoryId);
+    const tag = tagsMap[categoryId];
     if (tag) return { name: tag.name, color: tag.color };
     return { name: categoryId, color: undefined };
   };
@@ -70,15 +80,13 @@ export function TaskList({ items, tags }: TaskListProps) {
         }
     });
 
-    const energyMap = { 'High': 3, 'Medium': 2, 'Low': 1 };
-
     const sortToday = (a: Task, b: Task) => {
         if (a.isFocused && !b.isFocused) return -1;
         if (!a.isFocused && b.isFocused) return 1;
         const aTime = a.assignedDate || a.dueDate || Infinity;
         const bTime = b.assignedDate || b.dueDate || Infinity;
         if (aTime !== bTime) return aTime - bTime;
-        const energyDiff = (energyMap[b.energy] || 2) - (energyMap[a.energy] || 2);
+        const energyDiff = (ENERGY_MAP[b.energy] || 2) - (ENERGY_MAP[a.energy] || 2);
         if (energyDiff !== 0) return energyDiff;
         return (a.createdAt || 0) - (b.createdAt || 0);
     };
@@ -120,7 +128,7 @@ export function TaskList({ items, tags }: TaskListProps) {
                 key={item.id}
                 className={cn(
                   "hover:bg-accent/70 flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all w-full",
-                  selectedTask?.id === item.id && "bg-accent/70"
+                  selectedTaskId === item.id && "bg-accent/70"
                 )}
                 onClick={() => setSelectedTask(item)}>
                 <div className="flex w-full flex-col gap-1">

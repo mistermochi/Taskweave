@@ -35,7 +35,9 @@ interface TaskTagTreeProps {
 
 export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
   const [expanded, setExpanded] = React.useState<Set<string>>(new Set());
-  const { selectedTagId, setSelectedTagId, setShowSettings } = useTaskAppStore();
+  const selectedTagId = useTaskAppStore((state) => state.selectedTagId);
+  const setSelectedTagId = useTaskAppStore((state) => state.setSelectedTagId);
+  const setShowSettings = useTaskAppStore((state) => state.setShowSettings);
   const { selectTag } = useNavigation();
   const [draggedTagId, setDraggedTagId] = React.useState<string | null>(null);
 

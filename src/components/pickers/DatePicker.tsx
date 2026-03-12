@@ -54,33 +54,22 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type })
       onClear={value ? () => onChange(undefined) : undefined}
       className="p-0 overflow-hidden"
     >
-      <div className={cn(
-        "flex",
-        isMobile ? "flex-col w-full" : "flex-row items-stretch min-w-[380px]"
-      )}>
-        <div className={cn(
-          "p-2",
-          !isMobile && "border-r"
-        )}>
+      <div className="flex flex-row items-stretch max-w-full">
+        <div className="p-0 border-r shrink-0">
           <Calendar
             mode="single"
             selected={value ? new Date(value) : undefined}
             onSelect={handleSelect}
             initialFocus
+            className="p-0 scale-90 origin-top-left"
           />
         </div>
-        <div className={cn(
-          "flex flex-col gap-1 p-2 justify-center",
-          isMobile ? "border-t w-full" : "min-w-[100px]"
-        )}>
-          <div className={cn(
-            "grid gap-1",
-            isMobile ? "grid-cols-2 w-full" : "grid-cols-1"
-          )}>
+        <div className="flex flex-col gap-0 p-0.5 justify-center min-w-[65px] shrink-0">
+          <div className="grid grid-cols-1 gap-0">
             <Button
               variant="ghost"
               size="sm"
-              className="justify-start font-medium text-xs h-8"
+              className="justify-center font-semibold text-[9px] h-7 px-1 uppercase tracking-tighter"
               onClick={() => setQuick(today)}
             >
               Today
@@ -88,26 +77,26 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type })
             <Button
               variant="ghost"
               size="sm"
-              className="justify-start font-medium text-xs h-8"
+              className="justify-center font-semibold text-[9px] h-7 px-1 uppercase tracking-tighter"
               onClick={() => setQuick(addDays(today, 1))}
             >
-              Tomorrow
+              Tmw
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="justify-start font-medium text-xs h-8"
+              className="justify-center font-semibold text-[9px] h-7 px-1 uppercase tracking-tighter"
               onClick={() => setQuick(nextSaturday(today))}
             >
-              Weekend
+              Wknd
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="justify-start font-medium text-xs h-8"
+              className="justify-center font-semibold text-[9px] h-7 px-1 uppercase tracking-tighter"
               onClick={() => setQuick(addDays(today, 7))}
             >
-              Next week
+              Next
             </Button>
           </div>
         </div>

@@ -1,64 +1,120 @@
 'use client';
 
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { format, addDays, nextSaturday } from 'date-fns';
+import { Calendar } from '@/shared/ui/ui/calendar';
+import { Button } from '@/shared/ui/ui/button';
 import { PickerContainer } from './PickerContainer';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { cn } from '@/shared/lib/utils';
 
 /**
  * Interface for DatePicker props.
  */
 interface DatePickerProps {
-    /** The currently selected timestamp. */
-    value: number | undefined; 
-    /** Callback triggered when the date is updated. */
-    onChange: (ts: number | undefined) => void; 
-    /** Whether this is a deadline (due) or a scheduled (assigned) date. */
-    type: 'due' | 'assigned';
+  /** The currently selected timestamp. */
+  value: number | undefined;
+  /** Callback triggered when the date is updated. */
+  onChange: (ts: number | undefined) => void;
+  /** Whether this is a deadline (due) or a scheduled (assigned) date. */
+  type: 'due' | 'assigned';
 }
 
 /**
- * A specialized date selection component for tasks.
- * It provides quick-select buttons for common offsets (Today, Tomorrow, Next Week)
- * and a standard HTML5 date input for custom selection.
+ * A specialized date selection component for tasks, modeled after the snooze flyover.
+ * It provides quick-select buttons for common offsets (Today, Tomorrow, Weekend, Next Week)
+ * and a standard shadcn Calendar for custom selection.
  *
  * @component
  */
 export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type }) => {
-    /**
-     * Helper to set the date based on a day offset.
-     */
-    const setQuick = (offsetDays: number, hour: number) => {
-        const d = new Date();
-        d.setDate(d.getDate() + offsetDays);
-        d.setHours(hour, (type === 'due' ? 59 : 0), (type === 'due' ? 59 : 0), 0);
-        onChange(d.getTime());
-    };
+  const today = new Date();
+  const isMobile = useIsMobile();
 
-    return (
-        <PickerContainer
-            title={type === 'due' ? 'Due Date' : 'Schedule Date'}
-            onClear={value ? () => onChange(undefined) : undefined}
-            className="w-48"
-        >
-            <div className="flex flex-col gap-1">
-                {/* Quick Selection Grid */}
-                <div className="grid grid-cols-2 gap-1">
-                    <button onClick={(e) => { e.stopPropagation(); setQuick(0, type === 'due' ? 23 : 12); }} className="py-1.5 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-xxs font-bold text-foreground transition-colors">Today</button>
-                    <button onClick={(e) => { e.stopPropagation(); setQuick(1, type === 'due' ? 23 : 12); }} className="py-1.5 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-xxs font-bold text-foreground transition-colors">Tomorrow</button>
-                    <button onClick={(e) => { e.stopPropagation(); setQuick(7, type === 'due' ? 23 : 12); }} className="py-1.5 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-xxs font-bold text-foreground transition-colors col-span-2">Next Week</button>
-                </div>
-                {/* Custom Date Input */}
-                <div className="relative bg-foreground/5 rounded-lg p-1.5 flex items-center gap-2 hover:bg-foreground/10 transition-colors">
-                    <Calendar size={12} className="text-secondary ml-1" />
-                    <input 
-                        type="date" 
-                        className="bg-transparent border-none text-xxs text-foreground font-medium p-0 focus:ring-0 w-full cursor-pointer"
-                        value={value ? new Date(value).toISOString().split('T')[0] : ''}
-                        onChange={(e) => { e.stopPropagation(); if (e.target.valueAsNumber) { const d = new Date(e.target.value); d.setHours(type === 'due' ? 23 : 12, 0, 0); onChange(d.getTime()); } }}
-                        onClick={(e) => e.stopPropagation()}
-                    />
-                </div>
-            </div>
-        </PickerContainer>
-    );
+  const handleSelect = (date: Date | undefined) => {
+    if (!date) {
+      onChange(undefined);
+      return;
+    }
+    // Set consistent time based on type
+    const d = new Date(date);
+    d.setHours(type === 'due' ? 23 : 12, type === 'due' ? 59 : 0, 0, 0);
+    onChange(d.getTime());
+  };
+
+  const setQuick = (date: Date) => {
+    const d = new Date(date);
+    d.setHours(type === 'due' ? 23 : 12, type === 'due' ? 59 : 0, 0, 0);
+    onChange(d.getTime());
+  };
+
+  return (
+    <PickerContainer
+      title={type === 'due' ? 'Due Date' : 'Schedule Date'}
+      onClear={value ? () => onChange(undefined) : undefined}
+      className="p-0"
+    >
+      <div className={cn(
+        "flex w-full",
+        isMobile ? "flex-col" : "min-w-[535px]"
+      )}>
+        <div className={cn(
+          "flex flex-col gap-2 py-4",
+          isMobile ? "border-b px-0" : "border-r px-2"
+        )}>
+          <div className="px-4 text-sm font-medium">Quick select</div>
+          <div className="grid min-w-[250px] gap-1">
+            <Button
+              variant="ghost"
+              className="justify-start font-normal"
+              onClick={() => setQuick(today)}
+            >
+              Today
+              <span className="text-muted-foreground ml-auto">
+                {format(today, "E, MMM d")}
+              </span>
+            </Button>
+            <Button
+              variant="ghost"
+              className="justify-start font-normal"
+              onClick={() => setQuick(addDays(today, 1))}
+            >
+              Tomorrow
+              <span className="text-muted-foreground ml-auto">
+                {format(addDays(today, 1), "E, MMM d")}
+              </span>
+            </Button>
+            <Button
+              variant="ghost"
+              className="justify-start font-normal"
+              onClick={() => setQuick(nextSaturday(today))}
+            >
+              This weekend
+              <span className="text-muted-foreground ml-auto">
+                {format(nextSaturday(today), "E, MMM d")}
+              </span>
+            </Button>
+            <Button
+              variant="ghost"
+              className="justify-start font-normal"
+              onClick={() => setQuick(addDays(today, 7))}
+            >
+              Next week
+              <span className="text-muted-foreground ml-auto">
+                {format(addDays(today, 7), "E, MMM d")}
+              </span>
+            </Button>
+          </div>
+        </div>
+        <div className="p-2">
+          <Calendar
+            mode="single"
+            selected={value ? new Date(value) : undefined}
+            onSelect={handleSelect}
+            initialFocus
+          />
+        </div>
+      </div>
+    </PickerContainer>
+  );
 };

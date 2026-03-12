@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { format, addDays, nextSaturday } from 'date-fns';
+import { addDays, nextSaturday } from 'date-fns';
 import { Calendar } from '@/shared/ui/ui/calendar';
 import { Button } from '@/shared/ui/ui/button';
 import { PickerContainer } from './PickerContainer';
@@ -52,67 +52,64 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type })
     <PickerContainer
       title={type === 'due' ? 'Due Date' : 'Schedule Date'}
       onClear={value ? () => onChange(undefined) : undefined}
-      className="p-0"
+      className="p-0 overflow-hidden"
     >
       <div className={cn(
-        "flex w-full",
-        isMobile ? "flex-col" : "min-w-[535px]"
+        "flex",
+        isMobile ? "flex-col w-full" : "flex-row items-stretch min-w-[380px]"
       )}>
         <div className={cn(
-          "flex flex-col gap-2 py-4",
-          isMobile ? "border-b px-0" : "border-r px-2"
+          "p-2",
+          !isMobile && "border-r"
         )}>
-          <div className="px-4 text-sm font-medium">Quick select</div>
-          <div className="grid min-w-[250px] gap-1">
-            <Button
-              variant="ghost"
-              className="justify-start font-normal"
-              onClick={() => setQuick(today)}
-            >
-              Today
-              <span className="text-muted-foreground ml-auto">
-                {format(today, "E, MMM d")}
-              </span>
-            </Button>
-            <Button
-              variant="ghost"
-              className="justify-start font-normal"
-              onClick={() => setQuick(addDays(today, 1))}
-            >
-              Tomorrow
-              <span className="text-muted-foreground ml-auto">
-                {format(addDays(today, 1), "E, MMM d")}
-              </span>
-            </Button>
-            <Button
-              variant="ghost"
-              className="justify-start font-normal"
-              onClick={() => setQuick(nextSaturday(today))}
-            >
-              This weekend
-              <span className="text-muted-foreground ml-auto">
-                {format(nextSaturday(today), "E, MMM d")}
-              </span>
-            </Button>
-            <Button
-              variant="ghost"
-              className="justify-start font-normal"
-              onClick={() => setQuick(addDays(today, 7))}
-            >
-              Next week
-              <span className="text-muted-foreground ml-auto">
-                {format(addDays(today, 7), "E, MMM d")}
-              </span>
-            </Button>
-          </div>
-        </div>
-        <div className="p-2">
           <Calendar
             mode="single"
             selected={value ? new Date(value) : undefined}
             onSelect={handleSelect}
             initialFocus
           />
+        </div>
+        <div className={cn(
+          "flex flex-col gap-1 p-2 justify-center",
+          isMobile ? "border-t w-full" : "min-w-[100px]"
+        )}>
+          <div className={cn(
+            "grid gap-1",
+            isMobile ? "grid-cols-2 w-full" : "grid-cols-1"
+          )}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="justify-start font-medium text-xs h-8"
+              onClick={() => setQuick(today)}
+            >
+              Today
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="justify-start font-medium text-xs h-8"
+              onClick={() => setQuick(addDays(today, 1))}
+            >
+              Tomorrow
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="justify-start font-medium text-xs h-8"
+              onClick={() => setQuick(nextSaturday(today))}
+            >
+              Weekend
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="justify-start font-medium text-xs h-8"
+              onClick={() => setQuick(addDays(today, 7))}
+            >
+              Next week
+            </Button>
+          </div>
         </div>
       </div>
     </PickerContainer>

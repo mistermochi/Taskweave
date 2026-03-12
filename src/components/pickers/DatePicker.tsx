@@ -29,7 +29,6 @@ interface DatePickerProps {
  */
 export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type }) => {
   const today = new Date();
-  const isMobile = useIsMobile();
 
   const handleSelect = (date: Date | undefined) => {
     if (!date) {
@@ -55,7 +54,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type })
       className="p-0 overflow-hidden"
     >
       <div className="flex flex-row items-stretch max-w-full">
-        <div className="p-0 border-r shrink-0">
+        <div className="p-0 border-r shrink-0 w-[228px] h-[260px] overflow-hidden">
           <Calendar
             mode="single"
             selected={value ? new Date(value) : undefined}
@@ -64,7 +63,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type })
             className="p-0 scale-90 origin-top-left"
           />
         </div>
-        <div className="flex flex-col gap-0 p-0.5 justify-center min-w-[65px] shrink-0">
+        <div className="flex flex-col gap-0 p-0.5 justify-center min-w-[64px] shrink-0">
           <div className="grid grid-cols-1 gap-0">
             <Button
               variant="ghost"

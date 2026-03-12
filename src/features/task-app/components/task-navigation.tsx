@@ -14,9 +14,15 @@ interface TaskNavigationProps {
   tags: Tag[];
   tasks: Task[];
   isCollapsed: boolean;
+  onToggleCollapsed?: (collapsed: boolean) => void;
 }
 
-export function TaskNavigation({ tags, tasks, isCollapsed }: TaskNavigationProps) {
+export function TaskNavigation({
+  tags,
+  tasks,
+  isCollapsed,
+  onToggleCollapsed,
+}: TaskNavigationProps) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -27,6 +33,7 @@ export function TaskNavigation({ tags, tasks, isCollapsed }: TaskNavigationProps
           isCollapsed={isCollapsed}
           tags={tags}
           tasks={tasks}
+          onToggleCollapsed={onToggleCollapsed}
         />
       </div>
 

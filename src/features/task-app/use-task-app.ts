@@ -9,6 +9,8 @@ type TaskAppStore = {
   setSelectedTagId: (tagId: string | null) => void;
   showSettings: boolean;
   setShowSettings: (show: boolean) => void;
+  isCollapsed: boolean;
+  setIsCollapsed: (collapsed: boolean) => void;
   showToast: (message: string, onUndo?: () => void) => void;
 };
 
@@ -20,6 +22,8 @@ export const useTaskAppStore = create<TaskAppStore>((set) => ({
   showSettings: false,
   setShowSettings: (show) =>
     set({ showSettings: show, selectedTask: show ? null : null }),
+  isCollapsed: false,
+  setIsCollapsed: (collapsed) => set({ isCollapsed: collapsed }),
   showToast: (message, onUndo) => {
     if (onUndo) {
       toast(message, {

@@ -5,6 +5,11 @@ import { SidebarNav } from "./sidebar-nav";
 import { Separator } from "@/shared/ui/ui/separator";
 import { ProfileForm } from "./profile-form";
 import { AppearanceForm } from "./appearance-form";
+import { ScheduleForm } from "./schedule-form";
+import { SensorsForm } from "./sensors-form";
+import { IntegrationsForm } from "./integrations-form";
+import { MentalModelForm } from "./mental-model-form";
+import { AccountForm } from "./account-form";
 
 const settingsTabs = [
   {
@@ -14,6 +19,26 @@ const settingsTabs = [
   {
     id: "appearance",
     title: "Appearance",
+  },
+  {
+    id: "schedule",
+    title: "Schedule",
+  },
+  {
+    id: "sensors",
+    title: "Sensors",
+  },
+  {
+    id: "integrations",
+    title: "Integrations",
+  },
+  {
+    id: "mental-model",
+    title: "Mental Model",
+  },
+  {
+    id: "account",
+    title: "Account",
   },
 ];
 
@@ -40,6 +65,11 @@ export function SettingsView() {
         <div className="flex-1 lg:max-w-2xl mt-4 lg:mt-0">
           {activeTab === "profile" && <ProfileForm />}
           {activeTab === "appearance" && <AppearanceForm />}
+          {activeTab === "schedule" && <ScheduleForm />}
+          {activeTab === "sensors" && <SensorsForm />}
+          {activeTab === "integrations" && <IntegrationsForm />}
+          {activeTab === "mental-model" && <MentalModelForm />}
+          {activeTab === "account" && <AccountForm />}
         </div>
       </div>
     </div>

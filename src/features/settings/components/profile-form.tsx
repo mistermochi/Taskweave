@@ -15,6 +15,7 @@ import {
   FormMessage
 } from "@/shared/ui/ui/form";
 import { Input } from "@/shared/ui/ui/input";
+import { auth } from "@/shared/api/firebase";
 
 const profileFormSchema = z.object({
   username: z
@@ -49,10 +50,27 @@ export function ProfileForm() {
     }
   }
 
+  const seed = settings.displayName || 'taskweave';
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
+    <div className="space-y-8">
+      <div className="flex items-center gap-4 p-4 rounded-xl border bg-card text-card-foreground">
+        <div className="h-14 w-14 rounded-full border border-border overflow-hidden shrink-0">
+          <img
+            src={settings.photoURL || `https://picsum.photos/seed/${seed}/100`}
+            className="h-full w-full object-cover"
+            alt="User profile"
+          />
+        </div>
+        <div className="flex-1">
+          <div className="text-lg font-medium">{settings.displayName}</div>
+          <div className="text-xs text-muted-foreground">{auth.currentUser?.email}</div>
+        </div>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
           control={form.control}
           name="username"
           render={({ field }) => (
@@ -71,5 +89,6 @@ export function ProfileForm() {
         <Button type="submit">Update profile</Button>
       </form>
     </Form>
+    </div>
   );
 }

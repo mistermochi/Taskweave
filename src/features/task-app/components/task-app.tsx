@@ -46,6 +46,15 @@ export function TaskApp({
   const [tab, setTab] = React.useState("active");
   const [searchQuery, setSearchQuery] = React.useState("");
   const isMobile = useIsMobile();
+  const cookieTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced cookie writer to prevent jank during active resizing
+  const debouncedSetCookie = React.useCallback((name: string, value: string) => {
+    if (cookieTimerRef.current) clearTimeout(cookieTimerRef.current);
+    cookieTimerRef.current = setTimeout(() => {
+      document.cookie = `${name}=${value}; path=/; max-age=31536000`;
+    }, 500);
+  }, []);
 
   const filteredTasks = React.useMemo(() => {
     const selectedTag = selectedTagId
@@ -210,7 +219,10 @@ export function TaskApp({
             orientation="horizontal"
             className="h-full items-stretch"
             onLayoutChanged={(layout) => {
-              document.cookie = `react-resizable-panels:layout:task=${JSON.stringify(layout)}`;
+              debouncedSetCookie(
+                "react-resizable-panels:layout:task",
+                JSON.stringify(layout),
+              );
             }}
           >
             <ResizablePanel
@@ -222,7 +234,10 @@ export function TaskApp({
               onResize={(size) => {
                 const isNowCollapsed = size.asPercentage <= navCollapsedSize;
                 setIsCollapsed(isNowCollapsed);
-                document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(isNowCollapsed)}`;
+                debouncedSetCookie(
+                  "react-resizable-panels:collapsed",
+                  JSON.stringify(isNowCollapsed),
+                );
               }}
               className={cn(
                 isCollapsed &&

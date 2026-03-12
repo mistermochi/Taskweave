@@ -34,13 +34,18 @@ interface TaskNavigationContentProps {
 }
 
 export function TaskNavigationContent({ isCollapsed, tags, tasks }: TaskNavigationContentProps) {
+  const activeTaskCount = React.useMemo(() => {
+    return tasks.filter((t) => t.status === "active").length.toString();
+  }, [tasks]);
+
   return (
     <>
       <div
         className={cn(
           "flex h-[52px] items-center justify-center",
-          isCollapsed ? "h-[52px]" : "px-2"
-        )}>
+          isCollapsed ? "h-[52px]" : "px-2",
+        )}
+      >
         <AccountSwitcher isCollapsed={isCollapsed} accounts={accounts} />
       </div>
 
@@ -51,9 +56,9 @@ export function TaskNavigationContent({ isCollapsed, tags, tasks }: TaskNavigati
         links={[
           {
             title: "Inbox",
-            label: tasks.filter(t => t.status === 'active').length.toString(),
+            label: activeTaskCount,
             icon: Inbox,
-            variant: "default"
+            variant: "default",
           },
           {
             title: "Drafts",

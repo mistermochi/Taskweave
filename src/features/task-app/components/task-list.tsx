@@ -1,4 +1,4 @@
-import { ComponentProps, useMemo } from "react";
+import * as React from "react";
 import { isToday, isPast, isTomorrow, startOfToday } from "date-fns";
 import {
   Calendar,
@@ -33,7 +33,7 @@ export function TaskList({ items, tags }: TaskListProps) {
   const selectedTaskId = useTaskAppStore((state) => state.selectedTask?.id);
   const setSelectedTask = useTaskAppStore((state) => state.setSelectedTask);
 
-  const tagsMap = useMemo(() => {
+  const tagsMap = React.useMemo(() => {
     return tags.reduce((acc, tag) => {
       acc[tag.id] = tag;
       return acc;
@@ -46,7 +46,7 @@ export function TaskList({ items, tags }: TaskListProps) {
     return { name: categoryId, color: undefined };
   };
 
-  const groups = useMemo(() => {
+  const groups = React.useMemo(() => {
     const overdue: Task[] = [];
     const today: Task[] = [];
     const tomorrow: Task[] = [];

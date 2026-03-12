@@ -14,6 +14,7 @@ import {
 
 import { Nav } from "./nav";
 import { Button } from "@/shared/ui/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 import { useTaskAppStore } from "../use-task-app";
 import { Separator } from "@/shared/ui/ui/separator";
 import { cn } from "@/shared/lib/utils";
@@ -62,29 +63,39 @@ export function TaskNavigationContent({
         )}>
         <AccountSwitcher isCollapsed={isCollapsed} accounts={accounts} />
         {!isCollapsed && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => handleToggle(true)}
-            aria-label="Collapse sidebar"
-          >
-            <PanelLeft className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleToggle(true)}
+                aria-label="Collapse sidebar"
+              >
+                <PanelLeft className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Collapse sidebar</TooltipContent>
+          </Tooltip>
         )}
       </div>
 
       {isCollapsed && (
         <div className="flex justify-center pb-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => handleToggle(false)}
-            aria-label="Expand sidebar"
-          >
-            <PanelLeft className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleToggle(false)}
+                aria-label="Expand sidebar"
+              >
+                <PanelLeft className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Expand sidebar</TooltipContent>
+          </Tooltip>
         </div>
       )}
 

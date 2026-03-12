@@ -7,7 +7,7 @@ import { cn } from "@/shared/lib/utils";
 import { Input } from "@/shared/ui/ui/input";
 import { Separator } from "@/shared/ui/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
-import { TooltipProvider } from "@/shared/ui/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { Button } from "@/shared/ui/ui/button";
 import { Fab } from "@/shared/ui/ui/fab";
 import { EmptyState } from "@/shared/ui/ui/Feedback";
@@ -62,12 +62,33 @@ export function TaskApp({
   const isMobile = useIsMobile();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
+  const createNewTask = React.useCallback(() => {
+    useTaskAppStore.getState().setSelectedTask({
+      id: "new",
+      title: "",
+      status: "active",
+      category: "",
+      energy: "Medium",
+      duration: 0,
+      createdAt: Date.now(),
+      blockedBy: [],
+    } as Task);
+  }, []);
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const isInputFocused = ["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName);
+
       // Focus search on '/'
-      if (e.key === "/" && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) {
+      if (e.key === "/" && !isInputFocused) {
         e.preventDefault();
         searchInputRef.current?.focus();
+      }
+
+      // Create new task on 'n'
+      if (e.key === "n" && !isInputFocused) {
+        e.preventDefault();
+        createNewTask();
       }
 
       // Clear search and blur on 'Escape'
@@ -79,7 +100,7 @@ export function TaskApp({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [createNewTask]);
 
   const filteredTasks = React.useMemo(() => {
     const selectedTag = selectedTagId
@@ -175,18 +196,23 @@ export function TaskApp({
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1 h-8 w-8 hover:bg-transparent"
-                  onClick={() => {
-                    setSearchQuery("");
-                    searchInputRef.current?.focus();
-                  }}
-                  aria-label="Clear search"
-                >
-                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1 h-8 w-8 hover:bg-transparent"
+                      onClick={() => {
+                        setSearchQuery("");
+                        searchInputRef.current?.focus();
+                      }}
+                      aria-label="Clear search"
+                    >
+                      <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Clear search (Esc)</TooltipContent>
+                </Tooltip>
               )}
             </div>
           </form>
@@ -221,20 +247,9 @@ export function TaskApp({
       <Fab
         icon={<Plus />}
         label="Create Task"
-        tooltip="Create Task"
+        tooltip="Create Task (n)"
         position={isMobile ? "fixed" : "absolute"}
-        onClick={() =>
-          useTaskAppStore.getState().setSelectedTask({
-            id: "new",
-            title: "",
-            status: "active",
-            category: "",
-            energy: "Medium",
-            duration: 0,
-            createdAt: Date.now(),
-            blockedBy: [],
-          } as Task)
-        }
+        onClick={createNewTask}
       />
     </div>
   );

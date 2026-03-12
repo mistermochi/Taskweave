@@ -6,12 +6,15 @@ import {
   ArchiveX,
   File,
   Inbox,
+  PanelLeft,
   Send,
   Settings,
   Trash2,
 } from "lucide-react";
 
 import { Nav } from "./nav";
+import { Button } from "@/shared/ui/ui/button";
+import { useTaskAppStore } from "../use-task-app";
 import { Separator } from "@/shared/ui/ui/separator";
 import { cn } from "@/shared/lib/utils";
 import { AccountSwitcher } from "./account-switcher";
@@ -31,18 +34,59 @@ interface TaskNavigationContentProps {
   isCollapsed: boolean;
   tags: Tag[];
   tasks: Task[];
+  onToggleCollapsed?: (collapsed: boolean) => void;
 }
 
-export function TaskNavigationContent({ isCollapsed, tags, tasks }: TaskNavigationContentProps) {
+export function TaskNavigationContent({
+  isCollapsed,
+  tags,
+  tasks,
+  onToggleCollapsed,
+}: TaskNavigationContentProps) {
+  const { setIsCollapsed } = useTaskAppStore();
+
+  const handleToggle = (collapsed: boolean) => {
+    if (onToggleCollapsed) {
+      onToggleCollapsed(collapsed);
+    } else {
+      setIsCollapsed(collapsed);
+    }
+  };
+
   return (
     <>
       <div
         className={cn(
-          "flex h-[52px] items-center justify-center",
-          isCollapsed ? "h-[52px]" : "px-2"
+          "flex h-[52px] items-center",
+          isCollapsed ? "justify-center" : "justify-between px-2"
         )}>
         <AccountSwitcher isCollapsed={isCollapsed} accounts={accounts} />
+        {!isCollapsed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handleToggle(true)}
+            aria-label="Collapse sidebar"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </Button>
+        )}
       </div>
+
+      {isCollapsed && (
+        <div className="flex justify-center pb-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handleToggle(false)}
+            aria-label="Expand sidebar"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <Separator />
 

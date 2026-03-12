@@ -43,7 +43,9 @@ export function TaskNavigationContent({
   tasks,
   onToggleCollapsed,
 }: TaskNavigationContentProps) {
-  const { setIsCollapsed } = useTaskAppStore();
+  // BOLT: Use a selector for setIsCollapsed to avoid unnecessary re-renders
+  // when other store state (like selectedTask) changes.
+  const setIsCollapsed = useTaskAppStore((state) => state.setIsCollapsed);
 
   const handleToggle = (collapsed: boolean) => {
     if (onToggleCollapsed) {

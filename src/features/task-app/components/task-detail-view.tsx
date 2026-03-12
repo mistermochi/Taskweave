@@ -93,9 +93,17 @@ export function TaskDetailView({
 
   const navigation = useNavigation();
 
+  // BOLT: Use a memoized map for O(1) tag lookups instead of repeated O(N) array scans in render.
+  const tagsMap = useMemo(() => {
+    return tags.reduce((acc, tag) => {
+      acc[tag.id] = tag;
+      return acc;
+    }, {} as Record<string, TagEntity>);
+  }, [tags]);
+
   const getTagInfo = (categoryId: string | undefined) => {
     if (!categoryId) return null;
-    const tag = tags.find((t) => t.id === categoryId);
+    const tag = tagsMap[categoryId];
     if (tag) return { name: tag.name, color: tag.color };
     return { name: categoryId, color: undefined };
   };

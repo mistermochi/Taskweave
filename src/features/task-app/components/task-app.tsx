@@ -36,13 +36,13 @@ export function TaskApp({
   defaultCollapsed = false,
   navCollapsedSize,
 }: TaskAppProps) {
-  const {
-    selectedTask,
-    selectedTagId,
-    showSettings,
-    isCollapsed,
-    setIsCollapsed,
-  } = useTaskAppStore();
+  // BOLT: Use fine-grained selectors to avoid unnecessary re-renders of the whole app
+  // when unrelated store properties (like toast or settings visibility in other contexts) change.
+  const selectedTask = useTaskAppStore((state) => state.selectedTask);
+  const selectedTagId = useTaskAppStore((state) => state.selectedTagId);
+  const showSettings = useTaskAppStore((state) => state.showSettings);
+  const isCollapsed = useTaskAppStore((state) => state.isCollapsed);
+  const setIsCollapsed = useTaskAppStore((state) => state.setIsCollapsed);
 
   React.useEffect(() => {
     if (defaultCollapsed !== undefined) {
@@ -59,6 +59,8 @@ export function TaskApp({
   );
   const [tab, setTab] = React.useState("active");
   const [searchQuery, setSearchQuery] = React.useState("");
+  // BOLT: Defer search query to keep the input responsive during expensive filtering
+  const deferredSearchQuery = React.useDeferredValue(searchQuery);
   const isMobile = useIsMobile();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -81,6 +83,14 @@ export function TaskApp({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // BOLT: Create a map for O(1) lookups during rendering
+  const tasksMap = React.useMemo(() => {
+    return tasks.reduce((acc, task) => {
+      acc[task.id] = task;
+      return acc;
+    }, {} as Record<string, Task>);
+  }, [tasks]);
+
   const filteredTasks = React.useMemo(() => {
     const selectedTag = selectedTagId
       ? tags.find((t) => t.id === selectedTagId)
@@ -88,8 +98,8 @@ export function TaskApp({
 
     return tasks.filter((task) => {
       // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
+      if (deferredSearchQuery) {
+        const query = deferredSearchQuery.toLowerCase();
         const matchesTitle = task.title.toLowerCase().includes(query);
         const matchesNotes = task.notes?.toLowerCase().includes(query) || false;
         if (!matchesTitle && !matchesNotes) return false;
@@ -112,19 +122,21 @@ export function TaskApp({
 
       return true;
     });
-  }, [tasks, tab, selectedTagId, tags, searchQuery]);
+  }, [tasks, tab, selectedTagId, tags, deferredSearchQuery]);
 
-  const taskDetail = (
+  // BOLT: Memoize taskDetail to prevent full re-renders of the detail panel
+  // when the task list is filtering (due to searchQuery changes).
+  const taskDetail = React.useMemo(() => (
     <TaskDetail
       task={
         selectedTask?.id === "new"
           ? selectedTask
-          : tasks.find((item) => item.id === selectedTask?.id) || null
+          : (selectedTask?.id ? tasksMap[selectedTask.id] : null)
       }
       tags={tags}
       allTasks={tasks}
     />
-  );
+  ), [selectedTask, tasksMap, tags, tasks]);
 
   const mainContent = (
     <div className="relative h-full flex flex-col w-full">

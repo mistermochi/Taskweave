@@ -284,12 +284,15 @@ export function TaskApp({
             </>
           ) : (
             <>
-              <main className="flex h-full flex-1 flex-col min-w-0">
+              <main className={cn(
+                "flex h-full flex-col min-w-0",
+                activeView === 'dashboard' ? "w-[400px] border-r" : "flex-1"
+              )}>
                 {activeView === 'settings' && <SettingsView />}
                 {activeView === 'dashboard' && <DashboardView />}
                 {activeView === 'insights' && <InsightsView onNavigate={() => {}} />}
               </main>
-              {activeView === 'dashboard' && <aside className="flex h-full flex-1 flex-col min-w-0 border-l">{taskDetail}</aside>}
+              {activeView === 'dashboard' && <aside className="flex h-full flex-1 flex-col min-w-0">{taskDetail}</aside>}
             </>
           )}
         </div>

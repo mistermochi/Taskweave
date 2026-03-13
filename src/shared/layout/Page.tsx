@@ -1,4 +1,5 @@
 import React from 'react';
+import { AppHeader } from '../ui/ui/app-header';
 
 /**
  * Props for Page.Root component.
@@ -36,20 +37,15 @@ interface PageHeaderProps {
 /**
  * Consistent header component for all internal pages.
  * Supports titles, subtitles, and action buttons.
+ * @deprecated Use AppHeader directly for the unified layout.
  */
-const Header: React.FC<PageHeaderProps> = ({ title, subtitle, actions, children, className = '' }) => (
-  <header className={`shrink-0 px-6 pt-8 pb-4 flex items-center justify-between z-10 ${className}`}>
-    <div className="min-w-0">
-      <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-3 truncate">
-        <span className="truncate">{title}</span> 
-        {subtitle && <span className="text-sm font-medium text-secondary/50 font-normal">{subtitle}</span>}
-      </h1>
-    </div>
-    <div className="flex items-center gap-2">
-      {actions}
-    </div>
-    {children}
-  </header>
+const Header: React.FC<PageHeaderProps> = ({ title, subtitle, actions, className = '' }) => (
+  <AppHeader
+    title={title}
+    subtitle={subtitle}
+    actions={actions}
+    className={className}
+  />
 );
 
 /**

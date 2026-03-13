@@ -8,6 +8,11 @@ import { Zap, Clock, Target, Activity, Layers, Wind, Smile, AlignLeft, MapPin, B
 import { useInsightsController } from '@/hooks/controllers/useInsightsController';
 import { Page } from '@/shared/layout/Page';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
+import { AppHeader } from '@/shared/ui/ui/app-header';
+import { TaskNavigation } from '@/features/task-app/components/task-navigation';
+import { useFirestoreCollection } from '@/hooks/useFirestore';
+import { TaskEntity } from '@/entities/task';
+import { Tag } from '@/entities/tag';
 
 /**
  * Interface for InsightsView props.
@@ -196,6 +201,8 @@ const VitalContextModal = ({ vital, onClose }: { vital: UserVital | null, onClos
 export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
   const { state } = useInsightsController();
   const [selectedVital, setSelectedVital] = useState<UserVital | null>(null);
+  const { data: tasks } = useFirestoreCollection<TaskEntity>("tasks");
+  const { data: tags } = useFirestoreCollection<Tag>("tags");
 
   const getCategoryColor = (cat: Category) => {
     switch (cat) {
@@ -212,18 +219,19 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
   }
 
   return (
-    <Page.Root>
-       <Page.Header 
-          title="Insights"
-          subtitle="Patterns & Progress"
-          actions={
-            <div className="h-10 w-10 rounded-sm border border-border bg-muted/50 flex items-center justify-center">
-                <Activity size={18} className="text-primary" />
-            </div>
-          }
-       />
-
-       <Page.Content>
+    <div className="h-full flex flex-col overflow-hidden bg-background">
+      <AppHeader
+        title="Insights"
+        subtitle="Patterns & Progress"
+        nav={<TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />}
+        actions={
+          <div className="h-9 w-9 rounded-md border border-border bg-muted/50 flex items-center justify-center">
+            <Activity size={18} className="text-primary" />
+          </div>
+        }
+      />
+      <Page.Root className="flex-1">
+        <Page.Content className="pt-4">
          
          {/* 1. Main Focus Orbit */}
          <Page.Section className="flex items-center justify-center py-6 min-h-[300px]">
@@ -341,7 +349,8 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
        {selectedVital && (
          <VitalContextModal vital={selectedVital} onClose={() => setSelectedVital(null)} />
        )}
-    </Page.Root>
+      </Page.Root>
+    </div>
   );
 };
 

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { SidebarNav } from "./sidebar-nav";
-import { Separator } from "@/shared/ui/ui/separator";
 import { ProfileForm } from "./profile-form";
 import { AppearanceForm } from "./appearance-form";
 import { ScheduleForm } from "./schedule-form";
@@ -10,6 +9,11 @@ import { SensorsForm } from "./sensors-form";
 import { IntegrationsForm } from "./integrations-form";
 import { MentalModelForm } from "./mental-model-form";
 import { AccountForm } from "./account-form";
+import { AppHeader } from "@/shared/ui/ui/app-header";
+import { TaskNavigation } from "@/features/task-app/components/task-navigation";
+import { useFirestoreCollection } from "@/hooks/useFirestore";
+import { TaskEntity } from "@/entities/task";
+import { Tag } from "@/entities/tag";
 
 const settingsTabs = [
   {
@@ -44,16 +48,16 @@ const settingsTabs = [
 
 export function SettingsView() {
   const [activeTab, setActiveTab] = React.useState("profile");
+  const { data: tasks } = useFirestoreCollection<TaskEntity>("tasks");
+  const { data: tags } = useFirestoreCollection<Tag>("tags");
 
   return (
     <div className="h-full flex flex-col">
-      <div className="space-y-0.5 px-4 py-4">
-        <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-        <p className="text-muted-foreground text-sm">
-          Manage your account settings and preferences.
-        </p>
-      </div>
-      <Separator />
+      <AppHeader
+        title="Settings"
+        subtitle="Account preferences"
+        nav={<TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />}
+      />
       <div className="flex-1 flex flex-col lg:flex-row lg:space-x-12 lg:space-y-0 p-4">
         <aside className="lg:w-1/5">
           <SidebarNav

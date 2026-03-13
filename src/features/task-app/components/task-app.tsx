@@ -12,6 +12,7 @@ import { Button } from "@/shared/ui/ui/button";
 import { Fab } from "@/shared/ui/ui/fab";
 import { EmptyState } from "@/shared/ui/ui/Feedback";
 import { Toaster } from "@/shared/ui/ui/sonner";
+import { AppHeader } from "@/shared/ui/ui/app-header";
 import { TaskList } from "./task-list";
 import { SettingsView } from "@/features/settings";
 import { DashboardView } from "@/features/dashboard/components/dashboard-view";
@@ -155,35 +156,32 @@ export function TaskApp({
         className="flex h-full flex-col gap-0"
         onValueChange={(value) => setTab(value)}
       >
-        <div className="flex h-[52px] items-center px-4 py-2">
-          <div className="flex items-center gap-2">
-            <div className="md:hidden">
-              <TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />
-            </div>
-            <h1 className="text-xl font-bold">Inbox</h1>
-          </div>
-          <TabsList className="ml-auto">
-            <TabsTrigger
-              value="active"
-              className="text-zinc-600 dark:text-zinc-200"
-            >
-              Active
-            </TabsTrigger>
-            <TabsTrigger
-              value="completed"
-              className="text-zinc-600 dark:text-zinc-200"
-            >
-              Completed
-            </TabsTrigger>
-            <TabsTrigger
-              value="archived"
-              className="text-zinc-600 dark:text-zinc-200"
-            >
-              Archived
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        <Separator />
+        <AppHeader
+          title="Inbox"
+          nav={<TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />}
+          actions={
+            <TabsList className="ml-auto">
+              <TabsTrigger
+                value="active"
+                className="text-zinc-600 dark:text-zinc-200"
+              >
+                Active
+              </TabsTrigger>
+              <TabsTrigger
+                value="completed"
+                className="text-zinc-600 dark:text-zinc-200"
+              >
+                Completed
+              </TabsTrigger>
+              <TabsTrigger
+                value="archived"
+                className="text-zinc-600 dark:text-zinc-200"
+              >
+                Archived
+              </TabsTrigger>
+            </TabsList>
+          }
+        />
         <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <form onSubmit={(e) => e.preventDefault()}>
             <div className="relative">

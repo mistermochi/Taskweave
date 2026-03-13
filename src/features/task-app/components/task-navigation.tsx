@@ -41,7 +41,7 @@ export function TaskNavigation({
       <div className="md:hidden">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" aria-label="Open navigation menu">
               <MenuIcon />
             </Button>
           </SheetTrigger>

@@ -19,6 +19,8 @@ import { Button } from '@/shared/ui/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/ui/sheet';
 import { CreateTaskSheetContent } from '@/entities/task/ui/task-details/CreateTaskSheetContent';
 import { useTaskAppStore } from '@/features/task-app/use-task-app';
+import { AppHeader } from '@/shared/ui/ui/app-header';
+import { TaskNavigation } from '@/features/task-app/components/task-navigation';
 
 const DashboardTopMetrics = () => {
     const { state, actions } = useDashboardController();
@@ -65,6 +67,8 @@ const DashboardTopMetrics = () => {
 export const DashboardView: React.FC = () => {
   const { state, actions } = useDashboardController();
   const { setSelectedTask, showToast } = useTaskAppStore();
+  const tasks = state.activeTasks as unknown as TaskEntity[];
+  const tags = state.tags as unknown as Tag[];
   
   const [intention, setIntention] = useState(state.latestFocus);
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
@@ -114,25 +118,25 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-background">
+        <AppHeader
+            title="Today"
+            subtitle={dateStr}
+            nav={<TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />}
+            actions={
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setIsCreateSheetOpen(true)}
+                >
+                    <Plus size={16} />
+                    New Task
+                </Button>
+            }
+        />
         <Page.Root className="flex-1">
-            <Page.Header 
-                title="Today"
-                subtitle={dateStr}
-                actions={
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => setIsCreateSheetOpen(true)}
-                    >
-                        <Plus size={16} />
-                        New Task
-                    </Button>
-                }
-            />
-
-            <Page.Content className="pb-8">
-                <div className="max-w-2xl mx-auto py-2 space-y-8">
+            <Page.Content className="pb-8 pt-4">
+                <div className="space-y-8">
                     
                     <div className="group relative">
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground/30 group-focus-within:text-primary transition-colors">

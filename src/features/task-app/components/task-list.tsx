@@ -23,6 +23,13 @@ export function TaskList({ items, tags }: TaskListProps) {
   const selectedTaskId = useTaskAppStore((state) => state.selectedTask?.id);
   const setSelectedTask = useTaskAppStore((state) => state.setSelectedTask);
 
+  const tagsMap = useMemo(() => {
+    return tags.reduce((acc, tag) => {
+      acc[tag.id] = tag;
+      return acc;
+    }, {} as Record<string, Tag>);
+  }, [tags]);
+
   const groups = useMemo(() => {
     const overdue: Task[] = [];
     const today: Task[] = [];
@@ -104,7 +111,7 @@ export function TaskList({ items, tags }: TaskListProps) {
               <TaskListItem
                 key={item.id}
                 task={item}
-                tags={tags}
+                tagsMap={tagsMap}
                 isSelected={selectedTaskId === item.id}
                 onClick={setSelectedTask}
               />

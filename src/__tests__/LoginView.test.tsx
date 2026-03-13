@@ -42,7 +42,7 @@ describe('LoginView', () => {
     render(<LoginView />);
 
     // Act: Find the button and click it
-    const googleButton = screen.getByText(/Sign in with Google/i);
+    const googleButton = screen.getByText(/Login with Google/i);
     fireEvent.click(googleButton);
 
     // Assert: Check if signInWithPopup was called correctly
@@ -65,7 +65,7 @@ describe('LoginView', () => {
     render(<LoginView />);
 
     // Act
-    const googleButton = screen.getByText(/Sign in with Google/i);
+    const googleButton = screen.getByText(/Login with Google/i);
     fireEvent.click(googleButton);
 
     // Assert

@@ -66,6 +66,13 @@ export const DashboardView: React.FC = () => {
   const { selectedTask, setSelectedTask, showToast } = useTaskAppStore();
   const tasks = state.activeTasks as unknown as TaskEntity[];
   const tags = state.tags as unknown as Tag[];
+
+  const tagsMap = React.useMemo(() => {
+    return tags.reduce((acc, tag) => {
+      acc[tag.id] = tag;
+      return acc;
+    }, {} as Record<string, Tag>);
+  }, [tags]);
   
   const [intention, setIntention] = useState(state.latestFocus);
 
@@ -137,7 +144,7 @@ export const DashboardView: React.FC = () => {
                                 <TaskListItem
                                     key={task.id}
                                     task={task as unknown as Task}
-                                    tags={tags}
+                                    tagsMap={tagsMap}
                                     isSelected={selectedTask?.id === task.id}
                                     onClick={setSelectedTask}
                                 />
@@ -171,7 +178,7 @@ export const DashboardView: React.FC = () => {
                                 <TaskListItem
                                     key={task.id}
                                     task={task as unknown as Task}
-                                    tags={tags}
+                                    tagsMap={tagsMap}
                                     isSelected={selectedTask?.id === task.id}
                                     onClick={setSelectedTask}
                                 />

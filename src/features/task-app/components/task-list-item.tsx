@@ -15,19 +15,12 @@ import { Badge } from "@/shared/ui/ui/badge";
 
 interface TaskListItemProps {
   task: Task;
-  tags: Tag[];
+  tagsMap: Record<string, Tag>;
   isSelected?: boolean;
   onClick: (task: Task) => void;
 }
 
-export function TaskListItem({ task, tags, isSelected, onClick }: TaskListItemProps) {
-  const tagsMap = React.useMemo(() => {
-    return tags.reduce((acc, tag) => {
-      acc[tag.id] = tag;
-      return acc;
-    }, {} as Record<string, Tag>);
-  }, [tags]);
-
+export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: TaskListItemProps) => {
   const getTagInfo = (categoryId: string) => {
     const tag = tagsMap[categoryId];
     if (tag) return { name: tag.name, color: tag.color };
@@ -107,4 +100,6 @@ export function TaskListItem({ task, tags, isSelected, onClick }: TaskListItemPr
       </div>
     </button>
   );
-}
+});
+
+TaskListItem.displayName = "TaskListItem";

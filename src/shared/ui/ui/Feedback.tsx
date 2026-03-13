@@ -1,5 +1,7 @@
 import React from 'react';
 import { Loader2, AlertCircle, LucideIcon, RotateCcw } from 'lucide-react';
+import { cn } from '@/shared/lib/utils';
+import { Skeleton } from './skeleton';
 
 /**
  * Standard fullscreen or container-level loading indicator.
@@ -7,9 +9,18 @@ import { Loader2, AlertCircle, LucideIcon, RotateCcw } from 'lucide-react';
  * @component
  */
 export const LoadingScreen: React.FC<{ text?: string }> = ({ text = "Loading..." }) => (
-  <div className="h-full w-full flex flex-col items-center justify-center p-6 text-secondary animate-fade-in">
-    <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
-    <span className="text-xs font-medium tracking-widest uppercase">{text}</span>
+  <div className="h-full w-full flex flex-col items-center justify-center p-6 text-muted-foreground animate-in fade-in duration-500">
+    <div className="w-full max-w-sm space-y-4">
+        <div className="flex flex-col items-center mb-4">
+             <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
+             <span className="text-[10px] font-bold tracking-widest uppercase">{text}</span>
+        </div>
+        <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-[90%]" />
+            <Skeleton className="h-4 w-[80%]" />
+        </div>
+    </div>
   </div>
 );
 
@@ -35,10 +46,15 @@ interface EmptyStateProps {
  * @component
  */
 export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, message, action, className = '' }) => (
-  <div className={`flex flex-col items-center justify-center py-12 px-4 text-center animate-fade-in ${className}`}>
-    {Icon && <Icon size={32} className="mb-3 text-secondary/40" />}
-    <h3 className="text-sm font-bold text-foreground mb-1">{title}</h3>
-    {message && <p className="text-xs text-secondary/60 max-w-xs leading-relaxed mb-4">{message}</p>}
+  <div className={cn(
+    "flex flex-col items-center justify-center py-12 px-4 text-center animate-in fade-in zoom-in-95 duration-500",
+    className
+  )}>
+    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+        {Icon && <Icon size={24} className="text-muted-foreground/50" />}
+    </div>
+    <h3 className="text-sm font-semibold text-foreground mb-1">{title}</h3>
+    {message && <p className="text-xs text-muted-foreground max-w-xs leading-relaxed mb-6">{message}</p>}
     {action}
   </div>
 );
@@ -49,13 +65,15 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, messa
  * @component
  */
 export const ErrorState: React.FC<{ message: string; onRetry?: () => void }> = ({ message, onRetry }) => (
-  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex flex-col items-center text-center">
-    <AlertCircle className="text-red-400 mb-2" size={20} />
-    <p className="text-sm text-red-300 mb-3">{message}</p>
+  <div className="p-6 rounded-xl bg-destructive/5 border border-destructive/10 flex flex-col items-center text-center animate-in fade-in duration-300">
+    <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center mb-3">
+        <AlertCircle className="text-destructive" size={20} />
+    </div>
+    <p className="text-sm font-medium text-foreground mb-4">{message}</p>
     {onRetry && (
       <button
         onClick={onRetry}
-        className="text-xs font-bold bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg transition-colors"
+        className="text-xs font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 px-4 py-2 rounded-lg transition-colors"
       >
         Try Again
       </button>
@@ -66,6 +84,7 @@ export const ErrorState: React.FC<{ message: string; onRetry?: () => void }> = (
 /**
  * Floating notification component that appears at the bottom of the screen.
  * Supports an optional "Undo" action for reversible operations like task completion.
+ * @deprecated Use `sonner` for toast notifications.
  *
  * @component
  */
@@ -78,11 +97,11 @@ export const Toast: React.FC<{
   onUndo?: () => void;
 }> = ({ message, isVisible, onUndo }) => (
   <div
-    className={`
-      fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-surface border border-border shadow-[0_0_20px_rgba(0,0,0,0.3)]
-      px-4 py-2.5 rounded-full flex items-center gap-3 transition-all duration-300 ease-out
-      ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0 pointer-events-none'}
-    `}
+    className={cn(
+      "fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-background border border-border shadow-lg",
+      "px-4 py-2.5 rounded-full flex items-center gap-3 transition-all duration-300 ease-out",
+      isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95 pointer-events-none'
+    )}
   >
     <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
     <span className="text-sm font-medium text-foreground tracking-wide whitespace-nowrap">{message}</span>
@@ -91,7 +110,7 @@ export const Toast: React.FC<{
         <div className="w-px h-4 bg-border mx-2"></div>
         <button
           onClick={onUndo}
-          className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-dim transition-colors"
+          className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-colors"
         >
           <RotateCcw size={12} />
           <span>Undo</span>

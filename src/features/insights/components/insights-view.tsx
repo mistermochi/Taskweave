@@ -7,7 +7,6 @@ import { Category } from '@/entities/tag';
 import { UserVital } from '@/entities/vital';
 import { Zap, Clock, Target, Activity, Layers, Wind, Smile, AlignLeft, MapPin, Battery, Wifi, X, BatteryWarning, BarChart3 } from 'lucide-react';
 import { useInsightsController } from '@/hooks/controllers/useInsightsController';
-import { Page } from '@/shared/layout/Page';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/ui/dialog';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/shared/ui/ui/drawer';
@@ -281,7 +280,7 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
           </div>
         }
       />
-      <Page.Root className="flex-1">
+      <div className="flex-1 flex flex-col relative overflow-hidden">
         <Tabs defaultValue="overview" className="flex-1 flex flex-col overflow-hidden">
           <div className="px-6 py-2 border-b">
             <TabsList className="h-8 p-0.5 bg-zinc-100 dark:bg-zinc-800">
@@ -291,10 +290,10 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
             </TabsList>
           </div>
 
-          <Page.Content className="pt-4 flex-1">
-            <TabsContent value="overview" className="m-0 space-y-6">
+          <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-24">
+            <TabsContent value="overview" className="m-0 pt-4 space-y-6">
          {/* 1. Main Focus Orbit */}
-         <Page.Section className="flex items-center justify-center py-6 min-h-[300px]">
+         <section className="flex items-center justify-center py-6 min-h-[300px]">
             <div className="relative w-64 h-64 flex items-center justify-center">
                 {state.categoryStats.map((stat, index) => (
                     <div
@@ -319,10 +318,10 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mt-2">Total Focus</span>
                 </div>
             </div>
-         </Page.Section>
+         </section>
 
          {/* 2. Grid Metrics */}
-         <Page.Section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+         <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card className="shadow-none border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50">
                <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-2">
                   <CardTitle className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">Peak Flow</CardTitle>
@@ -389,13 +388,13 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
                   <p className="text-[10px] text-zinc-500 font-medium leading-none mt-1">Deep work session</p>
                </CardContent>
             </Card>
-         </Page.Section>
+         </section>
 
             </TabsContent>
 
-            <TabsContent value="activity" className="m-0">
+            <TabsContent value="activity" className="m-0 pt-4">
                {/* 3. Vital Event Log */}
-               <Page.Section>
+               <section>
                   <h2 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4 px-1">Full Vital Log</h2>
                   <Card className="shadow-none border-zinc-200 dark:border-zinc-800 overflow-hidden">
                       <CardContent className="p-0">
@@ -419,7 +418,7 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
                           </ScrollArea>
                       </CardContent>
                   </Card>
-               </Page.Section>
+               </section>
             </TabsContent>
 
             <TabsContent value="trends" className="m-0">
@@ -428,14 +427,14 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
                     <p className="text-sm font-medium">Trend visualizations coming soon.</p>
                 </div>
             </TabsContent>
-          </Page.Content>
+          </div>
         </Tabs>
 
        {/* Context Modal */}
        {selectedVital && (
          <VitalContextModal vital={selectedVital} onClose={() => setSelectedVital(null)} />
        )}
-      </Page.Root>
+      </div>
     </div>
   );
 };

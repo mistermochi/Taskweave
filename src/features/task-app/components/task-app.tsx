@@ -16,6 +16,7 @@ import { AppHeader } from "@/shared/ui/ui/app-header";
 import { TaskList } from "./task-list";
 import { SettingsView } from "@/features/settings";
 import { DashboardView } from "@/features/dashboard/components/dashboard-view";
+import { InsightsView } from "@/features/insights";
 import { Task } from "@/entities/task";
 import { Tag } from "@/entities/tag";
 import { useTaskAppStore } from "../use-task-app";
@@ -286,7 +287,7 @@ export function TaskApp({
               <main className="flex h-full flex-1 flex-col min-w-0">
                 {activeView === 'settings' && <SettingsView />}
                 {activeView === 'dashboard' && <DashboardView />}
-                {activeView === 'insights' && <div className="p-8">Insights Placeholder</div>}
+                {activeView === 'insights' && <InsightsView onNavigate={() => {}} />}
               </main>
               {activeView === 'dashboard' && <aside className="flex h-full flex-1 flex-col min-w-0 border-l">{taskDetail}</aside>}
             </>
@@ -298,7 +299,7 @@ export function TaskApp({
           {activeView === 'settings' && <SettingsView />}
           {activeView === 'tasks' && mainContent}
           {activeView === 'dashboard' && <DashboardView />}
-          {activeView === 'insights' && <div className="p-8">Insights Placeholder</div>}
+          {activeView === 'insights' && <InsightsView onNavigate={() => {}} />}
           {taskDetail}
         </div>
       )}

@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { TaskEntity } from '@/entities/task';
-import { Check } from 'lucide-react';
-import { PickerContainer } from './PickerContainer';
+import { Check, Layers } from 'lucide-react';
+import { cn } from '@/shared/lib/utils';
+import { ScrollArea } from '@/shared/ui/ui/scroll-area';
 
 /**
  * Interface for DependencyPicker props.
@@ -28,22 +29,40 @@ const DependencySection: React.FC<{
     selectedIds: Set<string>;
     onToggle: (id: string) => void;
 }> = ({ title, tasks, selectedIds, onToggle }) => (
-    <div>
-        <h4 className="text-xxs font-bold text-secondary uppercase tracking-wider px-1 mb-1">{title}</h4>
-        <div className="max-h-40 overflow-y-auto no-scrollbar pr-1">
-            {tasks.length > 0 ? tasks.map(task => (
-                <button 
-                    key={task.id}
-                    onClick={(e) => { e.stopPropagation(); onToggle(task.id); }}
-                    className="w-full flex items-center gap-2 p-1.5 rounded-md hover:bg-foreground/5 text-left"
-                >
-                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${selectedIds.has(task.id) ? 'bg-primary border-primary' : 'border-border bg-foreground/5'}`}>
-                        {selectedIds.has(task.id) && <Check size={10} className="text-primary-foreground" strokeWidth={3} />}
-                    </div>
-                    <span className="text-xs text-foreground truncate flex-1">{task.title}</span>
-                </button>
-            )) : <p className="text-xs text-secondary/50 p-2 text-center">No other tasks.</p>}
-        </div>
+    <div className="space-y-2">
+        <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">{title}</h4>
+        <ScrollArea className="h-40 pr-3">
+            <div className="space-y-1">
+                {tasks.length > 0 ? tasks.map(task => {
+                    const isSelected = selectedIds.has(task.id);
+                    return (
+                        <button
+                            key={task.id}
+                            onClick={(e) => { e.stopPropagation(); onToggle(task.id); }}
+                            className={cn(
+                                "w-full flex items-center gap-2 p-1.5 rounded-md hover:bg-accent text-left transition-colors",
+                                isSelected && "bg-accent/50"
+                            )}
+                        >
+                            <div className={cn(
+                                "w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0",
+                                isSelected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-muted/30"
+                            )}>
+                                {isSelected && <Check size={12} className="text-primary-foreground" strokeWidth={3} />}
+                            </div>
+                            <span className={cn(
+                                "text-xs truncate flex-1",
+                                isSelected ? "text-foreground font-medium" : "text-muted-foreground"
+                            )}>
+                                {task.title}
+                            </span>
+                        </button>
+                    );
+                }) : (
+                    <p className="text-[10px] text-muted-foreground/60 p-4 text-center italic">No other active tasks.</p>
+                )}
+            </div>
+        </ScrollArea>
     </div>
 );
 
@@ -70,15 +89,17 @@ export const DependencyPicker: React.FC<DependencyPickerProps> = ({
     };
 
     return (
-        <PickerContainer title="Set Dependencies" className="w-64">
-            <div className="space-y-3">
-                <DependencySection 
-                    title="This task is blocked by:"
-                    tasks={otherTasks}
-                    selectedIds={new Set(selectedIds)}
-                    onToggle={toggleId}
-                />
+        <div className="w-64 space-y-3">
+            <div className="flex items-center gap-2 px-1">
+                <Layers size={14} className="text-muted-foreground" />
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Set Dependencies</span>
             </div>
-        </PickerContainer>
+            <DependencySection
+                title="This task is blocked by:"
+                tasks={otherTasks}
+                selectedIds={new Set(selectedIds)}
+                onToggle={toggleId}
+            />
+        </div>
     );
 };

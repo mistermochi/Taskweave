@@ -230,10 +230,6 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, i) => (
-                                <option key={i} value={i}>{d}</option>
-                            ))}
-                            {/* Note: SelectItem is preferred over option in shadcn Select */}
                             {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((d, i) => (
                                 <SelectItem key={i} value={String(i)}>{d.slice(0, 3)}</SelectItem>
                             ))}

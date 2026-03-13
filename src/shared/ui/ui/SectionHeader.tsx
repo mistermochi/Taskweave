@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/shared/lib/utils';
 
 /**
  * Interface for SectionHeader props.
@@ -17,16 +18,20 @@ interface SectionHeaderProps {
 /**
  * A standard header for content sections within a view.
  * Provides a consistent layout for titles and context-specific actions.
+ * Optimized to be sticky within scrollable containers.
  *
  * @component
  */
-export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle, action, className='' }) => (
-  <div className={`flex items-end justify-between mb-4 px-1 ${className}`}>
+export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle, action, className }) => (
+  <div className={cn(
+    "text-muted-foreground sticky top-0 bg-background/95 z-10 py-2 text-[10px] font-bold uppercase tracking-wider backdrop-blur flex items-center justify-between px-1",
+    className
+  )}>
     <div>
-      <h2 className="text-xs font-bold uppercase tracking-widest text-secondary flex items-center gap-2">
+      <div className="flex items-center gap-2">
         {title}
-      </h2>
-      {subtitle && <p className="text-sm text-white/60 font-medium mt-1">{subtitle}</p>}
+      </div>
+      {subtitle && <p className="text-[10px] text-muted-foreground/60 font-medium normal-case tracking-normal mt-0.5">{subtitle}</p>}
     </div>
     {action}
   </div>

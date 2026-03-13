@@ -4,9 +4,8 @@ import React from 'react';
 import { addDays, nextSaturday } from 'date-fns';
 import { Calendar } from '@/shared/ui/ui/calendar';
 import { Button } from '@/shared/ui/ui/button';
-import { PickerContainer } from './PickerContainer';
-import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { cn } from '@/shared/lib/utils';
+import { Calendar as CalendarIcon, X } from 'lucide-react';
 
 /**
  * Interface for DatePicker props.
@@ -21,7 +20,7 @@ interface DatePickerProps {
 }
 
 /**
- * A specialized date selection component for tasks, modeled after the snooze flyover.
+ * A specialized date selection component for tasks.
  * It provides quick-select buttons for common offsets (Today, Tomorrow, Weekend, Next Week)
  * and a standard shadcn Calendar for custom selection.
  *
@@ -48,58 +47,55 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type })
   };
 
   return (
-    <PickerContainer
-      title={type === 'due' ? 'Due Date' : 'Schedule Date'}
-      onClear={value ? () => onChange(undefined) : undefined}
-      className="p-0 overflow-hidden"
-    >
-      <div className="flex flex-row items-stretch max-w-full">
-        <div className="p-0 border-r shrink-0 w-[228px] h-[260px] overflow-hidden">
+    <div className="flex flex-col w-[260px]">
+      <div className="flex items-center justify-between px-3 py-2 border-b">
+        <div className="flex items-center gap-2">
+            <CalendarIcon size={14} className="text-muted-foreground" />
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                {type === 'due' ? 'Set Deadline' : 'Set Schedule'}
+            </span>
+        </div>
+        {value && (
+            <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 rounded-sm hover:text-destructive"
+                onClick={() => onChange(undefined)}
+            >
+                <X size={12} />
+            </Button>
+        )}
+      </div>
+
+      <div className="flex flex-row items-stretch">
+        <div className="flex-1 p-1">
           <Calendar
             mode="single"
             selected={value ? new Date(value) : undefined}
             onSelect={handleSelect}
             initialFocus
-            className="p-0 scale-90 origin-top-left"
+            className="p-0"
           />
         </div>
-        <div className="flex flex-col gap-0 p-0.5 justify-center min-w-[64px] shrink-0">
-          <div className="grid grid-cols-1 gap-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="justify-center font-semibold text-[9px] h-7 px-1 uppercase tracking-tighter"
-              onClick={() => setQuick(today)}
-            >
-              Today
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="justify-center font-semibold text-[9px] h-7 px-1 uppercase tracking-tighter"
-              onClick={() => setQuick(addDays(today, 1))}
-            >
-              Tmw
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="justify-center font-semibold text-[9px] h-7 px-1 uppercase tracking-tighter"
-              onClick={() => setQuick(nextSaturday(today))}
-            >
-              Wknd
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="justify-center font-semibold text-[9px] h-7 px-1 uppercase tracking-tighter"
-              onClick={() => setQuick(addDays(today, 7))}
-            >
-              Next
-            </Button>
-          </div>
+        <div className="w-[64px] border-l bg-muted/20 flex flex-col gap-0.5 p-1 pt-2">
+            {[
+                { label: 'Today', date: today },
+                { label: 'Tmw', date: addDays(today, 1) },
+                { label: 'Wknd', date: nextSaturday(today) },
+                { label: 'Next', date: addDays(today, 7) }
+            ].map((preset) => (
+                <Button
+                    key={preset.label}
+                    variant="ghost"
+                    size="sm"
+                    className="justify-center font-bold text-[9px] h-7 px-0 uppercase tracking-tighter hover:bg-accent"
+                    onClick={() => setQuick(preset.date)}
+                >
+                    {preset.label}
+                </Button>
+            ))}
         </div>
       </div>
-    </PickerContainer>
+    </div>
   );
 };

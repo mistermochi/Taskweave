@@ -1,7 +1,7 @@
 import React from 'react';
 import { EnergyLevel } from '@/entities/task';
 import { Check } from 'lucide-react';
-import { PickerContainer } from './PickerContainer';
+import { cn } from '@/shared/lib/utils';
 
 /**
  * Interface for EnergyPicker props.
@@ -16,33 +16,38 @@ interface EnergyPickerProps {
 /**
  * UI component for selecting the required biological energy for a task.
  * Displays qualitative options (Low, Medium, High) with corresponding color indicators.
+ * Uses shadcn-aligned patterns for a modern metadata selection experience.
  *
  * @component
  */
 export const EnergyPicker: React.FC<EnergyPickerProps> = ({ energy, onChange }) => {
     const getEnergyMeta = (level: EnergyLevel) => {
         switch(level) {
-            case 'Low': return { color: 'text-emerald-400' };
-            case 'Medium': return { color: 'text-yellow-400' };
-            case 'High': return { color: 'text-orange-400' };
+            case 'Low': return { color: 'bg-emerald-500' };
+            case 'Medium': return { color: 'bg-yellow-500' };
+            case 'High': return { color: 'bg-orange-500' };
         }
     };
     
     return (
-        <PickerContainer title="Set Energy" className="w-32">
+        <div className="w-32 space-y-2">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">Set Energy</div>
             <div className="flex flex-col gap-1">
                 {(['Low', 'Medium', 'High'] as EnergyLevel[]).map((lvl) => (
                     <button
                         key={lvl}
                         onClick={(e) => { e.stopPropagation(); onChange(lvl); }}
-                        className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xxs font-bold transition-colors hover:bg-foreground/10 ${energy === lvl ? 'bg-foreground/10 text-foreground' : 'text-secondary'}`}
+                        className={cn(
+                            "flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors hover:bg-accent",
+                            energy === lvl ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                        )}
                     >
-                        <span className={`w-2 h-2 rounded-full ${getEnergyMeta(lvl).color} bg-current`}></span>
-                        <span>{lvl}</span>
-                        {energy === lvl && <Check size={10} className="ml-auto" />}
+                        <span className={cn("w-2 h-2 rounded-full shrink-0", getEnergyMeta(lvl).color)}></span>
+                        <span className="flex-1 text-left">{lvl}</span>
+                        {energy === lvl && <Check size={12} className="shrink-0" />}
                     </button>
                 ))}
             </div>
-        </PickerContainer>
+        </div>
     );
 };

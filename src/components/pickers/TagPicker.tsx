@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Tag } from '@/entities/tag';
-import { Check, ChevronRight, ChevronDown, Hash } from 'lucide-react';
-import { PickerContainer } from './PickerContainer';
+import { Check, ChevronRight, ChevronDown, Hash, Search } from 'lucide-react';
+import { cn } from '@/shared/lib/utils';
+import { Input } from '@/shared/ui/ui/input';
 
 /**
  * Interface for TagPicker props.
@@ -10,7 +11,7 @@ interface TagPickerProps {
   /** Full list of tags to display in the tree. */
   tags: Tag[];
   /** The currently selected tag ID (empty string for Inbox). */
-  selectedTagId: string;
+  selectedTagId: string | undefined;
   /** Callback triggered when a tag is selected. */
   onSelect: (tagId: string) => void;
 }
@@ -18,15 +19,13 @@ interface TagPickerProps {
 /**
  * A hierarchical tree-based picker for selecting a task's project (Tag).
  * It supports nested levels and includes an "Inbox" (no-tag) option.
+ * Includes search functionality for quickly finding projects.
  *
  * @component
- * @interaction
- * - Automatically expands the tree branches to reveal the currently selected tag on mount.
- * - Allows toggling branch expansion without selecting a tag.
- * - Displays a checkmark indicator for the active selection.
  */
 export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSelect }) => {
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
 
   /**
    * Auto-expand to show selected tag in the hierarchy.
@@ -51,43 +50,59 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
     setExpandedTags(newSet);
   };
 
+  const filteredTags = searchQuery
+    ? tags.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : tags;
+
   /**
    * Recursive function to render the tag tree branches.
    */
   const renderTree = (parentId: string | null, depth: number = 0) => {
-    const children = tags.filter(t => t.parentId === parentId).sort((a, b) => a.order - b.order);
+    const children = filteredTags.filter(t => t.parentId === parentId).sort((a, b) => a.order - b.order);
     if (children.length === 0) return null;
 
     return children.map(tag => {
         const hasChildren = tags.some(t => t.parentId === tag.id);
-        const isExpanded = expandedTags.has(tag.id);
+        const isExpanded = expandedTags.has(tag.id) || !!searchQuery;
         const isSelected = selectedTagId === tag.id;
 
         return (
             <div key={tag.id}>
-                <div className="flex items-center w-full hover:bg-foreground/10 rounded-lg transition-colors group/row select-none">
+                <div
+                    className={cn(
+                        "flex items-center w-full hover:bg-accent rounded-md transition-colors group/row select-none cursor-pointer px-2 py-1.5",
+                        isSelected && "bg-accent"
+                    )}
+                    onClick={() => onSelect(tag.id)}
+                >
                     <div 
-                        className="flex-1 flex items-center gap-1.5 py-1.5 cursor-pointer min-w-0"
-                        style={{ paddingLeft: `${8 + (depth * 10)}px` }}
-                        onClick={(e) => {
-                            if (hasChildren) toggleExpand(e, tag.id);
-                            else onSelect(tag.id);
-                        }}
+                        className="flex-1 flex items-center gap-2 min-w-0"
+                        style={{ paddingLeft: `${depth * 12}px` }}
                     >
-                        <div className={`w-3 h-3 flex items-center justify-center text-secondary ${hasChildren ? 'opacity-100' : 'opacity-0'}`}>
-                            {isExpanded ? <ChevronDown size={8} /> : <ChevronRight size={8} />}
+                        <div
+                            className={cn(
+                                "w-4 h-4 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-sm hover:bg-muted transition-colors",
+                                !hasChildren && "opacity-0 pointer-events-none"
+                            )}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggleExpand(e, tag.id);
+                            }}
+                        >
+                            {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                         </div>
-                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: tag.color }}></span>
-                        <span className={`text-xs font-medium truncate ${isSelected ? 'text-foreground' : 'text-secondary'}`}>{tag.name}</span>
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tag.color }}></span>
+                        <span className={cn(
+                            "text-xs font-medium truncate",
+                            isSelected ? "text-foreground" : "text-muted-foreground"
+                        )}>
+                            {tag.name}
+                        </span>
                     </div>
-                    <div className="px-2 py-1.5 cursor-pointer" onClick={() => onSelect(tag.id)}>
-                        <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${isSelected ? 'bg-primary border-primary' : 'border-border group-hover/row:border-foreground/40 bg-foreground/5'}`}>
-                            {isSelected && <Check size={10} className="text-background" strokeWidth={3} />}
-                        </div>
-                    </div>
+                    {isSelected && <Check size={12} className="text-primary shrink-0 ml-2" />}
                 </div>
                 {hasChildren && isExpanded && (
-                    <div className="border-l border-border ml-3 my-0.5">
+                    <div className="ml-2 border-l border-border/50">
                         {renderTree(tag.id, depth + 1)}
                     </div>
                 )}
@@ -97,25 +112,45 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
   };
 
   return (
-    <PickerContainer title="Set Project" className="w-48">
-        <div className="max-h-64 overflow-y-auto no-scrollbar">
-            {/* Global Inbox Option */}
-            <div className="flex items-center w-full hover:bg-foreground/10 rounded-lg transition-colors group/row select-none" onClick={() => onSelect('')}>
-                <div className="flex-1 flex items-center gap-2 py-1.5 pl-2 cursor-pointer">
-                    <div className="w-4 h-4 rounded-full flex items-center justify-center bg-foreground/5 text-secondary"><Hash size={10} /></div>
-                    <span className={`text-xs font-medium ${selectedTagId === '' ? 'text-foreground' : 'text-secondary'}`}>Inbox</span>
-                </div>
-                <div className="px-2 py-1.5">
-                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${selectedTagId === '' ? 'bg-primary border-primary' : 'border-border group-hover/row:border-foreground/40 bg-foreground/5'}`}>
-                        {selectedTagId === '' && <Check size={10} className="text-background" strokeWidth={3} />}
+    <div className="w-56 flex flex-col gap-2">
+        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">Set Project</div>
+
+        <div className="relative mb-1">
+            <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+                placeholder="Search projects..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 pl-7 text-xs bg-muted/50 border-none shadow-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+        </div>
+
+        <div className="max-h-64 overflow-y-auto no-scrollbar py-1">
+            {!searchQuery && (
+                <div
+                    className={cn(
+                        "flex items-center w-full hover:bg-accent rounded-md transition-colors group/row select-none cursor-pointer px-2 py-1.5 mb-1",
+                        selectedTagId === '' && "bg-accent"
+                    )}
+                    onClick={() => onSelect('')}
+                >
+                    <div className="flex-1 flex items-center gap-2">
+                        <div className="w-4 h-4 flex items-center justify-center text-muted-foreground"><Hash size={12} /></div>
+                        <span className={cn(
+                            "text-xs font-medium",
+                            selectedTagId === '' ? "text-foreground" : "text-muted-foreground"
+                        )}>
+                            Inbox
+                        </span>
                     </div>
+                    {selectedTagId === '' && <Check size={12} className="text-primary shrink-0" />}
                 </div>
-            </div>
+            )}
 
             {tags.length > 0 ? renderTree(null) : (
-                <p className="text-xs text-secondary/50 p-2 text-center">No projects found.</p>
+                <p className="text-[10px] text-muted-foreground/60 p-4 text-center italic">No projects found.</p>
             )}
         </div>
-    </PickerContainer>
+    </div>
   );
 };

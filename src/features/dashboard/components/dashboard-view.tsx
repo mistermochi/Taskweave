@@ -7,7 +7,6 @@ import {
 import { Task, TaskEntity } from '@/entities/task';
 import { Tag } from '@/entities/tag';
 import { useDashboardController } from '@/hooks/controllers/useDashboardController';
-import { TaskRow } from '@/entities/task';
 import { Page } from '@/shared/layout/Page';
 import { Heading } from '@/shared/ui/ui/Typography';
 import { ReadinessRing } from './readiness-ring';
@@ -21,6 +20,7 @@ import { CreateTaskSheetContent } from '@/entities/task/ui/task-details/CreateTa
 import { useTaskAppStore } from '@/features/task-app/use-task-app';
 import { AppHeader } from '@/shared/ui/ui/app-header';
 import { TaskNavigation } from '@/features/task-app/components/task-navigation';
+import { TaskListItem } from '@/features/task-app/components/task-list-item';
 
 const DashboardTopMetrics = () => {
     const { state, actions } = useDashboardController();
@@ -66,12 +66,11 @@ const DashboardTopMetrics = () => {
 
 export const DashboardView: React.FC = () => {
   const { state, actions } = useDashboardController();
-  const { setSelectedTask, showToast } = useTaskAppStore();
+  const { selectedTask, setSelectedTask, showToast } = useTaskAppStore();
   const tasks = state.activeTasks as unknown as TaskEntity[];
   const tags = state.tags as unknown as Tag[];
   
   const [intention, setIntention] = useState(state.latestFocus);
-  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
 
   useEffect(() => { setIntention(state.latestFocus); }, [state.latestFocus]);
 
@@ -79,38 +78,17 @@ export const DashboardView: React.FC = () => {
     if (intention !== state.latestFocus) actions.saveFocus(intention);
   };
 
-  const handleComplete = async (task: TaskEntity) => {
-      const nextDate = await actions.completeTask(task);
-      if (nextDate) {
-          const dateStr = new Date(nextDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-          showToast(`Task completed. Next due on ${dateStr}`, () => {
-              actions.updateTask(task.id, { status: 'active', completedAt: null as unknown as number });
-          });
-      } else {
-          showToast("Task completed", () => {
-              actions.updateTask(task.id, { status: 'active', completedAt: null as unknown as number });
-          });
-      }
-  };
-
-  const handleArchive = (task: TaskEntity) => {
-      actions.updateTask(task.id, { 
-          status: 'archived', 
-          archivedAt: Date.now(), 
-          isFocused: false 
-      });
-      showToast("Task archived");
-  };
-
-  const handleCreateTask = async (title: string, updates: Partial<Task>) => {
-      const nextDate = await actions.createTask(title, updates);
-      if (nextDate) {
-          const dateStr = new Date(nextDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-          showToast(`Task created. Next due on ${dateStr}`);
-      } else {
-          showToast("Task created");
-      }
-      setIsCreateSheetOpen(false);
+  const createNewTask = () => {
+    setSelectedTask({
+      id: "new",
+      title: "",
+      status: "active",
+      category: "",
+      energy: "Medium",
+      duration: 0,
+      createdAt: Date.now(),
+      blockedBy: [],
+    } as Task);
   };
 
   const now = new Date();
@@ -127,7 +105,7 @@ export const DashboardView: React.FC = () => {
                     variant="outline"
                     size="sm"
                     className="gap-2"
-                    onClick={() => setIsCreateSheetOpen(true)}
+                        onClick={createNewTask}
                 >
                     <Plus size={16} />
                     New Task
@@ -158,19 +136,14 @@ export const DashboardView: React.FC = () => {
                     <Page.Section>
                         <SectionHeader title="Suggested Plan" />
                         {state.suggestedPlan.length > 0 ? (
-                           <div className="space-y-1">
+                           <div className="space-y-2">
                                 {state.suggestedPlan.map(task => (
-                                    <TaskRow
+                                    <TaskListItem
                                         key={task.id}
-                                        task={task as unknown as TaskEntity}
-                                        highlight={state.recommendation?.taskId === task.id}
-                                        allTasks={state.activeTasks as unknown as TaskEntity[]}
-                                        tags={state.tags as unknown as Tag[]}
-                                        onComplete={handleComplete}
-                                        onFocus={(task) => setSelectedTask(task as unknown as Task)}
-                                        onUpdate={(t, u) => actions.updateTask(t.id, u)}
-                                        onArchive={handleArchive}
-                                        onScheduleToday={(t) => actions.updateTask(t.id, { assignedDate: Date.now() })}
+                                        task={task as unknown as Task}
+                                        tags={tags}
+                                        isSelected={selectedTask?.id === task.id}
+                                        onClick={setSelectedTask}
                                     />
                                 ))}
                            </div>
@@ -181,7 +154,7 @@ export const DashboardView: React.FC = () => {
                                     variant="link"
                                     size="sm"
                                     className="mt-1"
-                                    onClick={() => setIsCreateSheetOpen(true)}
+                                    onClick={createNewTask}
                                 >
                                     Add a task
                                 </Button>
@@ -197,18 +170,14 @@ export const DashboardView: React.FC = () => {
                                 action={<span className="bg-destructive/10 text-destructive px-2 py-0.5 rounded-full text-[10px] font-bold">{state.overdueTasks.length}</span>}
                                 className="text-destructive"
                             />
-                            <div className="border-l-2 border-destructive/20 pl-2 space-y-1">
+                            <div className="space-y-2">
                                 {state.overdueTasks.map(task => (
-                                    <TaskRow 
+                                    <TaskListItem
                                         key={task.id} 
-                                        task={task as unknown as TaskEntity}
-                                        allTasks={state.activeTasks as unknown as TaskEntity[]}
-                                        tags={state.tags as unknown as Tag[]}
-                                        onComplete={handleComplete} 
-                                        onFocus={(task) => setSelectedTask(task as unknown as Task)}
-                                        onUpdate={(t, u) => actions.updateTask(t.id, u)}
-                                        onArchive={handleArchive}
-                                        onScheduleToday={(t) => actions.updateTask(t.id, { assignedDate: Date.now() })}
+                                        task={task as unknown as Task}
+                                        tags={tags}
+                                        isSelected={selectedTask?.id === task.id}
+                                        onClick={setSelectedTask}
                                     />
                                 ))}
                             </div>
@@ -218,7 +187,7 @@ export const DashboardView: React.FC = () => {
                     <Button
                         variant="outline"
                         className="w-full py-6 border-dashed border-2 hover:bg-accent/50 text-muted-foreground flex items-center justify-start gap-3 px-4 group rounded-xl"
-                        onClick={() => setIsCreateSheetOpen(true)}
+                        onClick={createNewTask}
                     >
                         <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Plus size={14} />
@@ -229,20 +198,6 @@ export const DashboardView: React.FC = () => {
             </Page.Content>
         </Page.Root>
 
-        <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
-            <SheetContent className="sm:max-w-md overflow-y-auto">
-                <SheetHeader>
-                    <SheetTitle>Create New Task</SheetTitle>
-                </SheetHeader>
-                <CreateTaskSheetContent
-                    initialSection="today"
-                    activeTagId={null}
-                    tags={state.tags as unknown as Tag[]}
-                    onCreate={handleCreateTask}
-                    onClose={() => setIsCreateSheetOpen(false)}
-                />
-            </SheetContent>
-        </Sheet>
     </div>
   );
 };

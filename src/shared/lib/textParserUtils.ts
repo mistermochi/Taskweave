@@ -264,7 +264,7 @@ export const parseTaskInput = (text: string): ParsedTaskInput => {
         tagMatches.forEach(m => {
             cleanTitle = cleanTitle.replace(m[0], ' ');
         });
-        attributes.tagKeyword = tagMatches[tagMatches.length - 1][1].toLowerCase();
+        attributes.tagKeyword = tagMatches[tagMatches.length - 1][1];
     }
 
     // 6. Assigned / Do Dates

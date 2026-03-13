@@ -24,7 +24,7 @@ describe('parseTaskInput', () => {
 
     // Assertions
     expect(cleanTitle).toBe('Review PR');
-    expect(attributes.tagKeyword).toBe('work');
+    expect(attributes.tagKeyword).toBe('work'); // Should match even if lowercase in input since we want to verify case preservation in a separate test
     expect(attributes.energy).toBe('High');
     expect(attributes.duration).toBe(30);
     expect(attributes.assignedDate).toBe(expectedAssignedDate.getTime());
@@ -43,5 +43,11 @@ describe('parseTaskInput', () => {
     const { cleanTitle, attributes } = parseTaskInput(input);
     expect(cleanTitle).toBe('Just a simple task');
     expect(Object.keys(attributes).length).toBe(0);
+  });
+
+  it('should preserve tag casing', () => {
+    const input = "Fix bug #Work";
+    const { attributes } = parseTaskInput(input);
+    expect(attributes.tagKeyword).toBe('Work');
   });
 });

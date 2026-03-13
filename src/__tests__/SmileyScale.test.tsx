@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { SmileyScale } from '../components/dashboard/SmileyScale';
+import { SmileyScale } from '@/features/dashboard/components/smiley-scale';
 import { Laugh } from 'lucide-react'; // Import one of the icons to check for its presence
 
 describe('SmileyScale', () => {

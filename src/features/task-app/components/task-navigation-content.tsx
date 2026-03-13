@@ -2,14 +2,12 @@
 
 import * as React from "react";
 import {
-  Archive,
-  ArchiveX,
-  File,
-  Inbox,
-  PanelLeft,
-  Send,
+  LayoutDashboard,
+  CheckCircle2,
+  BarChart3,
   Settings,
-  Trash2,
+  PanelLeft,
+  Inbox
 } from "lucide-react";
 
 import { Nav } from "./nav";
@@ -94,44 +92,23 @@ export function TaskNavigationContent({
         isCollapsed={isCollapsed}
         links={[
           {
-            title: "Inbox",
+            title: "Dashboard",
+            icon: LayoutDashboard,
+            variant: "ghost"
+          },
+          {
+            title: "Tasks",
             label: tasks.filter(t => t.status === 'active').length.toString(),
-            icon: Inbox,
+            icon: CheckCircle2,
             variant: "default"
           },
           {
-            title: "Drafts",
-            label: "",
-            icon: File,
-            variant: "ghost"
-          },
-          {
-            title: "Sent",
-            label: "",
-            icon: Send,
-            variant: "ghost"
-          },
-          {
-            title: "Junk",
-            label: "",
-            icon: ArchiveX,
-            variant: "ghost"
-          },
-          {
-            title: "Trash",
-            label: "",
-            icon: Trash2,
-            variant: "ghost"
-          },
-          {
-            title: "Archive",
-            label: "",
-            icon: Archive,
+            title: "Insights",
+            icon: BarChart3,
             variant: "ghost"
           },
           {
             title: "Settings",
-            label: "",
             icon: Settings,
             variant: "ghost"
           }

@@ -1,4 +1,7 @@
+"use client";
+
 import React from 'react';
+import { cn } from "@/shared/lib/utils";
 
 /**
  * A circular progress indicator that visualizes the user's biological readiness score.
@@ -7,7 +10,7 @@ import React from 'react';
  * @component
  * @param {number} score - The readiness score from 0 to 100.
  */
-export const ReadinessRing = ({ score }: { score: number }) => {
+export const ReadinessRing = ({ score, className }: { score: number; className?: string }) => {
   const radius = 18;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
@@ -17,18 +20,18 @@ export const ReadinessRing = ({ score }: { score: number }) => {
   else if (score < 70) colorClass = 'text-orange-500';
 
   return (
-    <div className="relative w-12 h-12 flex items-center justify-center">
+    <div className={cn("relative w-12 h-12 flex items-center justify-center", className)}>
         <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 44 44">
             <circle cx="22" cy="22" r={radius} className="text-muted/50" stroke="currentColor" strokeWidth="4" fill="transparent" />
             <circle
                 cx="22" cy="22" r={radius}
-                className={`transition-all duration-1000 ease-out ${colorClass}`}
+                className={cn("transition-all duration-1000 ease-out", colorClass)}
                 stroke="currentColor" strokeWidth="4" fill="transparent"
                 strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round"
             />
         </svg>
         <div className="absolute flex items-center justify-center">
-            <span className="text-xxs font-bold text-foreground tabular-nums">{Math.round(score)}</span>
+            <span className="text-[10px] font-bold text-foreground tabular-nums">{Math.round(score)}</span>
         </div>
     </div>
   );

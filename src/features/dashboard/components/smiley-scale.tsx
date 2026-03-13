@@ -1,5 +1,8 @@
+"use client";
+
 import React from 'react';
 import { Angry, Frown, Meh, Smile, Laugh } from 'lucide-react';
+import { cn } from "@/shared/lib/utils";
 
 /**
  * Interface for SmileyScale props.
@@ -9,6 +12,7 @@ interface SmileyScaleProps {
   value: number;
   /** Callback triggered when a new level is selected. */
   onChange: (val: number) => void;
+  className?: string;
 }
 
 /**
@@ -17,7 +21,7 @@ interface SmileyScaleProps {
  *
  * @component
  */
-export const SmileyScale = ({ value, onChange }: SmileyScaleProps) => {
+export const SmileyScale = ({ value, onChange, className }: SmileyScaleProps) => {
   const steps = [
     { level: 1, icon: Angry, color: 'text-destructive', label: 'Drained' },
     { level: 2, icon: Frown, color: 'text-orange-500', label: 'Low' },
@@ -27,7 +31,7 @@ export const SmileyScale = ({ value, onChange }: SmileyScaleProps) => {
   ];
 
   return (
-    <div className="flex justify-between items-center w-full px-1 py-2">
+    <div className={cn("flex justify-between items-center w-full px-1 py-2", className)}>
       {steps.map((step) => {
         const isActive = value === step.level;
         const Icon = step.icon;
@@ -35,9 +39,14 @@ export const SmileyScale = ({ value, onChange }: SmileyScaleProps) => {
           <button
             key={step.level}
             onClick={() => onChange(step.level)}
-            className={`group flex flex-col items-center gap-1 transition-all duration-300 outline-none ${isActive ? 'scale-110' : 'opacity-40 hover:opacity-80'}`}
+            className={cn(
+                "group flex flex-col items-center gap-1 transition-all duration-300 outline-none",
+                isActive ? 'scale-110' : 'opacity-40 hover:opacity-80'
+            )}
+            type="button"
           >
-            <Icon size={24} className={`transition-colors duration-300 ${isActive ? step.color : 'text-muted-foreground'}`} />
+            <Icon size={24} className={cn("transition-colors duration-300", isActive ? step.color : 'text-muted-foreground')} />
+            <span className="sr-only">{step.label}</span>
           </button>
         );
       })}

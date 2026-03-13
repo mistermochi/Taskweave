@@ -45,7 +45,7 @@ import {
   TooltipTrigger,
 } from "@/shared/ui/ui/tooltip";
 import { Task, taskApi, EnergyLevel, RecurrenceConfig } from "@/entities/task";
-import { Tag as TagEntity } from "@/entities/tag";
+import { Tag as TagEntity, tagApi } from "@/entities/tag";
 import { useNavigation } from "@/context/NavigationContext";
 import { useTaskAppStore } from "../use-task-app";
 import { parseTaskInput, ParsedTaskInput } from "@/shared/lib/textParserUtils";
@@ -132,7 +132,18 @@ export function TaskDetailView({
     const { attributes } = parsed;
 
     if (attributes.tagKeyword !== lastParsedAttributes.tagKeyword) {
-      setLocalCategory(attributes.tagKeyword);
+      if (attributes.tagKeyword) {
+        const matchedTag = tags.find(
+          (t) => t.name.toLowerCase() === attributes.tagKeyword?.toLowerCase(),
+        );
+        if (matchedTag) {
+          setLocalCategory(matchedTag.id);
+        } else {
+          setLocalCategory(attributes.tagKeyword);
+        }
+      } else {
+        setLocalCategory(undefined);
+      }
     }
     if (attributes.energy !== lastParsedAttributes.energy) {
       setLocalEnergy(attributes.energy);
@@ -151,7 +162,7 @@ export function TaskDetailView({
     }
 
     setLastParsedAttributes(attributes);
-  }, [parsed, lastParsedAttributes]);
+  }, [parsed, lastParsedAttributes, tags]);
 
   const handleToggleComplete = async () => {
     if (!task || task.id === "new") return;
@@ -223,12 +234,22 @@ export function TaskDetailView({
     if (!task) return;
     setIsSaving(true);
     try {
+      let finalCategoryId = localCategory;
+
+      // Handle new tag creation if localCategory is a name and not an existing tag ID
+      if (localCategory && !tags.some((t) => t.id === localCategory)) {
+        // Capitalize tag name
+        const capitalizedName =
+          localCategory.charAt(0).toUpperCase() + localCategory.slice(1);
+        finalCategoryId = await tagApi.createTag(capitalizedName);
+      }
+
       if (task.id === "new") {
         const energyValue =
           localEnergy === "High" ? 80 : localEnergy === "Low" ? 30 : 50;
         await taskApi.addTask(
           parsed.cleanTitle,
-          localCategory || "",
+          finalCategoryId || "",
           localDuration ?? 0,
           energyValue,
           notes,
@@ -248,7 +269,7 @@ export function TaskDetailView({
           dueDate: localDueDate ?? null,
           assignedDate: localAssignedDate ?? null,
           recurrence: (localDueDate ? localRecurrence : undefined) ?? null,
-          category: localCategory,
+          category: finalCategoryId,
         });
         useTaskAppStore.getState().showToast("Changes saved");
       }

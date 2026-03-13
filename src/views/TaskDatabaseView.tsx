@@ -14,7 +14,6 @@ import { useTaskContext } from '@/context/TaskContext';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/ui/sheet';
-import { CreateTaskSheetContent } from '@/entities/task/ui/task-details/CreateTaskSheetContent';
 
 export const TaskDatabaseView: React.FC = () => {
   const { activeTagId, autoCreateSection, clearAutoCreate, focusOnTask } = useNavigation();
@@ -233,20 +232,6 @@ export const TaskDatabaseView: React.FC = () => {
             />
        </Page.Content>
        
-       <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
-          <SheetContent className="sm:max-w-md overflow-y-auto">
-              <SheetHeader>
-                  <SheetTitle>Create New Task</SheetTitle>
-              </SheetHeader>
-              <CreateTaskSheetContent
-                initialSection={createInitialSection}
-                activeTagId={activeTagId}
-                tags={tags}
-                onCreate={handleCreateTask}
-                onClose={() => setIsCreateSheetOpen(false)}
-              />
-          </SheetContent>
-       </Sheet>
 
        <Toast 
           message={toast.message} 

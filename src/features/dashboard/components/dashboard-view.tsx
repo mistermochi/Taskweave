@@ -16,7 +16,6 @@ import { SectionHeader } from '@/shared/ui/ui/SectionHeader';
 import { Card } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/ui/sheet';
-import { CreateTaskSheetContent } from '@/entities/task/ui/task-details/CreateTaskSheetContent';
 import { useTaskAppStore } from '@/features/task-app/use-task-app';
 import { AppHeader } from '@/shared/ui/ui/app-header';
 import { TaskNavigation } from '@/features/task-app/components/task-navigation';

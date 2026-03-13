@@ -86,7 +86,6 @@ export function TaskDetailView({
     RecurrenceConfig | undefined
   >();
 
-  const [activeEditor, setActiveEditor] = useState<string | null>(null);
   const [lastParsedAttributes, setLastParsedAttributes] = useState<
     ParsedTaskInput["attributes"]
   >({});
@@ -120,7 +119,6 @@ export function TaskDetailView({
       setLocalDueDate(undefined);
       setLocalRecurrence(undefined);
     }
-    setActiveEditor(null);
     setLastParsedAttributes({});
   }, [task]);
 
@@ -514,188 +512,210 @@ export function TaskDetailView({
             />
 
             <div className="flex flex-wrap items-center gap-2">
-              {(() => {
-                const info = getTagInfo(localCategory);
-                return info ? (
-                  <Badge
-                    variant="secondary"
-                    className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
-                    style={
-                      info.color
-                        ? {
-                            backgroundColor: `${info.color}33`,
-                            color: info.color,
-                            borderColor: `${info.color}66`,
-                          }
-                        : {}
-                    }
-                    onClick={() =>
-                      setActiveEditor(
-                        activeEditor === "category" ? null : "category",
-                      )
-                    }
-                  >
-                    <Tag className="h-3 w-3" />
-                    {info.name}
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="outline"
-                    className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
-                    onClick={() =>
-                      setActiveEditor(
-                        activeEditor === "category" ? null : "category",
-                      )
-                    }
-                  >
-                    <Tag className="h-3 w-3" />
-                    Add Project
-                  </Badge>
-                );
-              })()}
+              <Popover>
+                <PopoverTrigger asChild>
+                  {(() => {
+                    const info = getTagInfo(localCategory);
+                    return info ? (
+                      <Badge
+                        variant="secondary"
+                        className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
+                        style={
+                          info.color
+                            ? {
+                                backgroundColor: `${info.color}33`,
+                                color: info.color,
+                                borderColor: `${info.color}66`,
+                              }
+                            : {}
+                        }
+                      >
+                        <Tag className="h-3 w-3" />
+                        {info.name}
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                      >
+                        <Tag className="h-3 w-3" />
+                        Add Project
+                      </Badge>
+                    );
+                  })()}
+                </PopoverTrigger>
+                <PopoverContent className="w-fit p-3" align="start">
+                  <TagPicker
+                    tags={tags}
+                    selectedTagId={localCategory}
+                    onSelect={(id) => {
+                      setLocalCategory(id);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
 
-              {localEnergy ? (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 border-blue-500/30 text-blue-500 cursor-pointer hover:bg-blue-500/10 transition-colors"
-                  onClick={() =>
-                    setActiveEditor(activeEditor === "energy" ? null : "energy")
-                  }
-                >
-                  <Zap className="h-3 w-3" />
-                  {localEnergy}
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
-                  onClick={() =>
-                    setActiveEditor(activeEditor === "energy" ? null : "energy")
-                  }
-                >
-                  <Zap className="h-3 w-3" />
-                  Add Energy
-                </Badge>
+              <Popover>
+                <PopoverTrigger asChild>
+                  {localEnergy ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 border-blue-500/30 text-blue-500 cursor-pointer hover:bg-blue-500/10 transition-colors"
+                    >
+                      <Zap className="h-3 w-3" />
+                      {localEnergy}
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                    >
+                      <Zap className="h-3 w-3" />
+                      Add Energy
+                    </Badge>
+                  )}
+                </PopoverTrigger>
+                <PopoverContent className="w-fit p-3" align="start">
+                  <EnergyPicker
+                    energy={localEnergy || "Medium"}
+                    onChange={(val) => {
+                      setLocalEnergy(val);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  {localDuration && localDuration > 0 ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors"
+                    >
+                      <Clock className="h-3 w-3" />
+                      {localDuration}m
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                    >
+                      <Clock className="h-3 w-3" />
+                      Add Duration
+                    </Badge>
+                  )}
+                </PopoverTrigger>
+                <PopoverContent className="w-fit p-3" align="start">
+                  <DurationPicker
+                    duration={localDuration || 0}
+                    onChange={(val) => {
+                      setLocalDuration(val);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  {localAssignedDate ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 border-blue-500/30 text-blue-400 cursor-pointer hover:bg-blue-400/10 transition-colors"
+                    >
+                      <Clock className="h-3 w-3" />
+                      {new Date(localAssignedDate).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                    >
+                      <Clock className="h-3 w-3" />
+                      Set Schedule
+                    </Badge>
+                  )}
+                </PopoverTrigger>
+                <PopoverContent className="w-fit p-0" align="start">
+                  <DatePicker
+                    value={localAssignedDate}
+                    type="assigned"
+                    onChange={(val) => {
+                      setLocalAssignedDate(val);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  {localDueDate ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 border-red-500/30 text-red-500 cursor-pointer hover:bg-red-500/10 transition-colors"
+                    >
+                      <CalendarIcon className="h-3 w-3" />
+                      {new Date(localDueDate).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                    >
+                      <CalendarIcon className="h-3 w-3" />
+                      Set Deadline
+                    </Badge>
+                  )}
+                </PopoverTrigger>
+                <PopoverContent className="w-fit p-0" align="start">
+                  <DatePicker
+                    value={localDueDate}
+                    type="due"
+                    onChange={(val) => {
+                      setLocalDueDate(val);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {localDueDate && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    {localRecurrence ? (
+                      <Badge
+                        variant="outline"
+                        className="flex items-center gap-1 border-purple-500/30 text-purple-400 cursor-pointer hover:bg-purple-400/10 transition-colors"
+                      >
+                        <Repeat className="h-3 w-3" />
+                        {formatRecurrence(localRecurrence)}
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                      >
+                        <Repeat className="h-3 w-3" />
+                        Add Repeat
+                      </Badge>
+                    )}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-fit p-3" align="start">
+                    <RecurrenceInlinePicker
+                      standalone
+                      value={localRecurrence}
+                      baseDate={new Date(localDueDate)}
+                      onChange={(val) => {
+                        setLocalRecurrence(val);
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
               )}
-
-              {localDuration && localDuration > 0 ? (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors"
-                  onClick={() =>
-                    setActiveEditor(
-                      activeEditor === "duration" ? null : "duration",
-                    )
-                  }
-                >
-                  <Clock className="h-3 w-3" />
-                  {localDuration}m
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
-                  onClick={() =>
-                    setActiveEditor(
-                      activeEditor === "duration" ? null : "duration",
-                    )
-                  }
-                >
-                  <Clock className="h-3 w-3" />
-                  Add Duration
-                </Badge>
-              )}
-
-              {localAssignedDate ? (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 border-blue-500/30 text-blue-400 cursor-pointer hover:bg-blue-400/10 transition-colors"
-                  onClick={() =>
-                    setActiveEditor(
-                      activeEditor === "assignedDate" ? null : "assignedDate",
-                    )
-                  }
-                >
-                  <Clock className="h-3 w-3" />
-                  {new Date(localAssignedDate).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
-                  onClick={() =>
-                    setActiveEditor(
-                      activeEditor === "assignedDate" ? null : "assignedDate",
-                    )
-                  }
-                >
-                  <Clock className="h-3 w-3" />
-                  Set Schedule
-                </Badge>
-              )}
-
-              {localDueDate ? (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 border-red-500/30 text-red-500 cursor-pointer hover:bg-red-500/10 transition-colors"
-                  onClick={() =>
-                    setActiveEditor(
-                      activeEditor === "dueDate" ? null : "dueDate",
-                    )
-                  }
-                >
-                  <CalendarIcon className="h-3 w-3" />
-                  {new Date(localDueDate).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
-                  onClick={() =>
-                    setActiveEditor(
-                      activeEditor === "dueDate" ? null : "dueDate",
-                    )
-                  }
-                >
-                  <CalendarIcon className="h-3 w-3" />
-                  Set Deadline
-                </Badge>
-              )}
-
-              {localDueDate &&
-                (localRecurrence ? (
-                  <Badge
-                    variant="outline"
-                    className="flex items-center gap-1 border-purple-500/30 text-purple-400 cursor-pointer hover:bg-purple-400/10 transition-colors"
-                    onClick={() =>
-                      setActiveEditor(
-                        activeEditor === "recurrence" ? null : "recurrence",
-                      )
-                    }
-                  >
-                    <Repeat className="h-3 w-3" />
-                    {formatRecurrence(localRecurrence)}
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="outline"
-                    className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
-                    onClick={() =>
-                      setActiveEditor(
-                        activeEditor === "recurrence" ? null : "recurrence",
-                      )
-                    }
-                  >
-                    <Repeat className="h-3 w-3" />
-                    Add Repeat
-                  </Badge>
-                ))}
 
               {task.blockedBy?.length > 0 && (
                 <Badge
@@ -707,78 +727,6 @@ export function TaskDetailView({
                 </Badge>
               )}
             </div>
-
-            {activeEditor && (
-              <div className="rounded-lg border bg-card p-3 shadow-sm relative animate-in fade-in slide-in-from-top-1 duration-200">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1 h-6 w-6"
-                  onClick={() => setActiveEditor(null)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-
-                {activeEditor === "category" && (
-                  <TagPicker
-                    tags={tags}
-                    selectedTagId={localCategory}
-                    onSelect={(id) => {
-                      setLocalCategory(id);
-                      setActiveEditor(null);
-                    }}
-                  />
-                )}
-                {activeEditor === "energy" && (
-                  <EnergyPicker
-                    energy={localEnergy || "Medium"}
-                    onChange={(val) => {
-                      setLocalEnergy(val);
-                      setActiveEditor(null);
-                    }}
-                  />
-                )}
-                {activeEditor === "duration" && (
-                  <DurationPicker
-                    duration={localDuration || 0}
-                    onChange={(val) => {
-                      setLocalDuration(val);
-                    }}
-                  />
-                )}
-                {activeEditor === "assignedDate" && (
-                  <DatePicker
-                    value={localAssignedDate}
-                    type="assigned"
-                    onChange={(val) => {
-                      setLocalAssignedDate(val);
-                      if (val) setActiveEditor(null);
-                    }}
-                  />
-                )}
-                {activeEditor === "dueDate" && (
-                  <DatePicker
-                    value={localDueDate}
-                    type="due"
-                    onChange={(val) => {
-                      setLocalDueDate(val);
-                      if (val) setActiveEditor(null);
-                    }}
-                  />
-                )}
-                {activeEditor === "recurrence" && localDueDate && (
-                  <RecurrenceInlinePicker
-                    standalone
-                    value={localRecurrence}
-                    baseDate={new Date(localDueDate)}
-                    onChange={(val) => {
-                      setLocalRecurrence(val);
-                      setActiveEditor(null);
-                    }}
-                  />
-                )}
-              </div>
-            )}
           </div>
           <Separator className="mt-auto" />
           <div className="p-4">

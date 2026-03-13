@@ -2,9 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { RecurrenceConfig, RecurrenceFrequency } from '@/entities/task';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check, Repeat, X } from 'lucide-react';
 import { formatRecurrence } from '@/shared/lib/timeUtils';
-import { PickerContainer } from './PickerContainer';
+import { cn } from '@/shared/lib/utils';
+import { Button } from '@/shared/ui/ui/button';
+import { Input } from '@/shared/ui/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/shared/ui/ui/select';
 
 /**
  * Interface for RecurrencePicker props.
@@ -23,12 +32,9 @@ interface RecurrencePickerProps {
 /**
  * Complex UI component for configuring recurring task rules.
  * Supports daily, weekly (multi-day), and monthly (date-based or relative) frequencies.
+ * Uses shadcn Select, Input, and Button components for a modern look.
  *
  * @component
- * @interaction
- * - Synchronizes internal state with the anchor `baseDate` for sensible defaults.
- * - Provides specific sub-menus for weekly (day grid) and monthly (relative/fixed) rules.
- * - Triggers `onChange` on every meaningful selection.
  */
 export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({ 
     value, 
@@ -38,13 +44,13 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(standalone);
   
-  // Internal state for editing (mirrors RecurrenceConfig structure)
-  const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('weekly');
+  // Internal state for editing
+  const [frequency, setFrequency] = useState<RecurrenceFrequency>('weekly');
   const [interval, setInterval] = useState(1);
   const [weekDays, setWeekDays] = useState<number[]>([]);
   const [monthlyType, setMonthlyType] = useState<'date' | 'relative'>('date');
-  const [weekOfMonth, setWeekOfMonth] = useState<number>(1); // 1-5
-  const [dayOfWeek, setDayOfWeek] = useState<number>(1); // For Monthly Relative
+  const [weekOfMonth, setWeekOfMonth] = useState<number>(1);
+  const [dayOfWeek, setDayOfWeek] = useState<number>(1);
 
   useEffect(() => {
     if (value) {
@@ -62,9 +68,6 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
     }
   }, [value, baseDate]);
 
-  /**
-   * Helper to commit a change to the parent component.
-   */
   const commitChange = (override?: Partial<RecurrenceConfig>) => {
     const config: RecurrenceConfig = {
       frequency,
@@ -84,13 +87,9 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
       }
     }
     
-    const finalConfig = { ...config, ...override };
-    onChange(finalConfig);
+    onChange({ ...config, ...override });
   };
 
-  /**
-   * Toggles a day of the week for weekly recurrence.
-   */
   const toggleWeekDay = (day: number) => {
     const newDays = weekDays.includes(day) 
       ? weekDays.filter(d => d !== day) 
@@ -98,187 +97,174 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
     
     newDays.sort((a,b) => a - b);
     setWeekDays(newDays);
-    
     commitChange({ weekDays: newDays });
   };
 
-  const getRecurrenceSummary = () => {
-    return formatRecurrence(value, baseDate);
-  };
-
-  if (!isOpen && !standalone) {
-    return (
-        <button 
-           onClick={() => setIsOpen(true)}
-           className={`w-full py-2 rounded-lg text-xxs font-bold uppercase transition-colors flex items-center justify-center gap-2 ${value ? 'bg-primary/10 text-primary' : 'bg-foreground/5 text-secondary hover:text-foreground'}`}
-        >
-            <div className="flex items-center gap-2">
-                {value ? <Check size={12} /> : null}
-                <span>{getRecurrenceSummary()}</span>
-            </div>
-            {value && <div onClick={(e) => { e.stopPropagation(); onChange(undefined); }} className="p-1 hover:text-red-400"><div className="w-3 h-3 bg-current rounded-full opacity-30 hover:opacity-100 flex items-center justify-center text-xxs text-black"></div></div>}
-        </button>
-    );
-  }
-
   const pickerContent = (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
        {/* Frequency & Interval */}
-       <div className="flex gap-2">
-          <div className="flex-[0.8]">
-             <div className="relative">
-                <input 
-                    type="number" 
-                    min="1" 
-                    max="99" 
-                    value={interval}
-                    onChange={(e) => {
-                        const val = parseInt(e.target.value) || 1;
-                        setInterval(val);
-                        commitChange({ interval: val });
-                    }}
-                    className="w-full bg-foreground/5 border border-border rounded-lg px-2 py-1.5 text-foreground text-xs text-center focus:border-primary/50 outline-none"
-                    aria-label="Recurrence interval"
-                />
-             </div>
-          </div>
-          <div className="flex-[2] relative">
-              <select 
-                value={frequency}
-                onChange={(e) => {
-                   const freq = e.target.value as RecurrenceFrequency;
-                  setFrequency(freq);
-                  if (freq === 'weekly') {
-                      commitChange({ frequency: freq, weekDays: [baseDate.getDay()] });
-                  } else if (freq === 'monthly') {
-                      commitChange({ frequency: freq, monthlyType: 'date' });
-                  } else {
-                      commitChange({ frequency: freq });
-                  }
-               }}
-               className="w-full bg-foreground/5 border border-border rounded-lg px-2 py-1.5 text-foreground text-xs appearance-none focus:border-primary/50 outline-none cursor-pointer"
-             >
-                <option value="daily">day{interval > 1 ? 's' : ''}</option>
-                <option value="weekly">week{interval > 1 ? 's' : ''}</option>
-                <option value="monthly">month{interval > 1 ? 's' : ''}</option>
-                <option value="yearly">year{interval > 1 ? 's' : ''}</option>
-             </select>
-             <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" />
-          </div>
+       <div className="flex items-center gap-2">
+          <Input
+            type="number"
+            min="1"
+            max="99"
+            value={interval}
+            onChange={(e) => {
+                const val = parseInt(e.target.value) || 1;
+                setInterval(val);
+                commitChange({ interval: val });
+            }}
+            className="w-14 h-9 text-center bg-muted/30 border-none shadow-none focus-visible:ring-1 focus-visible:ring-ring"
+          />
+          <Select
+            value={frequency}
+            onValueChange={(val: RecurrenceFrequency) => {
+                setFrequency(val);
+                if (val === 'weekly') commitChange({ frequency: val, weekDays: [baseDate.getDay()] });
+                else if (val === 'monthly') commitChange({ frequency: val, monthlyType: 'date' });
+                else commitChange({ frequency: val });
+            }}
+          >
+            <SelectTrigger className="flex-1 h-9 bg-muted/30 border-none shadow-none focus:ring-1 focus:ring-ring">
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="daily">day{interval > 1 ? 's' : ''}</SelectItem>
+                <SelectItem value="weekly">week{interval > 1 ? 's' : ''}</SelectItem>
+                <SelectItem value="monthly">month{interval > 1 ? 's' : ''}</SelectItem>
+                <SelectItem value="yearly">year{interval > 1 ? 's' : ''}</SelectItem>
+            </SelectContent>
+          </Select>
        </div>
 
-       {/* Weekly Specifics (Day Grid) */}
+       {/* Weekly Specifics */}
        {frequency === 'weekly' && (
-         <div className="flex justify-between">
-            {['S','M','T','W','T','F','S'].map((label, idx) => {
-                const isActive = weekDays.includes(idx);
-                const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][idx];
-                return (
-                    <button
-                      key={idx}
-                      onClick={() => toggleWeekDay(idx)}
-                      aria-label={dayName}
-                      className={`h-6 w-6 rounded-md text-xxs font-bold flex items-center justify-center transition-all ${isActive ? 'bg-primary text-primary-foreground' : 'bg-foreground/5 text-secondary hover:bg-foreground/10'}`}
-                    >
-                        {label}
-                    </button>
-                );
-            })}
+         <div className="flex justify-between gap-1">
+            {['S','M','T','W','T','F','S'].map((label, idx) => (
+                <Button
+                    key={idx}
+                    variant={weekDays.includes(idx) ? "default" : "outline"}
+                    className={cn(
+                        "h-7 w-7 p-0 text-[10px] font-bold",
+                        !weekDays.includes(idx) && "bg-muted/30 border-none shadow-none text-muted-foreground hover:bg-accent"
+                    )}
+                    onClick={() => toggleWeekDay(idx)}
+                >
+                    {label}
+                </Button>
+            ))}
          </div>
        )}
 
-       {/* Monthly Specifics (Fixed vs Relative) */}
+       {/* Monthly Specifics */}
        {frequency === 'monthly' && (
-         <div className="flex flex-col gap-1.5">
-            <button 
+         <div className="space-y-2">
+            <Button
+                variant="ghost"
+                className={cn(
+                    "w-full justify-start gap-3 h-9 text-xs",
+                    monthlyType === 'date' ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                )}
                 onClick={() => {
                     setMonthlyType('date');
                     commitChange({ monthlyType: 'date' });
                 }}
-                className={`flex items-center gap-2 p-2 rounded-lg text-left transition-colors ${monthlyType === 'date' ? 'bg-foreground/10' : 'hover:bg-foreground/5'}`}
             >
-                <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${monthlyType === 'date' ? 'border-primary' : 'border-secondary'}`}>
-                    {monthlyType === 'date' && <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>}
+                <div className={cn(
+                    "w-3 h-3 rounded-full border flex items-center justify-center shrink-0",
+                    monthlyType === 'date' ? "border-primary" : "border-muted-foreground"
+                )}>
+                    {monthlyType === 'date' && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
                 </div>
-                <span className="text-xs text-foreground">Day {baseDate.getDate()} monthly</span>
-            </button>
-            
-            <button 
-                onClick={() => {
-                    setMonthlyType('relative');
-                    const nth = Math.ceil(baseDate.getDate() / 7);
-                    const safeNth = nth > 4 ? 5 : nth;
-                    setWeekOfMonth(safeNth);
-                    setDayOfWeek(baseDate.getDay());
-                    commitChange({ monthlyType: 'relative', weekOfMonth: safeNth, weekDays: [baseDate.getDay()] });
-                }}
-                className={`flex items-center gap-2 p-2 rounded-lg text-left transition-colors ${monthlyType === 'relative' ? 'bg-foreground/10' : 'hover:bg-foreground/5'}`}
-            >
-                <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${monthlyType === 'relative' ? 'border-primary' : 'border-secondary'}`}>
-                    {monthlyType === 'relative' && <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>}
+                <span>Day {baseDate.getDate()} of every month</span>
+            </Button>
+
+            <div className={cn(
+                "flex items-center gap-3 p-2 rounded-md transition-colors",
+                monthlyType === 'relative' ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/50"
+            )} onClick={() => {
+                setMonthlyType('relative');
+                const nth = Math.ceil(baseDate.getDate() / 7);
+                const safeNth = nth > 4 ? 5 : nth;
+                setWeekOfMonth(safeNth);
+                setDayOfWeek(baseDate.getDay());
+                commitChange({ monthlyType: 'relative', weekOfMonth: safeNth, weekDays: [baseDate.getDay()] });
+            }}>
+                <div className={cn(
+                    "w-3 h-3 rounded-full border flex items-center justify-center shrink-0",
+                    monthlyType === 'relative' ? "border-primary" : "border-muted-foreground"
+                )}>
+                    {monthlyType === 'relative' && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
                 </div>
                 
-                {monthlyType === 'relative' ? (
-                     <div className="flex gap-1">
-                        <select 
-                            value={weekOfMonth}
-                            onChange={(e) => {
-                                const val = parseInt(e.target.value);
-                                setWeekOfMonth(val);
-                                commitChange({ monthlyType: 'relative', weekOfMonth: val });
-                            }}
-                            className="bg-transparent text-xs text-foreground font-medium outline-none border-b border-border pb-0.5 cursor-pointer"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <option value={1}>1st</option>
-                            <option value={2}>2nd</option>
-                            <option value={3}>3rd</option>
-                            <option value={4}>4th</option>
-                            <option value={5}>Last</option>
-                        </select>
-                        <select 
-                            value={dayOfWeek}
-                            onChange={(e) => {
-                                const val = parseInt(e.target.value);
-                                setDayOfWeek(val);
-                                commitChange({ monthlyType: 'relative', weekDays: [val] });
-                            }}
-                            className="bg-transparent text-xs text-foreground font-medium outline-none border-b border-border pb-0.5 cursor-pointer"
-                            onClick={(e) => e.stopPropagation()}
-                        >
+                <div className="flex gap-1.5 flex-1 min-w-0">
+                    <Select
+                        value={String(weekOfMonth)}
+                        onValueChange={(val) => {
+                            const v = parseInt(val);
+                            setWeekOfMonth(v);
+                            commitChange({ monthlyType: 'relative', weekOfMonth: v });
+                        }}
+                    >
+                        <SelectTrigger className="h-7 bg-transparent border-none p-0 focus:ring-0 text-xs font-semibold w-fit gap-1">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="1">1st</SelectItem>
+                            <SelectItem value="2">2nd</SelectItem>
+                            <SelectItem value="3">3rd</SelectItem>
+                            <SelectItem value="4">4th</SelectItem>
+                            <SelectItem value="5">Last</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select
+                        value={String(dayOfWeek)}
+                        onValueChange={(val) => {
+                            const v = parseInt(val);
+                            setDayOfWeek(v);
+                            commitChange({ monthlyType: 'relative', weekDays: [v] });
+                        }}
+                    >
+                        <SelectTrigger className="h-7 bg-transparent border-none p-0 focus:ring-0 text-xs font-semibold w-fit gap-1">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
                             {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, i) => (
                                 <option key={i} value={i}>{d}</option>
                             ))}
-                        </select>
-                     </div>
-                ) : (
-                    <span className="text-xs text-secondary">Relative (e.g. 2nd Mon)</span>
-                )}
-            </button>
+                            {/* Note: SelectItem is preferred over option in shadcn Select */}
+                            {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((d, i) => (
+                                <SelectItem key={i} value={String(i)}>{d.slice(0, 3)}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
          </div>
        )}
     </div>
   );
 
-  if (standalone) {
-    return (
-        <PickerContainer
-            title="Recurrence"
-            onClear={value ? () => onChange(undefined) : undefined}
-            className="w-56"
-        >
-            {pickerContent}
-        </PickerContainer>
-    );
-  }
-
   return (
-    <div className={'bg-surface-highlight border border-border rounded-xl p-4 mt-2 animate-fade-in relative z-20'}>
-       <div className="flex justify-between items-center mb-4">
-          <span className="text-xxs font-bold text-secondary uppercase tracking-wider">Recurrence</span>
-          <button onClick={() => setIsOpen(false)} className="text-xs text-primary font-bold hover:underline">Done</button>
-       </div>
-       {pickerContent}
+    <div className="w-56 space-y-3">
+        <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+                <Repeat size={14} className="text-muted-foreground" />
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Recurrence</span>
+            </div>
+            {value && (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 rounded-sm hover:text-destructive"
+                    onClick={() => onChange(undefined)}
+                >
+                    <X size={12} />
+                </Button>
+            )}
+        </div>
+        {pickerContent}
     </div>
   );
 };

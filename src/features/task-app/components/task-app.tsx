@@ -25,6 +25,7 @@ import { TaskDetail } from "./task-detail";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { useHashRouter } from "../lib/use-hash-router";
 import { createDefaultTask } from "../lib/constants";
+import { parseTaskInput } from "@/shared/lib/textParserUtils";
 
 interface TaskAppProps {
   tasks: Task[];
@@ -111,6 +112,10 @@ export function TaskApp({
   }, [createNewTask, setSearchQuery]);
 
   const filteredTasks = React.useMemo(() => {
+    const parsedSearch = parseTaskInput(searchQuery);
+    const tagKeyword = parsedSearch.attributes.tagKeyword;
+    const searchTitle = parsedSearch.cleanTitle.toLowerCase();
+
     const selectedTag = selectedTagId
       ? tags.find((t) => t.id === selectedTagId)
       : null;
@@ -118,10 +123,20 @@ export function TaskApp({
     return tasks.filter((task) => {
       // Search filter
       if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = task.title.toLowerCase().includes(query);
-        const matchesNotes = task.notes?.toLowerCase().includes(query) || false;
-        if (!matchesTitle && !matchesNotes) return false;
+          // If there's a tag keyword, task must match it
+          if (tagKeyword) {
+              const matchedTag = tags.find(t => t.name.toLowerCase() === tagKeyword.toLowerCase());
+              const tagIdMatch = matchedTag ? task.category === matchedTag.id : false;
+              const tagNameMatch = task.category.toLowerCase() === tagKeyword.toLowerCase();
+              if (!tagIdMatch && !tagNameMatch) return false;
+          }
+
+          // If there's clean text search, task must match it in title or notes
+          if (searchTitle) {
+              const matchesTitle = task.title.toLowerCase().includes(searchTitle);
+              const matchesNotes = task.notes?.toLowerCase().includes(searchTitle) || false;
+              if (!matchesTitle && !matchesNotes) return false;
+          }
       }
 
       // Status filter
@@ -129,8 +144,8 @@ export function TaskApp({
       if (tab === "completed" && task.status !== "completed") return false;
       if (tab === "archived" && task.status !== "archived") return false;
 
-      // Tag filter
-      if (selectedTagId) {
+      // Legacy Tag filter (still used by some parts of the app possibly)
+      if (selectedTagId && !tagKeyword) {
         if (!selectedTag) return false;
         if (
           task.category !== selectedTag.id &&

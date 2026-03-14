@@ -36,10 +36,6 @@ export function useHashRouter(tasks: Task[]) {
         setActiveView(state.activeView);
       }
 
-      if (state.selectedTagId !== useTaskAppStore.getState().selectedTagId) {
-        setSelectedTagId(state.selectedTagId);
-      }
-
       if (state.searchQuery !== useTaskAppStore.getState().searchQuery) {
         setSearchQuery(state.searchQuery);
       }
@@ -84,7 +80,6 @@ export function useHashRouter(tasks: Task[]) {
     const currentState: AppState = {
       activeView,
       selectedTaskId: selectedTask?.id || null,
-      selectedTagId,
       searchQuery,
     };
 

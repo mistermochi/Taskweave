@@ -3,7 +3,6 @@ import { TaskView } from "../use-task-app";
 export interface AppState {
   activeView: TaskView;
   selectedTaskId: string | null;
-  selectedTagId: string | null;
   searchQuery: string;
 }
 
@@ -11,7 +10,6 @@ export function parseHash(hash: string): AppState {
   const defaultState: AppState = {
     activeView: 'tasks',
     selectedTaskId: null,
-    selectedTagId: null,
     searchQuery: '',
   };
 
@@ -36,9 +34,7 @@ export function parseHash(hash: string): AppState {
     }
   } else if (segments[0] === 'tasks') {
     state.activeView = 'tasks';
-    if (segments[1] === 'tag' && segments[2]) {
-      state.selectedTagId = segments[2];
-    } else if (segments[1]) {
+    if (segments[1]) {
       state.selectedTaskId = segments[1];
     }
   } else if (segments[0] === 'insights') {
@@ -60,9 +56,7 @@ export function stringifyAppState(state: AppState): string {
     }
   } else if (state.activeView === 'tasks') {
     path = '/tasks';
-    if (state.selectedTagId) {
-      path += `/tag/${state.selectedTagId}`;
-    } else if (state.selectedTaskId) {
+    if (state.selectedTaskId) {
       path += `/${state.selectedTaskId}`;
     }
   } else if (state.activeView === 'insights') {

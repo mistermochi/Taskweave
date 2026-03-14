@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { addDays, addHours, format, nextSaturday } from "date-fns";
 import {
   Archive,
@@ -6,14 +6,11 @@ import {
   Calendar as CalendarIcon,
   Check,
   Clock,
-  Forward,
   Layers,
   Loader2,
   MoreVertical,
   MousePointerClick,
   Repeat,
-  Reply,
-  ReplyAll,
   Share,
   Tag,
   Trash2,
@@ -76,6 +73,8 @@ export function TaskDetailView({
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
   const [localCategory, setLocalCategory] = useState<string | undefined>();
   const [localEnergy, setLocalEnergy] = useState<EnergyLevel | undefined>();
@@ -102,6 +101,7 @@ export function TaskDetailView({
   };
 
   useEffect(() => {
+    setShowDeleteConfirm(false);
     if (task) {
       setTitle(task.title);
       setNotes(task.notes || "");
@@ -187,6 +187,24 @@ export function TaskDetailView({
     }
   };
 
+  useEffect(() => {
+    if (!showDeleteConfirm) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        deleteButtonRef.current &&
+        !deleteButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowDeleteConfirm(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDeleteConfirm]);
+
   const handleToggleArchive = async () => {
     if (!task || task.id === "new") return;
     try {
@@ -206,6 +224,25 @@ export function TaskDetailView({
       }
     } catch (e) {
       console.error("Failed to toggle archive", e);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!task || task.id === "new") return;
+
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true);
+      useTaskAppStore.getState().showToast("Click again to permanently delete this task");
+      return;
+    }
+
+    try {
+      await taskApi.deleteTask(task.id);
+      useTaskAppStore.getState().setSelectedTask(null);
+      onClose?.();
+      useTaskAppStore.getState().showToast("Task permanently deleted");
+    } catch (e) {
+      console.error("Failed to delete task", e);
     }
   };
 
@@ -458,47 +495,25 @@ export function TaskDetailView({
         </Tooltip>
 
         <div className="ml-auto flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={!task || task.id === "new"}
-              >
-                <Reply className="h-4 w-4" />
-                <span className="sr-only">Reply</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Reply</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={!task || task.id === "new"}
-              >
-                <ReplyAll className="h-4 w-4" />
-                <span className="sr-only">Reply all</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Reply all</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={!task || task.id === "new"}
-              >
-                <Forward className="h-4 w-4" />
-                <span className="sr-only">Forward</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Forward</TooltipContent>
-          </Tooltip>
+          {task?.status === "archived" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  ref={deleteButtonRef}
+                  variant="ghost"
+                  size="icon"
+                  className={showDeleteConfirm ? "text-red-500 hover:text-red-600 hover:bg-red-50" : ""}
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Delete Task</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {showDeleteConfirm ? "Confirm Delete" : "Delete Task"}
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
 
         <Separator orientation="vertical" className="mx-1 h-6" />

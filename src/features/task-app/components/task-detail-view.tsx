@@ -375,31 +375,6 @@ export function TaskDetailView({
                 variant="ghost"
                 size="icon"
                 disabled={!task || task.id === "new"}
-                onClick={handleToggleArchive}
-              >
-                {task?.status === "archived" ? (
-                  <ArchiveX className="h-4 w-4 text-orange-500" />
-                ) : (
-                  <Archive className="h-4 w-4" />
-                )}
-                <span className="sr-only">
-                  {task?.status === "archived"
-                    ? "Remove from Archive"
-                    : "Archive"}
-                </span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {task?.status === "archived" ? "Remove from Archive" : "Archive"}
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={!task || task.id === "new"}
                 onClick={handleStartFocus}
               >
                 <Zap className="h-4 w-4" />
@@ -440,61 +415,31 @@ export function TaskDetailView({
           </Tooltip>
         </div>
 
-        <Separator orientation="vertical" className="mx-1 h-6" />
-
-        <Tooltip>
-          <Popover>
-            <PopoverTrigger asChild>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={!task || task.id === "new"}
-                >
-                  <Clock className="h-4 w-4" />
-                  <span className="sr-only">Snooze</span>
-                </Button>
-              </TooltipTrigger>
-            </PopoverTrigger>
-            <PopoverContent className="flex w-[535px] p-0">
-              <div className="flex flex-col gap-2 border-r px-2 py-4">
-                <div className="px-4 text-sm font-medium">Snooze until</div>
-                <div className="grid min-w-[250px] gap-1">
-                  <Button variant="ghost" className="justify-start font-normal">
-                    Later today{" "}
-                    <span className="text-muted-foreground ml-auto">
-                      {format(addHours(today, 4), "E, h:m b")}
-                    </span>
-                  </Button>
-                  <Button variant="ghost" className="justify-start font-normal">
-                    Tomorrow
-                    <span className="text-muted-foreground ml-auto">
-                      {format(addDays(today, 1), "E, h:m b")}
-                    </span>
-                  </Button>
-                  <Button variant="ghost" className="justify-start font-normal">
-                    This weekend
-                    <span className="text-muted-foreground ml-auto">
-                      {format(nextSaturday(today), "E, h:m b")}
-                    </span>
-                  </Button>
-                  <Button variant="ghost" className="justify-start font-normal">
-                    Next week
-                    <span className="text-muted-foreground ml-auto">
-                      {format(addDays(today, 7), "E, h:m b")}
-                    </span>
-                  </Button>
-                </div>
-              </div>
-              <div className="p-2">
-                <Calendar />
-              </div>
-            </PopoverContent>
-          </Popover>
-          <TooltipContent>Snooze</TooltipContent>
-        </Tooltip>
-
         <div className="ml-auto flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={!task || task.id === "new"}
+                onClick={handleToggleArchive}
+              >
+                {task?.status === "archived" ? (
+                  <ArchiveX className="h-4 w-4 text-orange-500" />
+                ) : (
+                  <Archive className="h-4 w-4" />
+                )}
+                <span className="sr-only">
+                  {task?.status === "archived"
+                    ? "Remove from Archive"
+                    : "Archive"}
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {task?.status === "archived" ? "Remove from Archive" : "Archive"}
+            </TooltipContent>
+          </Tooltip>
           {task?.status === "archived" && (
             <Tooltip>
               <TooltipTrigger asChild>

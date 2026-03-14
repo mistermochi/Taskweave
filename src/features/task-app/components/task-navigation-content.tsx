@@ -20,6 +20,7 @@ import { AccountSwitcher } from "./account-switcher";
 import { Tag } from "@/entities/tag";
 import { Task } from "@/entities/task";
 import { TaskTagTree } from "./task-tag-tree";
+import { ScrollArea } from "@/shared/ui/ui/scroll-area";
 
 const accounts = [
   {
@@ -53,10 +54,10 @@ export function TaskNavigationContent({
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full overflow-hidden">
       <div
         className={cn(
-          "flex h-[52px] items-center",
+          "flex h-[52px] items-center shrink-0",
           isCollapsed ? "justify-center" : "justify-between px-2"
         )}>
         <AccountSwitcher isCollapsed={isCollapsed} accounts={accounts} />
@@ -97,38 +98,40 @@ export function TaskNavigationContent({
         </div>
       )}
 
-      <Separator />
+      <Separator className="shrink-0" />
 
-      <Nav
-        isCollapsed={isCollapsed}
-        links={[
-          {
-            title: "Dashboard",
-            icon: LayoutDashboard,
-            variant: "ghost"
-          },
-          {
-            title: "Tasks",
-            label: tasks.filter(t => t.status === 'active').length.toString(),
-            icon: CheckCircle2,
-            variant: "default"
-          },
-          {
-            title: "Insights",
-            icon: BarChart3,
-            variant: "ghost"
-          },
-          {
-            title: "Settings",
-            icon: Settings,
-            variant: "ghost"
-          }
-        ]}
-      />
+      <ScrollArea className="flex-1">
+        <Nav
+          isCollapsed={isCollapsed}
+          links={[
+            {
+              title: "Dashboard",
+              icon: LayoutDashboard,
+              variant: "ghost"
+            },
+            {
+              title: "Tasks",
+              label: tasks.filter(t => t.status === 'active').length.toString(),
+              icon: CheckCircle2,
+              variant: "default"
+            },
+            {
+              title: "Insights",
+              icon: BarChart3,
+              variant: "ghost"
+            },
+            {
+              title: "Settings",
+              icon: Settings,
+              variant: "ghost"
+            }
+          ]}
+        />
 
-      <Separator />
+        <Separator />
 
-      <TaskTagTree isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
-    </>
+        <TaskTagTree isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
+      </ScrollArea>
+    </div>
   );
 }

@@ -3,6 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/lib/utils"
 import { Button } from "./button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip"
+import { useNavigation } from "@/context/NavigationContext"
 
 const fabVariants = cva(
   "z-50 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95",
@@ -14,8 +15,8 @@ const fabVariants = cva(
         lg: "h-16 w-16",
       },
       position: {
-        fixed: "fixed bottom-6 right-6",
-        absolute: "absolute bottom-6 right-6",
+        fixed: "fixed right-6",
+        absolute: "absolute right-6",
         static: "",
       }
     },
@@ -36,11 +37,17 @@ export interface FabProps
 
 const Fab = React.forwardRef<HTMLButtonElement, FabProps>(
   ({ className, size, position, icon, label, tooltip, ...props }, ref) => {
+    const { activeTaskId } = useNavigation();
+
     const fabButton = (
       <Button
         variant="default"
         size="icon"
-        className={cn(fabVariants({ size, position, className }), "[&_svg]:size-6")}
+        className={cn(
+          fabVariants({ size, position, className }),
+          "[&_svg]:size-6",
+          position !== "static" && (activeTaskId ? "bottom-24" : "bottom-6")
+        )}
         ref={ref}
         {...props}
       >

@@ -282,11 +282,17 @@ export function TaskApp({
     </div>
   );
 
+  const { activeTaskId } = useNavigation();
+
   return (
     <TooltipProvider delayDuration={0}>
-      <Toaster />
+      <Toaster position={isMobile ? "top-center" : "bottom-right"} offset={activeTaskId ? 96 : 16} />
       <FocusPlayer />
       <SessionSummaryModal taskId={summaryTaskId} onClose={hideSummary} />
+      <div className={cn(
+        "flex h-full w-full overflow-hidden transition-[padding] duration-300",
+        activeTaskId ? "pb-20" : "pb-0"
+      )}>
       {!isMobile ? (
         /* Desktop Layout */
         <div className="flex h-full w-full overflow-hidden">
@@ -336,6 +342,7 @@ export function TaskApp({
           {taskDetail}
         </div>
       )}
+      </div>
     </TooltipProvider>
   );
 }

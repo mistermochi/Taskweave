@@ -27,6 +27,11 @@ import {
 } from "@/shared/ui/ui/dialog";
 import { Input } from "@/shared/ui/ui/input";
 import { Label } from "@/shared/ui/ui/label";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/shared/ui/ui/collapsible";
 
 interface TaskTagTreeProps {
   tags: Tag[];
@@ -108,34 +113,35 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
       .filter((t) => t.parentId === parentId)
       .sort((a, b) => (a.order || 0) - (b.order || 0))
       .map((tag) => {
-        const hasChildren = tags.some((t) => t.parentId === tag.id);
+        const children = tags.filter((t) => t.parentId === tag.id);
+        const hasChildren = children.length > 0;
         const isExpanded = expanded.has(tag.id);
         const parsedSearch = parseTaskInput(searchQuery);
         const tagKeyword = parsedSearch.attributes.tagKeyword;
         const isActive = tagKeyword?.toLowerCase() === tag.name.toLowerCase();
         const count = tagCounts[tag.id] || tagCounts[tag.name] || 0;
 
-        return (
-          <div key={tag.id} className="flex flex-col">
+        const node = (
+          <div className="flex flex-col w-full">
             <ContextMenu>
               <ContextMenuTrigger>
                 <div
                   className={cn(
-                    "group flex items-center gap-2 py-1.5 px-2 rounded-md cursor-pointer transition-all relative select-none",
+                    "group flex items-center h-8 w-full gap-2 px-2 rounded-md cursor-pointer transition-all relative select-none",
                     isActive
-                      ? "bg-accent text-accent-foreground dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white"
+                      ? "bg-accent text-accent-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
                     draggedTagId === tag.id && "opacity-50"
                   )}
-                  onClick={() => {
+                  onClick={(e) => {
                     if (isActive) {
-                        setSearchQuery("");
+                      setSearchQuery("");
                     } else {
-                        setSearchQuery(`#${tag.name}`);
+                      setSearchQuery(`#${tag.name}`);
                     }
                     setSelectedTagId(null);
                     selectTag(null);
-                    setActiveView('tasks');
+                    setActiveView("tasks");
                   }}
                   draggable
                   onDragStart={(e) => handleDragStart(e, tag.id)}
@@ -145,61 +151,91 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
                     handleDrop(e, tag.id);
                   }}
                 >
-                  <button
-                    onClick={(e) => toggleExpand(tag.id, e)}
-                    className={cn(
-                      "p-0.5 rounded-sm hover:bg-accent transition-colors",
-                      !hasChildren && "opacity-0 pointer-events-none"
-                    )}
-                  >
-                    {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                  </button>
+                  {hasChildren ? (
+                    <CollapsibleTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <ChevronRight
+                        size={14}
+                        className={cn(
+                          "transition-transform shrink-0",
+                          isExpanded && "rotate-90"
+                        )}
+                      />
+                    </CollapsibleTrigger>
+                  ) : (
+                    <div className="size-[14px] shrink-0" />
+                  )}
 
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div
                       className="size-2 rounded-full shrink-0 shadow-sm"
                       style={{ backgroundColor: tag.color }}
                     />
-                    <span className={cn("text-sm truncate", isActive && "font-medium")}>
+                    <span
+                      className={cn("text-sm truncate", isActive && "font-medium")}
+                    >
                       {tag.name}
                     </span>
                   </div>
 
                   {count > 0 && (
-                      <span className="ml-auto text-[10px] tabular-nums text-muted-foreground/70 group-hover:text-muted-foreground">
-                        {count}
-                      </span>
+                    <span className="ml-auto text-[10px] tabular-nums text-muted-foreground/70 group-hover:text-muted-foreground">
+                      {count}
+                    </span>
                   )}
                 </div>
               </ContextMenuTrigger>
               <ContextMenuContent>
-                <ContextMenuItem onClick={() => {
+                <ContextMenuItem
+                  onClick={() => {
                     setEditingTag(tag);
                     setNewName(tag.name);
-                }}>
+                  }}
+                >
                   <Edit2 className="mr-2 size-4" />
                   Rename
                 </ContextMenuItem>
-                <ContextMenuItem className="text-destructive focus:text-destructive" onClick={() => {
+                <ContextMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => {
                     setDeletingTag(tag);
-                }}>
+                  }}
+                >
                   <Trash2 className="mr-2 size-4" />
                   Delete
                 </ContextMenuItem>
                 <ContextMenuSeparator />
-                <ContextMenuItem onClick={() => tagApi.createTag("New Sub-project", tag.id)}>
-                    <Plus className="mr-2 size-4" />
-                    Add Sub-project
+                <ContextMenuItem
+                  onClick={() => tagApi.createTag("New Sub-project", tag.id)}
+                >
+                  <Plus className="mr-2 size-4" />
+                  Add Sub-project
                 </ContextMenuItem>
               </ContextMenuContent>
             </ContextMenu>
-
-            {hasChildren && isExpanded && (
-              <div className="ml-4 border-l border-muted/50 flex flex-col pl-1 my-0.5">
-                {buildTree(tag.id)}
-              </div>
-            )}
           </div>
+        );
+
+        if (!hasChildren) {
+          return <div key={tag.id}>{node}</div>;
+        }
+
+        return (
+          <Collapsible
+            key={tag.id}
+            open={isExpanded}
+            onOpenChange={(isOpen) => {
+              const newSet = new Set(expanded);
+              if (isOpen) newSet.add(tag.id);
+              else newSet.delete(tag.id);
+              setExpanded(newSet);
+            }}
+            className="w-full"
+          >
+            {node}
+            <CollapsibleContent className="pl-4 ml-2 border-l border-muted/50 my-0.5">
+              {buildTree(tag.id)}
+            </CollapsibleContent>
+          </Collapsible>
         );
       });
   };

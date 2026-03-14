@@ -138,7 +138,7 @@ export const DashboardView: React.FC = () => {
                                     task={task as unknown as Task}
                                     tagsMap={tagsMap}
                                     isSelected={selectedTask?.id === task.id}
-                                    onClick={(t) => window.location.hash = `#/dashboard/${t.id}`}
+                                    onClick={setSelectedTask}
                                 />
                             ))}
                        </div>
@@ -172,7 +172,7 @@ export const DashboardView: React.FC = () => {
                                     task={task as unknown as Task}
                                     tagsMap={tagsMap}
                                     isSelected={selectedTask?.id === task.id}
-                                    onClick={(t) => window.location.hash = `#/dashboard/${t.id}`}
+                                    onClick={setSelectedTask}
                                 />
                             ))}
                         </div>

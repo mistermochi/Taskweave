@@ -6,7 +6,6 @@ describe('Router Utility', () => {
       expect(parseHash('')).toEqual({
         activeView: 'tasks',
         selectedTaskId: null,
-        selectedTagId: null,
         searchQuery: '',
       });
     });
@@ -15,7 +14,6 @@ describe('Router Utility', () => {
       expect(parseHash('#/dashboard')).toEqual({
         activeView: 'dashboard',
         selectedTaskId: null,
-        selectedTagId: null,
         searchQuery: '',
       });
     });
@@ -24,16 +22,6 @@ describe('Router Utility', () => {
       expect(parseHash('#/dashboard/123')).toEqual({
         activeView: 'dashboard',
         selectedTaskId: '123',
-        selectedTagId: null,
-        searchQuery: '',
-      });
-    });
-
-    it('should parse tasks with tag', () => {
-      expect(parseHash('#/tasks/tag/work')).toEqual({
-        activeView: 'tasks',
-        selectedTaskId: null,
-        selectedTagId: 'work',
         searchQuery: '',
       });
     });
@@ -42,7 +30,6 @@ describe('Router Utility', () => {
       expect(parseHash('#/tasks?q=hello')).toEqual({
         activeView: 'tasks',
         selectedTaskId: null,
-        selectedTagId: null,
         searchQuery: 'hello',
       });
     });
@@ -51,7 +38,6 @@ describe('Router Utility', () => {
       expect(parseHash('#/dashboard/123?q=test')).toEqual({
         activeView: 'dashboard',
         selectedTaskId: '123',
-        selectedTagId: null,
         searchQuery: 'test',
       });
     });
@@ -62,7 +48,6 @@ describe('Router Utility', () => {
       const state: AppState = {
         activeView: 'tasks',
         selectedTaskId: null,
-        selectedTagId: null,
         searchQuery: '',
       };
       expect(stringifyAppState(state)).toBe('#/tasks');
@@ -72,20 +57,19 @@ describe('Router Utility', () => {
       const state: AppState = {
         activeView: 'dashboard',
         selectedTaskId: '123',
-        selectedTagId: null,
         searchQuery: '',
       };
       expect(stringifyAppState(state)).toBe('#/dashboard/123');
     });
 
-    it('should stringify tasks with tag and search', () => {
+    it('should stringify tasks with search including tag', () => {
       const state: AppState = {
         activeView: 'tasks',
         selectedTaskId: null,
-        selectedTagId: 'work',
-        searchQuery: 'urgent',
+        searchQuery: '#work urgent',
       };
-      expect(stringifyAppState(state)).toBe('#/tasks/tag/work?q=urgent');
+      // URLSearchParams uses + for space and %23 for #.
+      expect(stringifyAppState(state)).toBe('#/tasks?q=%23work+urgent');
     });
   });
 });

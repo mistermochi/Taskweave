@@ -6,6 +6,7 @@ import { cn } from "@/shared/lib/utils";
 import { Tag, tagApi } from "@/entities/tag";
 import { Task } from "@/entities/task";
 import { useTaskAppStore } from "../use-task-app";
+import { parseTaskInput } from "@/shared/lib/textParserUtils";
 import { useNavigation } from "@/context/NavigationContext";
 import {
   ContextMenu,
@@ -38,6 +39,8 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
   const selectedTagId = useTaskAppStore((state) => state.selectedTagId);
   const setSelectedTagId = useTaskAppStore((state) => state.setSelectedTagId);
   const setActiveView = useTaskAppStore((state) => state.setActiveView);
+  const searchQuery = useTaskAppStore((state) => state.searchQuery);
+  const setSearchQuery = useTaskAppStore((state) => state.setSearchQuery);
   const { selectTag } = useNavigation();
   const [draggedTagId, setDraggedTagId] = React.useState<string | null>(null);
 
@@ -107,7 +110,9 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
       .map((tag) => {
         const hasChildren = tags.some((t) => t.parentId === tag.id);
         const isExpanded = expanded.has(tag.id);
-        const isActive = selectedTagId === tag.id;
+        const parsedSearch = parseTaskInput(searchQuery);
+        const tagKeyword = parsedSearch.attributes.tagKeyword;
+        const isActive = tagKeyword?.toLowerCase() === tag.name.toLowerCase();
         const count = tagCounts[tag.id] || tagCounts[tag.name] || 0;
 
         return (
@@ -123,9 +128,13 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
                     draggedTagId === tag.id && "opacity-50"
                   )}
                   onClick={() => {
-                    const nextId = isActive ? null : tag.id;
-                    setSelectedTagId(nextId);
-                    selectTag(nextId);
+                    if (isActive) {
+                        setSearchQuery("");
+                    } else {
+                        setSearchQuery(`#${tag.name}`);
+                    }
+                    setSelectedTagId(null);
+                    selectTag(null);
                     setActiveView('tasks');
                   }}
                   draggable
@@ -205,6 +214,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
               size="icon"
               className="h-9 w-9"
               onClick={() => {
+                setSearchQuery("");
                 setSelectedTagId(null);
                 selectTag(null);
                 setActiveView('tasks');

@@ -45,7 +45,7 @@ export function TaskNavigation({
               <MenuIcon />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="overflow-auto [&>button:first-of-type]:hidden" onClick={() => setOpen(false)}>
+          <SheetContent side="left" className="p-0 [&>button:first-of-type]:hidden" onClick={() => setOpen(false)}>
             <VisuallyHidden>
               <DialogHeader>
                 <DialogTitle>Navigation</DialogTitle>

@@ -227,15 +227,20 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
           <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60">
             Projects
           </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-5 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={() => tagApi.createTag("New Project", null)}
-          >
-            <Plus size={14} />
-            <span className="sr-only">Add Project</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => tagApi.createTag("New Project", null)}
+              >
+                <Plus size={14} />
+                <span className="sr-only">Add Project</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Add Project</TooltipContent>
+          </Tooltip>
         </div>
         <div
           className="flex flex-col min-h-[20px]"

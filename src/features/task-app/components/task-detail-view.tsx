@@ -8,6 +8,7 @@ import {
   Clock,
   Forward,
   Layers,
+  Loader2,
   MoreVertical,
   MousePointerClick,
   Repeat,
@@ -70,6 +71,7 @@ export function TaskDetailView({
   allTasks,
   onClose,
 }: TaskDetailViewProps) {
+  const isMac = typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
   const today = new Date();
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
@@ -502,16 +504,21 @@ export function TaskDetailView({
         <Separator orientation="vertical" className="mx-1 h-6" />
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={!task || task.id === "new"}
-            >
-              <MoreVertical className="h-4 w-4" />
-              <span className="sr-only">More</span>
-            </Button>
-          </DropdownMenuTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={!task || task.id === "new"}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">More</span>
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>More actions</TooltipContent>
+          </Tooltip>
           <DropdownMenuContent align="end">
             <DropdownMenuItem>Mark as unread</DropdownMenuItem>
             <DropdownMenuItem>Star thread</DropdownMenuItem>
@@ -771,18 +778,30 @@ export function TaskDetailView({
                   maxRows={8}
                 />
                 <div className="flex items-center">
-                  <Button
-                    type="submit"
-                    size="sm"
-                    className="ml-auto"
-                    disabled={isSaving}
-                  >
-                    {isSaving
-                      ? "Saving..."
-                      : task.id === "new"
-                        ? "Create Task"
-                        : "Save"}
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        className="ml-auto"
+                        disabled={isSaving}
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {task.id === "new" ? "Creating..." : "Saving..."}
+                          </>
+                        ) : task.id === "new" ? (
+                          "Create Task"
+                        ) : (
+                          "Save"
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {task.id === "new" ? "Create Task" : "Save"} ({isMac ? "⌘" : "Ctrl+"}Enter)
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             </form>

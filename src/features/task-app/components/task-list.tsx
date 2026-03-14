@@ -21,7 +21,7 @@ const ENERGY_MAP: Record<string, number> = { 'High': 3, 'Medium': 2, 'Low': 1 };
 
 export function TaskList({ items, tags }: TaskListProps) {
   const selectedTaskId = useTaskAppStore((state) => state.selectedTask?.id);
-  const setSelectedTask = useTaskAppStore((state) => state.setSelectedTask);
+  const activeView = useTaskAppStore((state) => state.activeView);
 
   const tagsMap = useMemo(() => {
     return tags.reduce((acc, tag) => {
@@ -113,7 +113,9 @@ export function TaskList({ items, tags }: TaskListProps) {
                 task={item}
                 tagsMap={tagsMap}
                 isSelected={selectedTaskId === item.id}
-                onClick={setSelectedTask}
+                onClick={() => {
+                    window.location.hash = `#/${activeView}/${item.id}`;
+                }}
               />
             ))}
           </div>

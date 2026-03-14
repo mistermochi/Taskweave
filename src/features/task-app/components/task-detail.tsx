@@ -30,6 +30,8 @@ export function TaskDetail({ task, tags, allTasks }: TaskDetailProps) {
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
     if (!newOpen) {
+        // When closing on mobile, we should navigate back to the list view in the URL
+        // while preserving search query.
         setSelectedTask(null);
     }
   };

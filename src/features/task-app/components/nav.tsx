@@ -34,18 +34,14 @@ export function Nav({ links, isCollapsed }: NavProps) {
           const isActive = activeView === viewId;
           const variant = isActive ? "default" : "ghost";
 
-          const handleClick = (e: React.MouseEvent) => {
-            e.preventDefault();
-            setActiveView(viewId);
-          };
+          const href = `#/${viewId}`;
 
           if (isCollapsed) {
             return (
               <Tooltip key={index} delayDuration={0}>
                 <TooltipTrigger asChild>
                   <Link
-                    href="#"
-                    onClick={handleClick}
+                    href={href}
                     className={cn(
                       buttonVariants({ variant: variant, size: "icon" }),
                       "h-9 w-9",
@@ -71,8 +67,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
           return (
             <Link
               key={index}
-              href="#"
-              onClick={handleClick}
+              href={href}
               className={cn(
                 buttonVariants({ variant: variant, size: "sm" }),
                 variant === "default" &&

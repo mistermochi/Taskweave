@@ -11,6 +11,8 @@ type TaskAppStore = {
   setSelectedTask: (task: Task | null) => void;
   selectedTagId: string | null;
   setSelectedTagId: (tagId: string | null) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
   showToast: (message: string, onUndo?: () => void) => void;
@@ -23,6 +25,8 @@ export const useTaskAppStore = create<TaskAppStore>((set) => ({
   setSelectedTask: (task) => set({ selectedTask: task }),
   selectedTagId: null,
   setSelectedTagId: (tagId) => set({ selectedTagId: tagId }),
+  searchQuery: "",
+  setSearchQuery: (query) => set({ searchQuery: query }),
   isCollapsed: false,
   setIsCollapsed: (collapsed) => set({ isCollapsed: collapsed }),
   showToast: (message, onUndo) => {

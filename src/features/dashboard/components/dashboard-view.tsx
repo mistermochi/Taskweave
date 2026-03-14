@@ -18,6 +18,7 @@ import { useTaskAppStore } from '@/features/task-app/use-task-app';
 import { AppHeader } from '@/shared/ui/ui/app-header';
 import { TaskNavigation } from '@/features/task-app/components/task-navigation';
 import { TaskListItem } from '@/features/task-app/components/task-list-item';
+import { createDefaultTask } from '@/features/task-app/lib/constants';
 
 const DashboardTopMetrics = () => {
     const { state, actions } = useDashboardController();
@@ -83,16 +84,7 @@ export const DashboardView: React.FC = () => {
   };
 
   const createNewTask = () => {
-    setSelectedTask({
-      id: "new",
-      title: "",
-      status: "active",
-      category: "",
-      energy: "Medium",
-      duration: 0,
-      createdAt: Date.now(),
-      blockedBy: [],
-    } as Task);
+    setSelectedTask(createDefaultTask());
   };
 
   const now = new Date();
@@ -146,7 +138,7 @@ export const DashboardView: React.FC = () => {
                                     task={task as unknown as Task}
                                     tagsMap={tagsMap}
                                     isSelected={selectedTask?.id === task.id}
-                                    onClick={setSelectedTask}
+                                    onClick={(t) => window.location.hash = `#/dashboard/${t.id}`}
                                 />
                             ))}
                        </div>
@@ -180,7 +172,7 @@ export const DashboardView: React.FC = () => {
                                     task={task as unknown as Task}
                                     tagsMap={tagsMap}
                                     isSelected={selectedTask?.id === task.id}
-                                    onClick={setSelectedTask}
+                                    onClick={(t) => window.location.hash = `#/dashboard/${t.id}`}
                                 />
                             ))}
                         </div>

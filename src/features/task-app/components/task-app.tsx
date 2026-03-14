@@ -23,6 +23,8 @@ import { useTaskAppStore } from "../use-task-app";
 import { TaskNavigation } from "./task-navigation";
 import { TaskDetail } from "./task-detail";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
+import { useHashRouter } from "../lib/use-hash-router";
+import { createDefaultTask } from "../lib/constants";
 
 interface TaskAppProps {
   tasks: Task[];
@@ -43,9 +45,13 @@ export function TaskApp({
     selectedTask,
     selectedTagId,
     activeView,
+    searchQuery,
+    setSearchQuery,
     isCollapsed,
     setIsCollapsed,
   } = useTaskAppStore();
+
+  useHashRouter(tasks);
 
   React.useEffect(() => {
     if (defaultCollapsed !== undefined) {
@@ -61,21 +67,17 @@ export function TaskApp({
     [setIsCollapsed]
   );
   const [tab, setTab] = React.useState("active");
-  const [searchQuery, setSearchQuery] = React.useState("");
   const isMobile = useIsMobile();
+  const activeViewRef = React.useRef(activeView);
+
+  // Keep ref in sync
+  React.useEffect(() => {
+    activeViewRef.current = activeView;
+  }, [activeView]);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const createNewTask = React.useCallback(() => {
-    useTaskAppStore.getState().setSelectedTask({
-      id: "new",
-      title: "",
-      status: "active",
-      category: "",
-      energy: "Medium",
-      duration: 0,
-      createdAt: Date.now(),
-      blockedBy: [],
-    } as Task);
+    useTaskAppStore.getState().setSelectedTask(createDefaultTask());
   }, []);
 
   React.useEffect(() => {
@@ -85,13 +87,16 @@ export function TaskApp({
       // Focus search on '/'
       if (e.key === "/" && !isInputFocused) {
         e.preventDefault();
-        searchInputRef.current?.focus();
+        if (activeViewRef.current !== 'tasks') {
+            window.location.hash = '#/tasks';
+        }
+        setTimeout(() => searchInputRef.current?.focus(), 0);
       }
 
       // Create new task on 'n'
       if (e.key === "n" && !isInputFocused) {
         e.preventDefault();
-        createNewTask();
+        window.location.hash = `#/${activeViewRef.current}/new`;
       }
 
       // Clear search and blur on 'Escape'
@@ -103,7 +108,7 @@ export function TaskApp({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [createNewTask]);
+  }, [createNewTask, setSearchQuery]);
 
   const filteredTasks = React.useMemo(() => {
     const selectedTag = selectedTagId

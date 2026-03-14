@@ -171,7 +171,10 @@ export function TaskDetailView({
       } else {
         // Use 0 as default actual duration if not specified
         await taskApi.completeTask(task, 0, allTasks);
+
+        // Navigate away from the task
         useTaskAppStore.getState().setSelectedTask(null);
+
         onClose?.();
         useTaskAppStore.getState().showToast("Task completed", () => {
           taskApi.uncompleteTask(task.id);
@@ -190,7 +193,10 @@ export function TaskDetailView({
         useTaskAppStore.getState().showToast("Task restored");
       } else {
         await taskApi.archiveTask(task.id);
+
+        // Navigate away from the task
         useTaskAppStore.getState().setSelectedTask(null);
+
         onClose?.();
         useTaskAppStore.getState().showToast("Task archived", () => {
           taskApi.unarchiveTask(task.id);
@@ -245,7 +251,7 @@ export function TaskDetailView({
       if (task.id === "new") {
         const energyValue =
           localEnergy === "High" ? 80 : localEnergy === "Low" ? 30 : 50;
-        await taskApi.addTask(
+        const newTaskId = await taskApi.addTask(
           parsed.cleanTitle,
           finalCategoryId || "",
           localDuration ?? 0,
@@ -255,7 +261,25 @@ export function TaskDetailView({
           localAssignedDate ?? null,
           localRecurrence ?? null,
         );
-        useTaskAppStore.getState().setSelectedTask(null);
+
+        // Navigate to the new task (it will keep the search query because we're just updating the selectedTask in the store)
+        // Actually, we need the new task object to select it.
+        const newTask = {
+            id: newTaskId,
+            title: parsed.cleanTitle,
+            category: finalCategoryId || "",
+            duration: localDuration ?? 0,
+            energy: localEnergy || 'Medium',
+            notes,
+            dueDate: localDueDate ?? null,
+            assignedDate: localAssignedDate ?? null,
+            recurrence: localRecurrence ?? null,
+            status: 'active',
+            createdAt: Date.now(),
+            blockedBy: [],
+        } as Task;
+        useTaskAppStore.getState().setSelectedTask(newTask);
+
         onClose?.();
         useTaskAppStore.getState().showToast("Task created");
       } else {

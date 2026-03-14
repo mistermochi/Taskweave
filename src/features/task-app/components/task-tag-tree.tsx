@@ -124,11 +124,9 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
                   )}
                   onClick={() => {
                     const nextId = isActive ? null : tag.id;
-                    if (nextId) {
-                        window.location.hash = `#/tasks/tag/${nextId}`;
-                    } else {
-                        window.location.hash = `#/tasks`;
-                    }
+                    setSelectedTagId(nextId);
+                    selectTag(nextId);
+                    setActiveView('tasks');
                   }}
                   draggable
                   onDragStart={(e) => handleDragStart(e, tag.id)}
@@ -207,7 +205,9 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
               size="icon"
               className="h-9 w-9"
               onClick={() => {
-                window.location.hash = `#/tasks`;
+                setSelectedTagId(null);
+                selectTag(null);
+                setActiveView('tasks');
               }}
             >
               <TagIcon className="size-4" />

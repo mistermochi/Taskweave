@@ -35,6 +35,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
           const variant = isActive ? "default" : "ghost";
 
           const href = `#/${viewId}`;
+          const handleClick = () => setActiveView(viewId);
 
           if (isCollapsed) {
             return (
@@ -42,6 +43,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
                 <TooltipTrigger asChild>
                   <Link
                     href={href}
+                    onClick={handleClick}
                     className={cn(
                       buttonVariants({ variant: variant, size: "icon" }),
                       "h-9 w-9",
@@ -68,6 +70,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
             <Link
               key={index}
               href={href}
+              onClick={handleClick}
               className={cn(
                 buttonVariants({ variant: variant, size: "sm" }),
                 variant === "default" &&

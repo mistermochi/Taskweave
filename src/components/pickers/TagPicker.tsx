@@ -3,6 +3,7 @@ import { Tag } from '@/entities/tag';
 import { Check, ChevronRight, ChevronDown, Hash, Search } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Input } from '@/shared/ui/ui/input';
+import { Separator } from '@/shared/ui/ui/separator';
 
 /**
  * Interface for TagPicker props.
@@ -70,7 +71,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
             <div key={tag.id}>
                 <div
                     className={cn(
-                        "flex items-center w-full hover:bg-accent rounded-md transition-colors group/row select-none cursor-pointer px-2 py-1.5",
+                        "flex items-center w-full hover:bg-accent rounded-sm transition-colors group/row select-none cursor-pointer px-2 py-1.5",
                         isSelected && "bg-accent"
                     )}
                     onClick={() => onSelect(tag.id)}
@@ -91,6 +92,12 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
                         >
                             {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                         </div>
+                        <div className={cn(
+                            "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                            isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
+                        )}>
+                            <Check className="h-3 w-3" />
+                        </div>
                         <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tag.color }}></span>
                         <span className={cn(
                             "text-xs font-medium truncate",
@@ -99,7 +106,6 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
                             {tag.name}
                         </span>
                     </div>
-                    {isSelected && <Check size={12} className="text-primary shrink-0 ml-2" />}
                 </div>
                 {hasChildren && isExpanded && (
                     <div className="ml-2 border-l border-border/50">
@@ -112,38 +118,46 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
   };
 
   return (
-    <div className="w-56 flex flex-col gap-2">
-        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">Set Project</div>
-
-        <div className="relative mb-1">
-            <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-                placeholder="Search projects..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-8 pl-7 text-xs bg-muted/50 border-none shadow-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
+    <div className="w-56 flex flex-col">
+        <div className="px-2 py-1.5 flex flex-col gap-1.5">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">Set Project</div>
+            <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                    placeholder="Search projects..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-8 pl-7 text-xs bg-muted/50 border-none shadow-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
+            </div>
         </div>
 
-        <div className="max-h-64 overflow-y-auto no-scrollbar py-1">
+        <Separator />
+
+        <div className="max-h-64 overflow-y-auto no-scrollbar p-1">
             {!searchQuery && (
                 <div
                     className={cn(
-                        "flex items-center w-full hover:bg-accent rounded-md transition-colors group/row select-none cursor-pointer px-2 py-1.5 mb-1",
+                        "flex items-center w-full hover:bg-accent rounded-sm transition-colors group/row select-none cursor-pointer px-2 py-1.5 mb-1",
                         selectedTagId === '' && "bg-accent"
                     )}
                     onClick={() => onSelect('')}
                 >
                     <div className="flex-1 flex items-center gap-2">
+                        <div className={cn(
+                            "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                            selectedTagId === '' ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
+                        )}>
+                            <Check className="h-3 w-3" />
+                        </div>
                         <div className="w-4 h-4 flex items-center justify-center text-muted-foreground"><Hash size={12} /></div>
                         <span className={cn(
-                            "text-xs font-medium",
+                            "text-xs font-medium truncate",
                             selectedTagId === '' ? "text-foreground" : "text-muted-foreground"
                         )}>
                             Inbox
                         </span>
                     </div>
-                    {selectedTagId === '' && <Check size={12} className="text-primary shrink-0" />}
                 </div>
             )}
 
@@ -151,6 +165,23 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
                 <p className="text-[10px] text-muted-foreground/60 p-4 text-center italic">No projects found.</p>
             )}
         </div>
+
+        {selectedTagId && (
+            <>
+                <Separator />
+                <div className="p-1">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onSelect('');
+                        }}
+                        className="flex items-center justify-center w-full px-2 py-1.5 text-xs hover:bg-accent rounded-sm transition-colors"
+                    >
+                        Clear selection
+                    </button>
+                </div>
+            </>
+        )}
     </div>
   );
 };

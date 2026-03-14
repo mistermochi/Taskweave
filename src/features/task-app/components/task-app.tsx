@@ -13,6 +13,8 @@ import { Fab } from "@/shared/ui/ui/fab";
 import { EmptyState } from "@/shared/ui/ui/Feedback";
 import { Toaster } from "@/shared/ui/ui/sonner";
 import { AppHeader } from "@/shared/ui/ui/app-header";
+import { FocusPlayer } from "@/features/focus-session/FocusPlayer";
+import { SessionSummaryModal } from "@/features/complete-task";
 import { TaskList } from "./task-list";
 import { SettingsView } from "@/features/settings";
 import { DashboardView } from "@/features/dashboard/components/dashboard-view";
@@ -24,6 +26,7 @@ import { TaskNavigation } from "./task-navigation";
 import { TaskDetail } from "./task-detail";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { useHashRouter } from "../lib/use-hash-router";
+import { useNavigation } from "@/context/NavigationContext";
 import { createDefaultTask } from "../lib/constants";
 import { parseTaskInput } from "@/shared/lib/textParserUtils";
 
@@ -42,6 +45,11 @@ export function TaskApp({
   defaultCollapsed = false,
   navCollapsedSize,
 }: TaskAppProps) {
+  const {
+    summaryTaskId,
+    hideSummary,
+  } = useNavigation();
+
   const {
     selectedTask,
     selectedTagId,
@@ -277,6 +285,8 @@ export function TaskApp({
   return (
     <TooltipProvider delayDuration={0}>
       <Toaster />
+      <FocusPlayer />
+      <SessionSummaryModal taskId={summaryTaskId} onClose={hideSummary} />
       {!isMobile ? (
         /* Desktop Layout */
         <div className="flex h-full w-full overflow-hidden">

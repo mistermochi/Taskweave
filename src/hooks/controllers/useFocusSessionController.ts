@@ -34,7 +34,9 @@ export const useFocusSessionController = (taskId: string | undefined) => {
    */
   useEffect(() => {
     if (task && uid && !hasAutoStarted) {
-      if (!isActive) {
+      // If the task is already marked as focused in the DB but not currently "running" (no lastStartedAt),
+      // it means it's a restored paused session. We should NOT auto-start it.
+      if (!isActive && !task.isFocused) {
          taskService.startSession(task.id, metrics.remaining, tasks);
       }
       setHasAutoStarted(true);

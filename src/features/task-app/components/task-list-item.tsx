@@ -27,17 +27,23 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
     return { name: categoryId, color: undefined };
   };
 
+  const isInactive = task.status === 'completed' || task.status === 'archived';
+
   return (
     <button
       className={cn(
         "hover:bg-accent/70 flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all w-full",
-        isSelected && "bg-accent/70"
+        isSelected && "bg-accent/70",
+        isInactive && "grayscale opacity-70"
       )}
       onClick={() => onClick(task)}>
       <div className="flex w-full flex-col gap-1">
         <div className="flex items-center">
           <div className="flex items-center gap-2">
-            <div className="font-semibold line-clamp-1">{task.title}</div>
+            <div className={cn(
+              "font-semibold line-clamp-1",
+              isInactive && "line-through"
+            )}>{task.title}</div>
             {task.energy === 'High' && <span className="flex h-2 w-2 rounded-full bg-blue-600" />}
           </div>
         </div>

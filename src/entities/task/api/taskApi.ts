@@ -49,13 +49,17 @@ export class TaskApi {
         const finalDuration = duration === 0 ? 0 : Math.max(1, Math.min(240, duration));
         const sanitizedRecurrence = recurrence ? JSON.parse(JSON.stringify(recurrence)) : null;
 
+        // Security: Enforce input length limits
+        const sanitizedTitle = title.substring(0, 500);
+        const sanitizedNotes = notes.substring(0, 5000);
+
         return {
-            title,
+            title: sanitizedTitle,
             category,
             duration: finalDuration,
             energy: energyLevel,
             status: 'active',
-            notes,
+            notes: sanitizedNotes,
             dueDate: dueDate || null,
             assignedDate: assignedDate || null,
             recurrence: sanitizedRecurrence,

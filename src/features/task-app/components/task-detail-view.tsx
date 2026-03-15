@@ -587,7 +587,7 @@ export function TaskDetailView({
             <AutoResizeTextarea
               className="resize-none border-none p-0 text-2xl font-bold focus-visible:ring-0 bg-transparent"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => setTitle(e.target.value.substring(0, 500))}
               onKeyDown={handleKeyDown}
               placeholder="Task Title..."
               minRows={1}
@@ -825,7 +825,7 @@ export function TaskDetailView({
                   className="p-4 bg-muted/20"
                   placeholder={`Task notes and details...`}
                   value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  onChange={(e) => setNotes(e.target.value.substring(0, 5000))}
                   onKeyDown={handleKeyDown}
                   minRows={3}
                   maxRows={8}

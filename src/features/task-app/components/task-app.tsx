@@ -12,6 +12,7 @@ import { Button } from "@/shared/ui/ui/button";
 import { Fab } from "@/shared/ui/ui/fab";
 import { EmptyState } from "@/shared/ui/ui/Feedback";
 import { Toaster } from "@/shared/ui/ui/sonner";
+import { toast } from "sonner";
 import { AppHeader } from "@/shared/ui/ui/app-header";
 import { FocusPlayer } from "@/features/focus-session/FocusPlayer";
 import { SessionSummaryModal } from "@/features/complete-task";
@@ -36,6 +37,7 @@ interface TaskAppProps {
   defaultLayout: number[] | undefined;
   defaultCollapsed?: boolean;
   navCollapsedSize: number;
+  hasPendingWrites?: boolean;
 }
 
 export function TaskApp({
@@ -44,6 +46,7 @@ export function TaskApp({
   defaultLayout = [20, 32, 48],
   defaultCollapsed = false,
   navCollapsedSize,
+  hasPendingWrites = false,
 }: TaskAppProps) {
   const {
     summaryTaskId,
@@ -64,6 +67,46 @@ export function TaskApp({
   const setIsCollapsed = useTaskAppStore((state) => state.setIsCollapsed);
 
   useHashRouter(tasks);
+
+  React.useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      "serviceWorker" in navigator
+    ) {
+      const registerSW = async () => {
+        try {
+          const registration = await navigator.serviceWorker.getRegistration();
+
+          if (registration) {
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    toast("A new version is available", {
+                      description: "Update to get the latest features.",
+                      action: {
+                        label: "Refresh",
+                        onClick: () => {
+                          newWorker.postMessage({ type: 'SKIP_WAITING' });
+                          window.location.reload();
+                        },
+                      },
+                      duration: Infinity,
+                    });
+                  }
+                });
+              }
+            });
+          }
+        } catch (error) {
+          console.error("Service worker update detection failed:", error);
+        }
+      };
+
+      registerSW();
+    }
+  }, []);
 
   React.useEffect(() => {
     if (!activeTaskId && tasks.length > 0) {
@@ -331,6 +374,7 @@ export function TaskApp({
               tags={tags}
               tasks={tasks}
               onToggleCollapsed={toggleCollapsed}
+              hasPendingWrites={hasPendingWrites}
             />
           </aside>
           {activeView === 'tasks' ? (
@@ -364,6 +408,14 @@ export function TaskApp({
           {activeView === 'dashboard' && <DashboardView />}
           {activeView === 'insights' && <InsightsView onNavigate={() => {}} />}
           {taskDetail}
+          <div className="md:hidden">
+            <TaskNavigation
+              isCollapsed={false}
+              tags={tags}
+              tasks={tasks}
+              hasPendingWrites={hasPendingWrites}
+            />
+          </div>
         </div>
       )}
       </div>

@@ -38,19 +38,20 @@ export const useUserId = () => {
  * @param collectionName - The name of the collection under the user document.
  * @param constraints - Array of Firestore query constraints (orderBy, where, etc).
  * @param enabled - Whether the subscription should be active.
- * @returns Object containing the data array and loading state.
+ * @returns Object containing the data array, loading state, and pending writes flag.
  *
  * @example
- * const { data: tasks } = useFirestoreCollection<TaskEntity>('tasks', [orderBy('createdAt')]);
+ * const { data: tasks, hasPendingWrites } = useFirestoreCollection<TaskEntity>('tasks', [orderBy('createdAt')]);
  */
 export function useFirestoreCollection<T>(
   collectionName: string, 
   constraints: QueryConstraint[] = [],
   enabled: boolean = true
-): { data: T[]; loading: boolean } {
+): { data: T[]; loading: boolean; hasPendingWrites: boolean } {
   const uid = useUserId();
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(enabled);
+  const [hasPendingWrites, setHasPendingWrites] = useState(false);
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const constraintsStr = JSON.stringify(constraints.map(c => (c as any)._queryOptions || c.type));
@@ -65,6 +66,7 @@ export function useFirestoreCollection<T>(
     if (!uid || !enabled) {
       setLoading(false);
       setData([]);
+      setHasPendingWrites(false);
       return;
     }
 
@@ -80,6 +82,7 @@ export function useFirestoreCollection<T>(
       });
       setData(items);
       setLoading(false);
+      setHasPendingWrites(snapshot.metadata.hasPendingWrites);
     }, (error) => {
       console.error(`Error fetching ${collectionName}:`, error);
       setLoading(false);
@@ -88,7 +91,7 @@ export function useFirestoreCollection<T>(
     return () => unsubscribe();
   }, [uid, collectionName, constraintsStr, enabled]);
 
-  return { data, loading };
+  return { data, loading, hasPendingWrites };
 }
 
 /**

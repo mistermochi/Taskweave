@@ -48,6 +48,8 @@ export function TaskApp({
   const {
     summaryTaskId,
     hideSummary,
+    activeTaskId,
+    focusOnTask,
   } = useNavigation();
 
   const selectedTask = useTaskAppStore((state) => state.selectedTask);
@@ -59,6 +61,15 @@ export function TaskApp({
   const setIsCollapsed = useTaskAppStore((state) => state.setIsCollapsed);
 
   useHashRouter(tasks);
+
+  React.useEffect(() => {
+    if (!activeTaskId && tasks.length > 0) {
+      const focusedTask = tasks.find(t => t.isFocused);
+      if (focusedTask) {
+        focusOnTask(focusedTask.id);
+      }
+    }
+  }, [tasks, activeTaskId, focusOnTask]);
 
   React.useEffect(() => {
     if (defaultCollapsed !== undefined) {
@@ -283,8 +294,6 @@ export function TaskApp({
       />
     </div>
   );
-
-  const { activeTaskId } = useNavigation();
 
   return (
     <TooltipProvider delayDuration={0}>

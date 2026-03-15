@@ -22,7 +22,7 @@ export const FocusPlayer: React.FC = () => {
   const progress = Math.min(100, Math.max(0, (1 - (state.timeLeft / totalDurationSeconds)) * 100));
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border h-20 flex flex-col animate-in slide-in-from-bottom-full duration-300">
+    <div className="fixed bottom-0 left-0 right-0 z-[60] bg-background/95 backdrop-blur-md border-t border-border h-20 flex flex-col animate-in slide-in-from-bottom-full duration-300">
       <Progress value={progress} className="h-1 rounded-none bg-transparent" />
 
       <div className="flex-1 flex items-center px-4 md:px-6 justify-between max-w-screen-2xl mx-auto w-full">

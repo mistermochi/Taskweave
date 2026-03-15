@@ -31,7 +31,7 @@ const TaskContext = createContext<TaskContextType>({ tasks: [], tasksMap: {}, lo
  *   existing object reference, keeping the downstream component tree stable.
  */
 export const TaskProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  const { data: activeTasks, loading } = useFirestoreCollection<TaskEntity>('tasks', [where('status', '==', 'active')]);
+  const { data: allTasks, loading } = useFirestoreCollection<TaskEntity>('tasks');
 
   /**
    * Local cache for stabilization.
@@ -43,7 +43,7 @@ export const TaskProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const newList: TaskEntity[] = [];
     const prevMap = prevMapRef.current;
 
-    activeTasks.forEach(t => {
+    allTasks.forEach(t => {
       const prev = prevMap[t.id];
       if (prev && prev.updatedAt === t.updatedAt) {
         newMap[t.id] = prev;
@@ -55,7 +55,7 @@ export const TaskProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
     prevMapRef.current = newMap;
     return { tasks: newList, tasksMap: newMap };
-  }, [activeTasks]);
+  }, [allTasks]);
 
   const value = useMemo(() => ({
     tasks,

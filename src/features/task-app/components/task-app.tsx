@@ -50,6 +50,7 @@ export function TaskApp({
     hideSummary,
     activeTaskId,
     focusOnTask,
+    clearFocusSession,
   } = useNavigation();
 
   const selectedTask = useTaskAppStore((state) => state.selectedTask);
@@ -64,12 +65,21 @@ export function TaskApp({
 
   React.useEffect(() => {
     if (!activeTaskId && tasks.length > 0) {
-      const focusedTask = tasks.find(t => t.isFocused);
+      const focusedTask = tasks.find(t => t.isFocused && t.status === 'active');
       if (focusedTask) {
         focusOnTask(focusedTask.id);
       }
     }
   }, [tasks, activeTaskId, focusOnTask]);
+
+  React.useEffect(() => {
+    if (activeTaskId && tasks.length > 0) {
+      const task = tasks.find(t => t.id === activeTaskId);
+      if (!task || task.status !== 'active') {
+        clearFocusSession();
+      }
+    }
+  }, [activeTaskId, tasks, clearFocusSession]);
 
   React.useEffect(() => {
     if (defaultCollapsed !== undefined) {
@@ -295,14 +305,16 @@ export function TaskApp({
     </div>
   );
 
+  const isFocusActive = !!activeTaskId && tasks.some(t => t.id === activeTaskId && t.status === 'active');
+
   return (
     <TooltipProvider delayDuration={0}>
-      <Toaster position={isMobile ? "top-center" : "bottom-right"} offset={activeTaskId ? 96 : 16} />
+      <Toaster position={isMobile ? "top-center" : "bottom-right"} offset={isFocusActive ? 96 : 16} />
       <FocusPlayer />
       <SessionSummaryModal taskId={summaryTaskId} onClose={hideSummary} />
       <div className={cn(
         "flex h-full w-full overflow-hidden transition-[padding] duration-300",
-        activeTaskId ? "pb-20" : "pb-0"
+        isFocusActive ? "pb-20" : "pb-0"
       )}>
       {!isMobile ? (
         /* Desktop Layout */

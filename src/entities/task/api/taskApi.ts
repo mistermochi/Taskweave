@@ -33,19 +33,9 @@ export class TaskApi {
     }
 
     /**
-     * Creates a new task and persists it to Firestore.
-     *
-     * @param title - The title of the task.
-     * @param category - The ID of the associated tag.
-     * @param duration - Estimated duration in minutes.
-     * @param energy - Numeric energy value (will be normalized to High/Medium/Low).
-     * @param notes - Optional descriptive notes.
-     * @param dueDate - Unix timestamp for the task deadline.
-     * @param assignedDate - Unix timestamp for when the task is scheduled to be done.
-     * @param recurrence - Optional configuration for repeating tasks.
-     * @returns A promise resolving to the ID of the newly created task.
+     * Internal helper to prepare task data and avoid duplication.
      */
-    public async addTask(
+    private prepareTaskData(
         title: string,
         category: Category,
         duration: number,
@@ -54,15 +44,12 @@ export class TaskApi {
         dueDate: number | undefined,
         assignedDate: number | undefined,
         recurrence?: RecurrenceConfig
-    ): Promise<string> {
-        const uid = contextApi.getUserId();
-        if (!uid || !title.trim()) return "";
-
+    ): Omit<TaskEntity, 'id' | 'createdAt' | 'updatedAt'> {
         const energyLevel: EnergyLevel = energy > 75 ? 'High' : energy < 40 ? 'Low' : 'Medium';
         const finalDuration = duration === 0 ? 0 : Math.max(1, Math.min(240, duration));
         const sanitizedRecurrence = recurrence ? JSON.parse(JSON.stringify(recurrence)) : null;
 
-        const taskData: Omit<TaskEntity, 'id' | 'createdAt' | 'updatedAt'> = {
+        return {
             title,
             category,
             duration: finalDuration,
@@ -82,19 +69,110 @@ export class TaskApi {
             completionNotes: null,
             blockedBy: [],
         };
-        
+    }
+
+    /**
+     * Creates a new task and persists it to Firestore.
+     *
+     * @param title - The title of the task.
+     * @param category - The ID of the associated tag.
+     * @param duration - Estimated duration in minutes.
+     * @param energy - Numeric energy value (will be normalized to High/Medium/Low).
+     * @param notes - Optional descriptive notes.
+     * @param dueDate - Unix timestamp for the task deadline.
+     * @param assignedDate - Unix timestamp for when the task is scheduled to be done.
+     * @param recurrence - Optional configuration for repeating tasks.
+     * @param onError - Optional callback for background errors.
+     * @returns A promise resolving to the ID of the newly created task.
+     */
+    public async addTask(
+        title: string,
+        category: Category,
+        duration: number,
+        energy: number,
+        notes: string,
+        dueDate: number | undefined,
+        assignedDate: number | undefined,
+        recurrence?: RecurrenceConfig,
+        onError?: (err: Error) => void
+    ): Promise<string> {
+        const uid = contextApi.getUserId();
+        if (!uid || !title.trim()) return "";
+
+        const taskData = this.prepareTaskData(title, category, duration, energy, notes, dueDate, assignedDate, recurrence);
         const newTaskId = crypto.randomUUID();
         const taskRef = doc(db, 'users', uid, 'tasks', newTaskId);
         const now = Date.now();
 
-        await setDoc(taskRef, {
+        // Fire and forget for optimistic UI
+        setDoc(taskRef, {
             ...taskData,
             id: newTaskId,
             createdAt: now,
             updatedAt: now,
+        }).catch(err => {
+            console.error("Failed to add task:", err);
+            onError?.(err);
         });
 
         return newTaskId;
+    }
+
+    /**
+     * Atomically creates a new tag and a task that references it.
+     * Useful for offline NLP flows.
+     *
+     * @param onError - Optional callback for background errors.
+     */
+    public async addTaskWithNewTag(
+        title: string,
+        tagName: string,
+        duration: number,
+        energy: number,
+        notes: string,
+        dueDate: number | undefined,
+        assignedDate: number | undefined,
+        recurrence?: RecurrenceConfig,
+        onError?: (err: Error) => void
+    ): Promise<{ taskId: string; tagId: string }> {
+        const uid = contextApi.getUserId();
+        if (!uid || !title.trim()) return { taskId: "", tagId: "" };
+
+        const batch = writeBatch(db);
+        const now = Date.now();
+
+        // 1. Create Tag
+        const tagId = crypto.randomUUID();
+        const tagRef = doc(db, 'users', uid, 'tags', tagId);
+        const hue = Math.floor(Math.random() * 360);
+        batch.set(tagRef, {
+            id: tagId,
+            name: tagName,
+            parentId: null,
+            color: `hsl(${hue}, 70%, 60%)`,
+            order: now
+        });
+
+        // 2. Create Task
+        const taskId = crypto.randomUUID();
+        const taskRef = doc(db, 'users', uid, 'tasks', taskId);
+
+        const taskData = this.prepareTaskData(title, tagId, duration, energy, notes, dueDate, assignedDate, recurrence);
+
+        batch.set(taskRef, {
+            ...taskData,
+            id: taskId,
+            createdAt: now,
+            updatedAt: now,
+        });
+
+        // Fire and forget
+        batch.commit().catch(err => {
+            console.error("Failed to add task with new tag:", err);
+            onError?.(err);
+        });
+
+        return { taskId, tagId };
     }
 
     /**
@@ -103,15 +181,20 @@ export class TaskApi {
      * @param taskId - The unique ID of the task to update.
      * @param updates - Partial object containing the fields to update.
      */
-    public async updateTask(taskId: string, updates: Partial<TaskEntity>): Promise<void> {
+    public async updateTask(taskId: string, updates: Partial<TaskEntity>, onError?: (err: Error) => void): Promise<void> {
         const uid = contextApi.getUserId();
         if (!uid) return;
 
         const taskRef = doc(db, 'users', uid, 'tasks', taskId);
         const cleanUpdates = JSON.parse(JSON.stringify(updates));
-        await updateDoc(taskRef, {
+
+        // Optimistic update: don't await
+        updateDoc(taskRef, {
             ...cleanUpdates,
             updatedAt: Date.now()
+        }).catch(err => {
+            console.error("Failed to update task:", err);
+            onError?.(err);
         });
     }
 
@@ -144,15 +227,19 @@ export class TaskApi {
      * Reverts a completed task back to an active state.
      * @param taskId - The ID of the task to re-activate.
      */
-    public async uncompleteTask(taskId: string): Promise<void> {
+    public async uncompleteTask(taskId: string, onError?: (err: Error) => void): Promise<void> {
         const uid = contextApi.getUserId();
         if (!uid) return;
 
         const taskRef = doc(db, 'users', uid, 'tasks', taskId);
-        await updateDoc(taskRef, {
+        // Optimistic update
+        updateDoc(taskRef, {
             status: 'active',
             completedAt: null,
             updatedAt: Date.now()
+        }).catch(err => {
+            console.error("Failed to uncomplete task:", err);
+            onError?.(err);
         });
     }
 
@@ -160,11 +247,15 @@ export class TaskApi {
      * Permanently deletes a task from Firestore.
      * @param taskId - The ID of the task to delete.
      */
-    public async deleteTask(taskId: string): Promise<void> {
+    public async deleteTask(taskId: string, onError?: (err: Error) => void): Promise<void> {
         const uid = contextApi.getUserId();
         if (!uid) return;
         const taskRef = doc(db, 'users', uid, 'tasks', taskId);
-        await deleteDoc(taskRef);
+        // Optimistic delete
+        deleteDoc(taskRef).catch(err => {
+            console.error("Failed to delete task:", err);
+            onError?.(err);
+        });
     }
 
     /**
@@ -268,7 +359,10 @@ export class TaskApi {
             }
         }
 
-        await batch.commit();
+        // Fire and forget
+        batch.commit().catch(err => {
+            console.error("Failed to complete task and respawn:", err);
+        });
         return nextDueDate;
     }
     
@@ -308,7 +402,9 @@ export class TaskApi {
             updatedAt: now
         });
     
-        await batch.commit();
+        batch.commit().catch(err => {
+            console.error("Failed to start session:", err);
+        });
     }
 
     /**
@@ -361,7 +457,7 @@ export class TaskApi {
             completionNotes: notes,
         });
 
-        await addDoc(collection(db, 'users', uid, 'activityLogs'), {
+        addDoc(collection(db, 'users', uid, 'activityLogs'), {
             timestamp,
             weekOfYear: 0,
             shiftType: null,
@@ -372,13 +468,13 @@ export class TaskApi {
                 notes: notes,
                 energyResult: newEnergyLevel ?? null
             }
-        });
+        }).catch(err => console.error("Failed to log activity:", err));
 
         if (typeof newEnergyLevel === 'number') {
             const context = await contextApi.getSnapshot();
             const vitalId = crypto.randomUUID();
             const vitalRef = doc(db, 'users', uid, 'vitals', vitalId);
-            await setDoc(vitalRef, {
+            setDoc(vitalRef, {
                 id: vitalId,
                 timestamp,
                 type: 'mood',
@@ -389,7 +485,7 @@ export class TaskApi {
                     taskId: task.id,
                     mood: mood
                 }
-            });
+            }).catch(err => console.error("Failed to log vital:", err));
         }
     }
 }

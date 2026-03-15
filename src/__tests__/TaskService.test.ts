@@ -42,12 +42,12 @@ jest.mock('firebase/firestore', () => ({
   enableIndexedDbPersistence: jest.fn(() => Promise.resolve()),
   enableMultiTabIndexedDbPersistence: jest.fn(() => Promise.resolve()),
   doc: jest.fn((db, path, ...pathSegments) => ({ path: [path, ...pathSegments].join('/') })),
-  setDoc: jest.fn(),
-  updateDoc: jest.fn(),
-  deleteDoc: jest.fn(),
+  setDoc: jest.fn(() => Promise.resolve()),
+  updateDoc: jest.fn(() => Promise.resolve()),
+  deleteDoc: jest.fn(() => Promise.resolve()),
   writeBatch: jest.fn(),
   collection: jest.fn(),
-  addDoc: jest.fn(),
+  addDoc: jest.fn(() => Promise.resolve()),
 }));
 
 // Mock contextApi to provide a consistent user ID
@@ -75,7 +75,7 @@ describe('taskApi', () => {
   const mockBatch = {
     update: jest.fn(),
     set: jest.fn(),
-    commit: jest.fn(),
+    commit: jest.fn(() => Promise.resolve()),
   };
 
   beforeEach(() => {

@@ -81,9 +81,10 @@ export class TagApi {
    *
    * @param name - The display name of the tag.
    * @param parentId - The ID of the parent tag for hierarchy, or null for root tags.
+   * @param onError - Optional callback for background errors.
    * @returns A promise resolving to the unique ID of the newly created tag.
    */
-  public async createTag(name: string, parentId: string | null = null): Promise<string> {
+  public async createTag(name: string, parentId: string | null = null, onError?: (err: Error) => void): Promise<string> {
     const uid = contextApi.getUserId();
     if (!uid) return "";
 
@@ -93,12 +94,18 @@ export class TagApi {
     const hue = Math.floor(Math.random() * 360);
     const color = `hsl(${hue}, 70%, 60%)`;
 
-    await setDoc(tagRef, {
+    const tagData = {
       id: newTagId,
       name,
       parentId,
       color,
       order: Date.now()
+    };
+
+    // We don't await here to allow for optimistic UI updates
+    setDoc(tagRef, tagData).catch(err => {
+      console.error("Failed to create tag:", err);
+      onError?.(err);
     });
 
     return newTagId;
@@ -109,13 +116,17 @@ export class TagApi {
    *
    * @param tagId - The unique ID of the tag to update.
    * @param updates - Partial object containing the fields to update.
+   * @param onError - Optional callback for background errors.
    */
-  public async updateTag(tagId: string, updates: Partial<Tag>) {
+  public async updateTag(tagId: string, updates: Partial<Tag>, onError?: (err: Error) => void) {
     const uid = contextApi.getUserId();
     if (!uid) return;
 
     const tagRef = doc(db, 'users', uid, 'tags', tagId);
-    await updateDoc(tagRef, updates);
+    updateDoc(tagRef, updates).catch(err => {
+      console.error("Failed to update tag:", err);
+      onError?.(err);
+    });
   }
 
   /**

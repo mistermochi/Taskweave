@@ -40,6 +40,7 @@ jest.mock('firebase/auth', () => ({
 jest.mock('firebase/firestore', () => ({
   getFirestore: jest.fn(),
   enableIndexedDbPersistence: jest.fn(() => Promise.resolve()),
+  enableMultiTabIndexedDbPersistence: jest.fn(() => Promise.resolve()),
   doc: jest.fn((db, path, ...pathSegments) => ({ path: [path, ...pathSegments].join('/') })),
   setDoc: jest.fn(),
   updateDoc: jest.fn(),

@@ -118,6 +118,7 @@ export const DashboardView: React.FC = () => {
                     <input
                         className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
                         placeholder="What is your main focus?"
+                        aria-label="Main focus"
                         value={intention}
                         onChange={(e) => setIntention(e.target.value)}
                         onBlur={handleIntentionBlur}

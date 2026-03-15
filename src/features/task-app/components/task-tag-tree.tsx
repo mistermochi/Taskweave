@@ -85,9 +85,9 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
       map.get(pid)!.push(tag);
     });
 
-    for (const children of map.values()) {
+    map.forEach((children) => {
       children.sort((a, b) => (a.order || 0) - (b.order || 0));
-    }
+    });
     return map;
   }, [tags]);
 

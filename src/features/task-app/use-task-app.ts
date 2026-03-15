@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { Task } from "@/entities/task";
+import { Tag } from "@/entities/tag";
 import { toast } from "sonner";
 
 export type TaskView = 'dashboard' | 'tasks' | 'insights' | 'settings';
@@ -23,8 +24,8 @@ type TaskAppStore = {
   optimisticTasks: Record<string, Partial<Task> | null>;
   setOptimisticTask: (id: string, task: Partial<Task> | null) => void;
   clearOptimisticTask: (id: string) => void;
-  optimisticTags: Record<string, any | null>;
-  setOptimisticTag: (id: string, tag: any | null) => void;
+  optimisticTags: Record<string, Partial<Tag> | null>;
+  setOptimisticTag: (id: string, tag: Partial<Tag> | null) => void;
   clearOptimisticTag: (id: string) => void;
 };
 

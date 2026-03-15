@@ -21,7 +21,7 @@ import { DashboardView } from "@/features/dashboard/components/dashboard-view";
 import { InsightsView } from "@/features/insights";
 import { Task } from "@/entities/task";
 import { Tag } from "@/entities/tag";
-import { useTaskAppStore } from "../use-task-app";
+import { useTaskAppStore, TaskTab } from "../use-task-app";
 import { TaskNavigation } from "./task-navigation";
 import { TaskDetail } from "./task-detail";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
@@ -207,7 +207,7 @@ export function TaskApp({
       <Tabs
         value={taskTab}
         className="flex h-full flex-col gap-0"
-        onValueChange={(value) => setTaskTab(value as any)}
+        onValueChange={(value) => setTaskTab(value as TaskTab)}
       >
         <AppHeader
           title="Inbox"

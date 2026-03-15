@@ -75,7 +75,7 @@ export function useHashRouter(tasks: Task[]) {
     handleHashChange();
 
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [tasks, setActiveView, setSelectedTask, setSelectedTagId, setSearchQuery]);
+  }, [tasks, setActiveView, setTaskTab, setSelectedTask, setSelectedTagId, setSearchQuery]);
 
   // Sync from Store to Hash
   useEffect(() => {
@@ -95,5 +95,5 @@ export function useHashRouter(tasks: Task[]) {
       isInternalUpdate.current = true;
       window.location.hash = newHash;
     }
-  }, [isReady, activeView, selectedTask, selectedTagId, searchQuery]);
+  }, [isReady, activeView, taskTab, selectedTask, selectedTagId, searchQuery]);
 }

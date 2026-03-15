@@ -65,6 +65,32 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
     return counts;
   }, [tasks]);
 
+  /**
+   * Performance Optimization (Bolt ⚡):
+   * 1. Hoists search parsing to O(1) per render instead of O(T) inside buildTree.
+   * 2. Pre-groups tags by parent to reduce buildTree complexity from O(T^2) to O(T).
+   *
+   * Impact: For a user with 50 tags, this reduces redundant parser calls by 98%
+   * and eliminates ~2500 array filter/sort operations per render.
+   */
+  const searchTagKeyword = React.useMemo(() => {
+    return parseTaskInput(searchQuery).attributes.tagKeyword;
+  }, [searchQuery]);
+
+  const tagsByParent = React.useMemo(() => {
+    const map = new Map<string | null, Tag[]>();
+    tags.forEach(tag => {
+      const pid = tag.parentId || null;
+      if (!map.has(pid)) map.set(pid, []);
+      map.get(pid)!.push(tag);
+    });
+
+    for (const children of map.values()) {
+      children.sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+    return map;
+  }, [tags]);
+
   const toggleExpand = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const newSet = new Set(expanded);
@@ -109,16 +135,13 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
   };
 
   const buildTree = (parentId: string | null) => {
-    return tags
-      .filter((t) => t.parentId === parentId)
-      .sort((a, b) => (a.order || 0) - (b.order || 0))
-      .map((tag) => {
-        const children = tags.filter((t) => t.parentId === tag.id);
-        const hasChildren = children.length > 0;
+    const childrenTags = tagsByParent.get(parentId) || [];
+
+    return childrenTags.map((tag) => {
+        const subChildren = tagsByParent.get(tag.id) || [];
+        const hasChildren = subChildren.length > 0;
         const isExpanded = expanded.has(tag.id);
-        const parsedSearch = parseTaskInput(searchQuery);
-        const tagKeyword = parsedSearch.attributes.tagKeyword;
-        const isActive = tagKeyword?.toLowerCase() === tag.name.toLowerCase();
+        const isActive = searchTagKeyword?.toLowerCase() === tag.name.toLowerCase();
         const count = tagCounts[tag.id] || tagCounts[tag.name] || 0;
 
         const node = (

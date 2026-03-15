@@ -137,9 +137,8 @@ describe('useFocusSessionController', () => {
 
     const { result } = renderHook(() => useFocusSessionController('task-1'));
 
-    // The useEffect will call startSession on initial render for a paused task
-    expect(mockTaskApiInstance.startSession).toHaveBeenCalledTimes(1);
-    (mockTaskApiInstance.startSession as jest.Mock).mockClear(); // Clear for the next check
+    // The useEffect should NOT call startSession on initial render for a paused task (per new requirement)
+    expect(mockTaskApiInstance.startSession).not.toHaveBeenCalled();
 
     // Since our mock task still has lastStartedAt: null, isActive is false
     act(() => {

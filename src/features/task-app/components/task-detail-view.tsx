@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { addDays, addHours, format, nextSaturday } from "date-fns";
+import { cn } from "@/shared/lib/utils";
 import {
   Archive,
   ArchiveX,
@@ -374,14 +375,16 @@ export function TaskDetailView({
               <Button
                 variant="ghost"
                 size="icon"
-                disabled={!task || task.id === "new"}
+                disabled={!task || task.id === "new" || (!!navigation.activeTaskId && navigation.activeTaskId !== task.id)}
                 onClick={handleStartFocus}
               >
-                <Zap className="h-4 w-4" />
+                <Zap className={cn("h-4 w-4", !!navigation.activeTaskId && navigation.activeTaskId !== task.id && "text-muted-foreground/50")} />
                 <span className="sr-only">Focus</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Focus</TooltipContent>
+            <TooltipContent>
+              {navigation.activeTaskId && navigation.activeTaskId !== task?.id ? "Another task is in focus" : "Focus"}
+            </TooltipContent>
           </Tooltip>
 
           <Tooltip>

@@ -65,8 +65,80 @@ export function TaskApp({
   const setSearchQuery = useTaskAppStore((state) => state.setSearchQuery);
   const isCollapsed = useTaskAppStore((state) => state.isCollapsed);
   const setIsCollapsed = useTaskAppStore((state) => state.setIsCollapsed);
+  const optimisticTasks = useTaskAppStore((state) => state.optimisticTasks);
+  const clearOptimisticTask = useTaskAppStore((state) => state.clearOptimisticTask);
+  const optimisticTags = useTaskAppStore((state) => state.optimisticTags);
+  const clearOptimisticTag = useTaskAppStore((state) => state.clearOptimisticTag);
 
-  useHashRouter(tasks);
+  // Reconciliation: Clear optimistic state when Firestore data catches up
+  React.useEffect(() => {
+    Object.entries(optimisticTasks).forEach(([id, optimistic]) => {
+      const actual = tasks.find(t => t.id === id);
+      if (optimistic === null) {
+        // Optimistic delete: clear if gone from Firestore
+        if (!actual) clearOptimisticTask(id);
+      } else if (actual) {
+        // Optimistic update or add: clear if actual exists and is at least as new
+        // We use updatedAt as a heuristic
+        if (actual.updatedAt >= (optimistic.updatedAt || 0)) {
+           clearOptimisticTask(id);
+        }
+      }
+    });
+  }, [tasks, optimisticTasks, clearOptimisticTask]);
+
+  React.useEffect(() => {
+    Object.entries(optimisticTags).forEach(([id, optimistic]) => {
+      const actual = tags.find(t => t.id === id);
+      if (optimistic === null) {
+        if (!actual) clearOptimisticTag(id);
+      } else if (actual) {
+        // Tags don't have updatedAt yet in model, so we just check existence for new ones
+        // For updates, we'd need more metadata. For now, matching name is a good proxy.
+        if (actual.name === optimistic.name) {
+           clearOptimisticTag(id);
+        }
+      }
+    });
+  }, [tags, optimisticTags, clearOptimisticTag]);
+
+  const mergedTasks = React.useMemo(() => {
+    const merged = [...tasks];
+
+    // Apply optimistic updates and additions
+    Object.entries(optimisticTasks).forEach(([id, update]) => {
+      const existingIdx = merged.findIndex(t => t.id === id);
+      if (update === null) {
+        // Optimistic delete
+        if (existingIdx !== -1) merged.splice(existingIdx, 1);
+      } else if (existingIdx !== -1) {
+        // Optimistic update
+        merged[existingIdx] = { ...merged[existingIdx], ...update };
+      } else {
+        // Optimistic addition
+        merged.push(update as Task);
+      }
+    });
+
+    return merged;
+  }, [tasks, optimisticTasks]);
+
+  const mergedTags = React.useMemo(() => {
+    const merged = [...tags];
+    Object.entries(optimisticTags).forEach(([id, update]) => {
+      const existingIdx = merged.findIndex(t => t.id === id);
+      if (update === null) {
+        if (existingIdx !== -1) merged.splice(existingIdx, 1);
+      } else if (existingIdx !== -1) {
+        merged[existingIdx] = { ...merged[existingIdx], ...update };
+      } else {
+        merged.push(update as Tag);
+      }
+    });
+    return merged;
+  }, [tags, optimisticTags]);
+
+  useHashRouter(mergedTasks);
 
   React.useEffect(() => {
     if (
@@ -109,22 +181,22 @@ export function TaskApp({
   }, []);
 
   React.useEffect(() => {
-    if (!activeTaskId && tasks.length > 0) {
-      const focusedTask = tasks.find(t => t.isFocused && t.status === 'active');
+    if (!activeTaskId && mergedTasks.length > 0) {
+      const focusedTask = mergedTasks.find(t => t.isFocused && t.status === 'active');
       if (focusedTask) {
         focusOnTask(focusedTask.id);
       }
     }
-  }, [tasks, activeTaskId, focusOnTask]);
+  }, [mergedTasks, activeTaskId, focusOnTask]);
 
   React.useEffect(() => {
-    if (activeTaskId && tasks.length > 0) {
-      const task = tasks.find(t => t.id === activeTaskId);
+    if (activeTaskId && mergedTasks.length > 0) {
+      const task = mergedTasks.find(t => t.id === activeTaskId);
       if (!task || task.status !== 'active') {
         clearFocusSession();
       }
     }
-  }, [activeTaskId, tasks, clearFocusSession]);
+  }, [activeTaskId, mergedTasks, clearFocusSession]);
 
   React.useEffect(() => {
     if (defaultCollapsed !== undefined) {
@@ -188,15 +260,15 @@ export function TaskApp({
     const searchTitle = parsedSearch.cleanTitle.toLowerCase();
 
     const selectedTag = selectedTagId
-      ? tags.find((t) => t.id === selectedTagId)
+      ? mergedTags.find((t) => t.id === selectedTagId)
       : null;
 
     const lowerTagKeyword = tagKeyword?.toLowerCase();
     const matchedTag = lowerTagKeyword
-      ? tags.find(t => t.name.toLowerCase() === lowerTagKeyword)
+      ? mergedTags.find(t => t.name.toLowerCase() === lowerTagKeyword)
       : null;
 
-    return tasks.filter((task) => {
+    return mergedTasks.filter((task) => {
       // Search filter
       if (searchQuery) {
           // If there's a tag keyword, task must match it
@@ -238,12 +310,12 @@ export function TaskApp({
       task={
         selectedTask?.id === "new"
           ? selectedTask
-          : tasks.find((item) => item.id === selectedTask?.id) || null
+          : mergedTasks.find((item) => item.id === selectedTask?.id) || null
       }
-      tags={tags}
-      allTasks={tasks}
+      tags={mergedTags}
+      allTasks={mergedTasks}
     />
-  ), [selectedTask, tasks, tags]);
+  ), [selectedTask, mergedTasks, mergedTags]);
 
   const mainContent = (
     <div className="relative h-full flex flex-col w-full">
@@ -254,7 +326,7 @@ export function TaskApp({
       >
         <AppHeader
           title="Inbox"
-          nav={<TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />}
+          nav={<TaskNavigation tags={mergedTags} tasks={mergedTasks} isCollapsed={false} />}
           actions={
             <TabsList className="ml-auto">
               <TabsTrigger
@@ -314,7 +386,7 @@ export function TaskApp({
         </div>
         <div className="min-h-0 flex-1">
           {filteredTasks.length > 0 ? (
-            <TaskList items={filteredTasks} tags={tags} />
+            <TaskList items={filteredTasks} tags={mergedTags} />
           ) : (
             <EmptyState
               icon={Search}
@@ -349,7 +421,7 @@ export function TaskApp({
     </div>
   );
 
-  const isFocusActive = !!activeTaskId && tasks.some(t => t.id === activeTaskId && t.status === 'active');
+  const isFocusActive = !!activeTaskId && mergedTasks.some(t => t.id === activeTaskId && t.status === 'active');
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -371,8 +443,8 @@ export function TaskApp({
           >
             <TaskNavigation
               isCollapsed={isCollapsed}
-              tags={tags}
-              tasks={tasks}
+              tags={mergedTags}
+              tasks={mergedTasks}
               onToggleCollapsed={toggleCollapsed}
               hasPendingWrites={hasPendingWrites}
             />
@@ -411,8 +483,8 @@ export function TaskApp({
           <div className="md:hidden">
             <TaskNavigation
               isCollapsed={false}
-              tags={tags}
-              tasks={tasks}
+              tags={mergedTags}
+              tasks={mergedTasks}
               hasPendingWrites={hasPendingWrites}
             />
           </div>

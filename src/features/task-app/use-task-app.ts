@@ -19,6 +19,13 @@ type TaskAppStore = {
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
   showToast: (message: string, onUndo?: () => void) => void;
+  // Optimistic State
+  optimisticTasks: Record<string, Partial<Task> | null>;
+  setOptimisticTask: (id: string, task: Partial<Task> | null) => void;
+  clearOptimisticTask: (id: string) => void;
+  optimisticTags: Record<string, any | null>;
+  setOptimisticTag: (id: string, tag: any | null) => void;
+  clearOptimisticTag: (id: string) => void;
 };
 
 export const useTaskAppStore = create<TaskAppStore>((set) => ({
@@ -34,6 +41,22 @@ export const useTaskAppStore = create<TaskAppStore>((set) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   isCollapsed: false,
   setIsCollapsed: (collapsed) => set({ isCollapsed: collapsed }),
+  optimisticTasks: {},
+  setOptimisticTask: (id, task) => set((state) => ({
+    optimisticTasks: { ...state.optimisticTasks, [id]: task }
+  })),
+  clearOptimisticTask: (id) => set((state) => {
+    const { [id]: _, ...rest } = state.optimisticTasks;
+    return { optimisticTasks: rest };
+  }),
+  optimisticTags: {},
+  setOptimisticTag: (id, tag) => set((state) => ({
+    optimisticTags: { ...state.optimisticTags, [id]: tag }
+  })),
+  clearOptimisticTag: (id) => set((state) => {
+    const { [id]: _, ...rest } = state.optimisticTags;
+    return { optimisticTags: rest };
+  }),
   showToast: (message, onUndo) => {
     if (onUndo) {
       toast(message, {

@@ -170,25 +170,39 @@ export function TaskDetailView({
 
   const handleToggleComplete = async () => {
     if (!task || task.id === "new") return;
+    const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+    const onError = () => {
+      useTaskAppStore.getState().showToast("Sync failed. Action reverted.");
+      useTaskAppStore.getState().clearOptimisticTask(task.id);
+    };
+
     try {
       if (task.status === "completed") {
-        await taskApi.uncompleteTask(task.id);
-        useTaskAppStore.getState().showToast("Task reactivated");
+        useTaskAppStore.getState().setOptimisticTask(task.id, { status: "active", completedAt: null, updatedAt: Date.now() });
+        taskApi.uncompleteTask(task.id, onError);
+        useTaskAppStore.getState().showToast(isOffline ? "Task reactivated locally" : "Task reactivated");
       } else {
+        // Optimistically update status and navigate
+        const completedAt = Date.now();
+        useTaskAppStore.getState().setOptimisticTask(task.id, { status: "completed", completedAt, updatedAt: completedAt });
+
         // Use 0 as default actual duration if not specified
-        await taskApi.completeTask(task, 0, allTasks);
+        taskApi.completeTask(task, 0, allTasks); // Note: completeTask eventually calls completeTaskAndRespawn which doesn't take onError yet in my current taskApi but it should
 
         // Navigate away from the task and go to Done tab
         useTaskAppStore.getState().setSelectedTask(null);
         setTaskTab('done');
 
         onClose?.();
-        useTaskAppStore.getState().showToast("Task completed", () => {
-          taskApi.uncompleteTask(task.id);
+        useTaskAppStore.getState().showToast(isOffline ? "Task completed locally" : "Task completed", () => {
+          useTaskAppStore.getState().setOptimisticTask(task.id, { status: "active", completedAt: null, updatedAt: Date.now() });
+          taskApi.uncompleteTask(task.id, onError);
         });
       }
     } catch (e) {
       console.error("Failed to toggle task completion", e);
+      useTaskAppStore.getState().showToast("Action failed");
     }
   };
 
@@ -212,24 +226,36 @@ export function TaskDetailView({
 
   const handleToggleArchive = async () => {
     if (!task || task.id === "new") return;
+    const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+    const onError = () => {
+      useTaskAppStore.getState().showToast("Sync failed. Action reverted.");
+      useTaskAppStore.getState().clearOptimisticTask(task.id);
+    };
+
     try {
       if (task.status === "archived") {
-        await taskApi.unarchiveTask(task.id);
-        useTaskAppStore.getState().showToast("Task restored");
+        useTaskAppStore.getState().setOptimisticTask(task.id, { status: "active", archivedAt: null, updatedAt: Date.now() });
+        taskApi.unarchiveTask(task.id);
+        useTaskAppStore.getState().showToast(isOffline ? "Task restored locally" : "Task restored");
       } else {
-        await taskApi.archiveTask(task.id);
+        const archivedAt = Date.now();
+        useTaskAppStore.getState().setOptimisticTask(task.id, { status: "archived", archivedAt, updatedAt: archivedAt });
+        taskApi.archiveTask(task.id);
 
         // Navigate away from the task and go to Archived tab
         useTaskAppStore.getState().setSelectedTask(null);
         setTaskTab('archived');
 
         onClose?.();
-        useTaskAppStore.getState().showToast("Task archived", () => {
+        useTaskAppStore.getState().showToast(isOffline ? "Task archived locally" : "Task archived", () => {
+          useTaskAppStore.getState().setOptimisticTask(task.id, { status: "active", archivedAt: null, updatedAt: Date.now() });
           taskApi.unarchiveTask(task.id);
         });
       }
     } catch (e) {
       console.error("Failed to toggle archive", e);
+      useTaskAppStore.getState().showToast("Action failed");
     }
   };
 
@@ -242,13 +268,20 @@ export function TaskDetailView({
       return;
     }
 
+    const onError = () => {
+      useTaskAppStore.getState().showToast("Delete failed. Task restored.");
+      useTaskAppStore.getState().clearOptimisticTask(task.id);
+    };
+
     try {
-      await taskApi.deleteTask(task.id);
+      useTaskAppStore.getState().setOptimisticTask(task.id, null);
+      taskApi.deleteTask(task.id, onError);
       useTaskAppStore.getState().setSelectedTask(null);
       onClose?.();
-      useTaskAppStore.getState().showToast("Task permanently deleted");
+      useTaskAppStore.getState().showToast("Task deleted");
     } catch (e) {
       console.error("Failed to delete task", e);
+      useTaskAppStore.getState().showToast("Action failed");
     }
   };
 
@@ -282,33 +315,61 @@ export function TaskDetailView({
   const handleSave = async () => {
     if (!task) return;
     setIsSaving(true);
+    const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+    const onError = (err: Error) => {
+      useTaskAppStore.getState().showToast("Failed to sync changes. Please check your connection.");
+      console.error("Optimistic write failed:", err);
+    };
+
     try {
       let finalCategoryId = localCategory;
-
-      // Handle new tag creation if localCategory is a name and not an existing tag ID
-      if (localCategory && !tags.some((t) => t.id === localCategory)) {
-        // Capitalize tag name
-        const capitalizedName =
-          localCategory.charAt(0).toUpperCase() + localCategory.slice(1);
-        finalCategoryId = await tagApi.createTag(capitalizedName);
-      }
+      const isNewTag = localCategory && !tags.some((t) => t.id === localCategory);
+      const now = Date.now();
 
       if (task.id === "new") {
         const energyValue =
           localEnergy === "High" ? 80 : localEnergy === "Low" ? 30 : 50;
-        const newTaskId = await taskApi.addTask(
-          parsed.cleanTitle,
-          finalCategoryId || "",
-          localDuration ?? 0,
-          energyValue,
-          notes,
-          localDueDate ?? null,
-          localAssignedDate ?? null,
-          localRecurrence ?? null,
-        );
 
-        // Navigate to the new task (it will keep the search query because we're just updating the selectedTask in the store)
-        // Actually, we need the new task object to select it.
+        let newTaskId: string;
+
+        if (isNewTag && localCategory) {
+          const capitalizedName = localCategory.charAt(0).toUpperCase() + localCategory.slice(1);
+          const result = await taskApi.addTaskWithNewTag(
+            parsed.cleanTitle,
+            capitalizedName,
+            localDuration ?? 0,
+            energyValue,
+            notes,
+            localDueDate ?? null,
+            localAssignedDate ?? null,
+            localRecurrence ?? null,
+            onError
+          );
+          newTaskId = result.taskId;
+          finalCategoryId = result.tagId;
+
+          useTaskAppStore.getState().setOptimisticTag(finalCategoryId, {
+            id: finalCategoryId,
+            name: capitalizedName,
+            parentId: null,
+            color: '#64748b',
+            order: now
+          });
+        } else {
+          newTaskId = await taskApi.addTask(
+            parsed.cleanTitle,
+            finalCategoryId || "",
+            localDuration ?? 0,
+            energyValue,
+            notes,
+            localDueDate ?? null,
+            localAssignedDate ?? null,
+            localRecurrence ?? null,
+            onError
+          );
+        }
+
         const newTask = {
             id: newTaskId,
             title: parsed.cleanTitle,
@@ -320,15 +381,32 @@ export function TaskDetailView({
             assignedDate: localAssignedDate ?? null,
             recurrence: localRecurrence ?? null,
             status: 'active',
-            createdAt: Date.now(),
+            createdAt: now,
+            updatedAt: now,
             blockedBy: [],
         } as Task;
-        useTaskAppStore.getState().setSelectedTask(newTask);
 
+        // Optimistic UI update in store
+        useTaskAppStore.getState().setOptimisticTask(newTaskId, newTask);
+        useTaskAppStore.getState().setSelectedTask(newTask);
         onClose?.();
-        useTaskAppStore.getState().showToast("Task created");
+        useTaskAppStore.getState().showToast(isOffline ? "Task saved locally" : "Task created");
       } else {
-        await taskApi.updateTask(task.id, {
+        // Handle tag creation for existing task updates
+        if (isNewTag && localCategory) {
+          const capitalizedName = localCategory.charAt(0).toUpperCase() + localCategory.slice(1);
+          finalCategoryId = await tagApi.createTag(capitalizedName, null, onError);
+
+          useTaskAppStore.getState().setOptimisticTag(finalCategoryId, {
+            id: finalCategoryId,
+            name: capitalizedName,
+            parentId: null,
+            color: '#64748b',
+            order: now
+          });
+        }
+
+        const updates = {
           title: parsed.cleanTitle,
           notes: notes,
           energy: localEnergy,
@@ -337,11 +415,17 @@ export function TaskDetailView({
           assignedDate: localAssignedDate ?? null,
           recurrence: (localDueDate ? localRecurrence : undefined) ?? null,
           category: finalCategoryId,
-        });
-        useTaskAppStore.getState().showToast("Changes saved");
+          updatedAt: now
+        };
+
+        useTaskAppStore.getState().setOptimisticTask(task.id, updates);
+        taskApi.updateTask(task.id, updates, onError);
+
+        useTaskAppStore.getState().showToast(isOffline ? "Changes saved locally" : "Changes saved");
       }
     } catch (e) {
       console.error("Failed to save task", e);
+      useTaskAppStore.getState().showToast("Failed to save. Check connection.");
     } finally {
       setIsSaving(false);
     }
@@ -759,7 +843,9 @@ export function TaskDetailView({
                         {isSaving ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {task.id === "new" ? "Creating..." : "Saving..."}
+                            {typeof navigator !== 'undefined' && !navigator.onLine
+                              ? "Saving locally..."
+                              : (task.id === "new" ? "Creating..." : "Saving...")}
                           </>
                         ) : task.id === "new" ? (
                           "Create Task"

@@ -7,6 +7,7 @@ import { DialogHeader, DialogTitle } from "@/shared/ui/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { TaskDetailView } from "./task-detail-view";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
+import { useNavigation } from "@/context/NavigationContext";
 
 interface TaskDetailProps {
   task: Task | null;
@@ -18,6 +19,7 @@ export function TaskDetail({ task, tags, allTasks }: TaskDetailProps) {
   const [open, setOpen] = React.useState(false);
   const { selectedTask, setSelectedTask } = useTaskAppStore();
   const isMobile = useIsMobile();
+  const { activeTaskId } = useNavigation();
 
   useEffect(() => {
     if (selectedTask && isMobile) {
@@ -39,7 +41,7 @@ export function TaskDetail({ task, tags, allTasks }: TaskDetailProps) {
   if (isMobile) {
     return (
         <Drawer open={open} onOpenChange={handleOpenChange}>
-          <DrawerContent>
+          <DrawerContent className={activeTaskId ? "bottom-20" : "bottom-0"}>
             <VisuallyHidden>
               <DialogHeader>
                 <DialogTitle>Task Display</DialogTitle>

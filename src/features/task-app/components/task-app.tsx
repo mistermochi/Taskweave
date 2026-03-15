@@ -50,15 +50,13 @@ export function TaskApp({
     hideSummary,
   } = useNavigation();
 
-  const {
-    selectedTask,
-    selectedTagId,
-    activeView,
-    searchQuery,
-    setSearchQuery,
-    isCollapsed,
-    setIsCollapsed,
-  } = useTaskAppStore();
+  const selectedTask = useTaskAppStore((state) => state.selectedTask);
+  const selectedTagId = useTaskAppStore((state) => state.selectedTagId);
+  const activeView = useTaskAppStore((state) => state.activeView);
+  const searchQuery = useTaskAppStore((state) => state.searchQuery);
+  const setSearchQuery = useTaskAppStore((state) => state.setSearchQuery);
+  const isCollapsed = useTaskAppStore((state) => state.isCollapsed);
+  const setIsCollapsed = useTaskAppStore((state) => state.setIsCollapsed);
 
   useHashRouter(tasks);
 
@@ -128,14 +126,18 @@ export function TaskApp({
       ? tags.find((t) => t.id === selectedTagId)
       : null;
 
+    const lowerTagKeyword = tagKeyword?.toLowerCase();
+    const matchedTag = lowerTagKeyword
+      ? tags.find(t => t.name.toLowerCase() === lowerTagKeyword)
+      : null;
+
     return tasks.filter((task) => {
       // Search filter
       if (searchQuery) {
           // If there's a tag keyword, task must match it
           if (tagKeyword) {
-              const matchedTag = tags.find(t => t.name.toLowerCase() === tagKeyword.toLowerCase());
               const tagIdMatch = matchedTag ? task.category === matchedTag.id : false;
-              const tagNameMatch = task.category.toLowerCase() === tagKeyword.toLowerCase();
+              const tagNameMatch = task.category.toLowerCase() === lowerTagKeyword;
               if (!tagIdMatch && !tagNameMatch) return false;
           }
 
@@ -166,7 +168,7 @@ export function TaskApp({
     });
   }, [tasks, tab, selectedTagId, tags, searchQuery]);
 
-  const taskDetail = (
+  const taskDetail = React.useMemo(() => (
     <TaskDetail
       task={
         selectedTask?.id === "new"
@@ -176,7 +178,7 @@ export function TaskApp({
       tags={tags}
       allTasks={tasks}
     />
-  );
+  ), [selectedTask, tasks, tags]);
 
   const mainContent = (
     <div className="relative h-full flex flex-col w-full">

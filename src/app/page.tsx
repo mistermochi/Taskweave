@@ -19,8 +19,8 @@ import { Tag } from "@/entities/tag";
 function MainContent() {
   const defaultLayout = [20, 32, 48];
   const defaultCollapsed = false;
-  const { data: tasks, loading: tasksLoading } = useFirestoreCollection<TaskEntity>("tasks");
-  const { data: tags, loading: tagsLoading } = useFirestoreCollection<Tag>("tags");
+  const { data: tasks, loading: tasksLoading, hasPendingWrites: tasksPending } = useFirestoreCollection<TaskEntity>("tasks");
+  const { data: tags, loading: tagsLoading, hasPendingWrites: tagsPending } = useFirestoreCollection<Tag>("tags");
 
   if (tasksLoading || tagsLoading) {
       return <LoadingScreen text="Loading your workspace..." />;
@@ -34,6 +34,7 @@ function MainContent() {
         defaultLayout={defaultLayout}
         defaultCollapsed={defaultCollapsed}
         navCollapsedSize={4}
+        hasPendingWrites={tasksPending || tagsPending}
       />
     </div>
   );

@@ -7,7 +7,10 @@ import {
   BarChart3,
   Settings,
   PanelLeft,
-  Inbox
+  Inbox,
+  Wifi,
+  WifiOff,
+  CloudUpload
 } from "lucide-react";
 
 import { Nav } from "./nav";
@@ -35,6 +38,7 @@ interface TaskNavigationContentProps {
   tags: Tag[];
   tasks: Task[];
   onToggleCollapsed?: (collapsed: boolean) => void;
+  hasPendingWrites?: boolean;
 }
 
 export function TaskNavigationContent({
@@ -42,8 +46,25 @@ export function TaskNavigationContent({
   tags,
   tasks,
   onToggleCollapsed,
+  hasPendingWrites = false,
 }: TaskNavigationContentProps) {
   const { setIsCollapsed } = useTaskAppStore();
+  const [isOnline, setIsOnline] = React.useState(
+    typeof navigator !== "undefined" ? navigator.onLine : true
+  );
+
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   const handleToggle = (collapsed: boolean) => {
     if (onToggleCollapsed) {
@@ -132,6 +153,60 @@ export function TaskNavigationContent({
 
         <TaskTagTree isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
       </ScrollArea>
+
+      <div className={cn(
+        "mt-auto border-t p-2 flex flex-col gap-1",
+        isCollapsed ? "items-center" : "items-stretch"
+      )}>
+        {hasPendingWrites && !isCollapsed && (
+          <div className="flex items-center gap-2 px-2 py-1 text-xs text-orange-500 font-medium bg-orange-500/10 rounded-md mb-1 animate-pulse">
+            <CloudUpload className="h-3 w-3" />
+            <span>Changes pending</span>
+          </div>
+        )}
+
+        {hasPendingWrites && isCollapsed && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-center h-8 w-8 text-orange-500 bg-orange-500/10 rounded-md mb-1 animate-pulse">
+                <CloudUpload className="h-4 w-4" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right">Changes pending</TooltipContent>
+          </Tooltip>
+        )}
+
+        <div className={cn(
+          "flex items-center text-[10px] text-muted-foreground",
+          isCollapsed ? "justify-center" : "justify-between px-2"
+        )}>
+          {!isCollapsed && (
+            <div className="flex items-center gap-1.5">
+              {isOnline ? (
+                <Wifi className="h-3 w-3 text-emerald-500" />
+              ) : (
+                <WifiOff className="h-3 w-3 text-rose-500" />
+              )}
+              <span className={cn(isOnline ? "text-emerald-500/80" : "text-rose-500/80")}>
+                {isOnline ? "Online" : "Offline"}
+              </span>
+            </div>
+          )}
+
+          {isCollapsed && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: isOnline ? '#10b981' : '#f43f5e' }} />
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {isOnline ? "Online" : "Offline"}
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {!isCollapsed && <span>v0.1.0</span>}
+        </div>
+      </div>
     </div>
   );
 }

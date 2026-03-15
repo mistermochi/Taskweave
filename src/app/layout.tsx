@@ -18,6 +18,17 @@ export const metadata: Metadata = {
   title: "Focus Flow",
   description: "Biometric-aware productivity system",
   manifest: `${basePath}/manifest.json`,
+  other: {
+    "content-security-policy":
+      "default-src 'self'; " +
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.firebaseio.com https://apis.google.com https://www.gstatic.com; " +
+      "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; " +
+      "img-src 'self' data: https://*.googleusercontent.com https://upload.wikimedia.org https://www.gstatic.com; " +
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+      "font-src 'self' https://fonts.gstatic.com; " +
+      "frame-src 'self' https://*.firebaseapp.com https://*.google.com; " +
+      "object-src 'none';"
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

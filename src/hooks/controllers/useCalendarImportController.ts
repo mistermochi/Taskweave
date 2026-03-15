@@ -123,71 +123,81 @@ export const useCalendarImportController = (settings: Partial<UserSettings>, all
      *
      * @param onSuccess - Callback containing the count of imported tasks.
      */
-    const confirmImport = async (onSuccess: (count: number) => void) => {
+    const confirmImport = async (onSuccess: (count: number, failedTitles?: string[]) => void) => {
         const taskService = taskApi;
         const eventsToImport = events.filter(e => selectedIds.has(e.id));
+        const failedTitles: string[] = [];
+        let successCount = 0;
         
         for (const event of eventsToImport) {
-            let duration = 30;
-            let dueDate: number | undefined = undefined;
-            const timeZone = event.start.timeZone;
+            try {
+                let duration = 30;
+                let dueDate: number | undefined = undefined;
+                const timeZone = event.start.timeZone;
 
-            if (event.start.dateTime && event.end.dateTime) {
-                const start = new Date(event.start.dateTime).getTime();
-                const end = new Date(event.end.dateTime).getTime();
-                duration = Math.max(15, Math.round((end - start) / 60000));
-                dueDate = start;
-            } else if (event.start.date) {
-                const d = new Date(event.start.date);
-                dueDate = d.getTime();
-                duration = 30;
-            }
-
-            const lowerSummary = event.summary.toLowerCase();
-            let energy = 50;
-            if (lowerSummary.includes('meeting') || lowerSummary.includes('sync')) energy = 60;
-            if (lowerSummary.includes('focus') || lowerSummary.includes('deep')) energy = 80;
-            if (lowerSummary.includes('lunch') || lowerSummary.includes('break')) energy = 20;
-
-            let notes = event.description || "";
-            if (event.location) {
-                notes += `\n\nLocation: ${event.location}`;
-            }
-            if (event.conferenceData?.entryPoints?.[0]?.uri) {
-                notes += `\n\nMeeting Link: ${event.conferenceData.entryPoints[0].uri}`;
-            }
-
-            let projectId = '';
-            const calendarId = event.calendarId;
-            if (settings.calendarProjectMapping && settings.calendarProjectMapping[calendarId]) {
-                projectId = settings.calendarProjectMapping[calendarId];
-            } else {
-                const matchingTags = tags.filter(tag => lowerSummary.includes(tag.name.toLowerCase()));
-                if (matchingTags.length === 1) {
-                    projectId = matchingTags[0].id;
+                if (event.start.dateTime && event.end.dateTime) {
+                    const start = new Date(event.start.dateTime).getTime();
+                    const end = new Date(event.end.dateTime).getTime();
+                    duration = Math.max(15, Math.round((end - start) / 60000));
+                    dueDate = start;
+                } else if (event.start.date) {
+                    const d = new Date(event.start.date);
+                    dueDate = d.getTime();
+                    duration = 30;
                 }
-            }
 
-            const newTaskId = await taskService.addTask(
-                event.summary,
-                projectId, 
-                duration,
-                energy,
-                notes.trim() || "Imported from Google Calendar",
-                dueDate,
-                undefined
-            );
+                const lowerSummary = (event.summary || "Untitled Event").toLowerCase();
+                let energy = 50;
+                if (lowerSummary.includes('meeting') || lowerSummary.includes('sync')) energy = 60;
+                if (lowerSummary.includes('focus') || lowerSummary.includes('deep')) energy = 80;
+                if (lowerSummary.includes('lunch') || lowerSummary.includes('break')) energy = 20;
 
-            if (newTaskId) {
-                await taskService.updateTask(newTaskId, {
-                    googleCalendarEventId: event.id,
-                    googleCalendarId: calendarId,
-                    timeZone: timeZone
-                });
+                let notes = event.description || "";
+                if (event.location) {
+                    notes += `\n\nLocation: ${event.location}`;
+                }
+                if (event.conferenceData?.entryPoints?.[0]?.uri) {
+                    notes += `\n\nMeeting Link: ${event.conferenceData.entryPoints[0].uri}`;
+                }
+
+                let projectId = '';
+                const calendarId = event.calendarId;
+                if (settings.calendarProjectMapping && settings.calendarProjectMapping[calendarId]) {
+                    projectId = settings.calendarProjectMapping[calendarId];
+                } else {
+                    const matchingTags = tags.filter(tag => lowerSummary.includes(tag.name.toLowerCase()));
+                    if (matchingTags.length === 1) {
+                        projectId = matchingTags[0].id;
+                    }
+                }
+
+                const newTaskId = await taskService.addTask(
+                    event.summary || "Untitled Event",
+                    projectId,
+                    duration,
+                    energy,
+                    notes.trim() || "Imported from Google Calendar",
+                    dueDate,
+                    undefined
+                );
+
+                if (newTaskId) {
+                    await taskService.updateTask(newTaskId, {
+                        googleCalendarEventId: event.id,
+                        googleCalendarId: calendarId,
+                        timeZone: timeZone
+                    });
+                    successCount++;
+                } else {
+                    failedTitles.push(event.summary || "Untitled Event");
+                }
+            } catch (err) {
+                console.error("Failed to import individual event:", event.id);
+                failedTitles.push(event.summary || "Untitled Event");
             }
         }
         
-        onSuccess(eventsToImport.length);
+        onSuccess(successCount, failedTitles);
         setIsOpen(false);
     };
 

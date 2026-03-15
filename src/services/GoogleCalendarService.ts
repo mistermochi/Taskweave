@@ -50,7 +50,8 @@ export class GoogleCalendarService {
     } catch (error) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const err = error as any;
-        console.error("Calendar Auth Error:", error);
+        // Security: Sanitize error logging to avoid leaking sensitive internal state
+        console.error("Calendar Auth Error:", err.code || "UNKNOWN_ERROR");
         
         if (err.code === 'auth/unauthorized-domain') {
             throw new Error("DOMAIN_NOT_AUTHORIZED");
@@ -88,7 +89,8 @@ export class GoogleCalendarService {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((item: any) => ({ id: item.id, summary: item.summary }));
     } catch (e) {
-        console.error("API Call Failed to list calendars", e);
+        // Security: Sanitize error logging
+        console.error("API Call Failed to list calendars");
         return [{ id: 'primary', summary: 'Primary Calendar' }];
     }
   }
@@ -146,8 +148,9 @@ export class GoogleCalendarService {
         return uniqueEvents;
 
      } catch (e) {
-         console.error("API Call Failed", e);
-         throw e;
+         // Security: Sanitize error logging
+         console.error("API Call Failed to fetch events");
+         throw new Error("CALENDAR_FETCH_FAILED");
      }
   }
 

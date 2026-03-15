@@ -36,9 +36,12 @@ export function IntegrationsForm() {
   };
 
   const handleConfirmImport = () => {
-    calendarActions.confirmImport((count) => {
+    calendarActions.confirmImport((count, failedTitles) => {
       if (count > 0) {
         toast.success(`Successfully imported ${count} task${count > 1 ? 's' : ''}.`);
+      }
+      if (failedTitles && failedTitles.length > 0) {
+        toast.error(`Failed to import ${failedTitles.length} events: ${failedTitles.join(', ')}`);
       }
     });
   };

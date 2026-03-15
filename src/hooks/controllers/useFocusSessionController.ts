@@ -5,6 +5,7 @@ import { taskApi } from '@/entities/task';
 import { calculateTaskTime, formatTimer } from '@/shared/lib/timeUtils';
 import { useNavigation } from '@/context/NavigationContext';
 import { TaskEntity } from '@/entities/task';
+import { useTaskAppStore } from '@/features/task-app/use-task-app';
 
 /**
  * View Controller for an active Focus Session.
@@ -107,6 +108,10 @@ export const useFocusSessionController = (taskId: string | undefined) => {
         const actualSeconds = totalSeconds - timeLeft;
         const activeTasks = tasks.filter(t => t.status === 'active');
         await taskService.completeTask(task, actualSeconds, activeTasks);
+
+        // Navigate away from the task and go to Done tab
+        useTaskAppStore.getState().setSelectedTask(null);
+        useTaskAppStore.getState().setTaskTab('done');
     }
     completeFocusSession(task?.id);
   };

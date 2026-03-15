@@ -1,7 +1,8 @@
-import { TaskView } from "../use-task-app";
+import { TaskView, TaskTab } from "../use-task-app";
 
 export interface AppState {
   activeView: TaskView;
+  taskTab: TaskTab;
   selectedTaskId: string | null;
   searchQuery: string;
 }
@@ -9,6 +10,7 @@ export interface AppState {
 export function parseHash(hash: string): AppState {
   const defaultState: AppState = {
     activeView: 'tasks',
+    taskTab: 'active',
     selectedTaskId: null,
     searchQuery: '',
   };
@@ -34,8 +36,21 @@ export function parseHash(hash: string): AppState {
     }
   } else if (segments[0] === 'tasks') {
     state.activeView = 'tasks';
-    if (segments[1]) {
-      state.selectedTaskId = segments[1];
+    if (segments[1] === 'done') {
+      state.taskTab = 'done';
+      if (segments[2]) {
+        state.selectedTaskId = segments[2];
+      }
+    } else if (segments[1] === 'archived') {
+      state.taskTab = 'archived';
+      if (segments[2]) {
+        state.selectedTaskId = segments[2];
+      }
+    } else {
+      state.taskTab = 'active';
+      if (segments[1]) {
+        state.selectedTaskId = segments[1];
+      }
     }
   } else if (segments[0] === 'insights') {
     state.activeView = 'insights';
@@ -56,6 +71,12 @@ export function stringifyAppState(state: AppState): string {
     }
   } else if (state.activeView === 'tasks') {
     path = '/tasks';
+    if (state.taskTab === 'done') {
+      path += '/done';
+    } else if (state.taskTab === 'archived') {
+      path += '/archived';
+    }
+
     if (state.selectedTaskId) {
       path += `/${state.selectedTaskId}`;
     }

@@ -93,6 +93,9 @@ export function TaskDetailView({
   >({});
 
   const navigation = useNavigation();
+  const setTaskTab = useTaskAppStore((state) => state.setTaskTab);
+
+  const isReadOnly = task?.status === "completed" || task?.status === "archived";
 
   const getTagInfo = (categoryId: string | undefined) => {
     if (!categoryId) return null;
@@ -175,8 +178,9 @@ export function TaskDetailView({
         // Use 0 as default actual duration if not specified
         await taskApi.completeTask(task, 0, allTasks);
 
-        // Navigate away from the task
+        // Navigate away from the task and go to Done tab
         useTaskAppStore.getState().setSelectedTask(null);
+        setTaskTab('done');
 
         onClose?.();
         useTaskAppStore.getState().showToast("Task completed", () => {
@@ -215,8 +219,9 @@ export function TaskDetailView({
       } else {
         await taskApi.archiveTask(task.id);
 
-        // Navigate away from the task
+        // Navigate away from the task and go to Archived tab
         useTaskAppStore.getState().setSelectedTask(null);
+        setTaskTab('archived');
 
         onClose?.();
         useTaskAppStore.getState().showToast("Task archived", () => {
@@ -375,7 +380,7 @@ export function TaskDetailView({
               <Button
                 variant="ghost"
                 size="icon"
-                disabled={!task || task.id === "new" || (!!navigation.activeTaskId && navigation.activeTaskId !== task.id)}
+                disabled={isReadOnly || !task || task.id === "new" || (!!navigation.activeTaskId && navigation.activeTaskId !== task.id)}
                 onClick={handleStartFocus}
               >
                 <Zap className={cn("h-4 w-4", !!navigation.activeTaskId && navigation.activeTaskId !== task.id && "text-muted-foreground/50")} />
@@ -392,7 +397,7 @@ export function TaskDetailView({
               <Button
                 variant="ghost"
                 size="icon"
-                disabled={!task || task.id === "new"}
+                disabled={isReadOnly || !task || task.id === "new"}
                 onClick={handlePlanToday}
               >
                 <CalendarIcon className="h-4 w-4" />
@@ -503,11 +508,12 @@ export function TaskDetailView({
               placeholder="Task Title..."
               minRows={1}
               maxRows={4}
+              readOnly={isReadOnly}
             />
 
             <div className="flex flex-wrap items-center gap-2">
               <Popover>
-                <PopoverTrigger asChild>
+                <PopoverTrigger asChild disabled={isReadOnly}>
                   {(() => {
                     const info = getTagInfo(localCategory);
                     return info ? (
@@ -550,7 +556,7 @@ export function TaskDetailView({
               </Popover>
 
               <Popover>
-                <PopoverTrigger asChild>
+                <PopoverTrigger asChild disabled={isReadOnly}>
                   {localEnergy ? (
                     <Badge
                       variant="outline"
@@ -580,7 +586,7 @@ export function TaskDetailView({
               </Popover>
 
               <Popover>
-                <PopoverTrigger asChild>
+                <PopoverTrigger asChild disabled={isReadOnly}>
                   {localDuration && localDuration > 0 ? (
                     <Badge
                       variant="outline"
@@ -610,7 +616,7 @@ export function TaskDetailView({
               </Popover>
 
               <Popover>
-                <PopoverTrigger asChild>
+                <PopoverTrigger asChild disabled={isReadOnly}>
                   {localAssignedDate ? (
                     <Badge
                       variant="outline"
@@ -644,7 +650,7 @@ export function TaskDetailView({
               </Popover>
 
               <Popover>
-                <PopoverTrigger asChild>
+                <PopoverTrigger asChild disabled={isReadOnly}>
                   {localDueDate ? (
                     <Badge
                       variant="outline"
@@ -679,7 +685,7 @@ export function TaskDetailView({
 
               {localDueDate && (
                 <Popover>
-                  <PopoverTrigger asChild>
+                  <PopoverTrigger asChild disabled={isReadOnly}>
                     {localRecurrence ? (
                       <Badge
                         variant="outline"
@@ -739,6 +745,7 @@ export function TaskDetailView({
                   onKeyDown={handleKeyDown}
                   minRows={3}
                   maxRows={8}
+                  readOnly={isReadOnly}
                 />
                 <div className="flex items-center">
                   <Tooltip>
@@ -747,7 +754,7 @@ export function TaskDetailView({
                         type="submit"
                         size="sm"
                         className="ml-auto"
-                        disabled={isSaving}
+                        disabled={isSaving || isReadOnly}
                       >
                         {isSaving ? (
                           <>

@@ -10,6 +10,8 @@ export function useHashRouter(tasks: Task[]) {
   const {
     activeView,
     setActiveView,
+    taskTab,
+    setTaskTab,
     selectedTask,
     setSelectedTask,
     selectedTagId,
@@ -34,6 +36,10 @@ export function useHashRouter(tasks: Task[]) {
       // Atomic updates if possible, but Zustand setters are already fine
       if (state.activeView !== useTaskAppStore.getState().activeView) {
         setActiveView(state.activeView);
+      }
+
+      if (state.taskTab !== useTaskAppStore.getState().taskTab) {
+        setTaskTab(state.taskTab);
       }
 
       if (state.searchQuery !== useTaskAppStore.getState().searchQuery) {
@@ -79,6 +85,7 @@ export function useHashRouter(tasks: Task[]) {
 
     const currentState: AppState = {
       activeView,
+      taskTab,
       selectedTaskId: selectedTask?.id || null,
       searchQuery,
     };

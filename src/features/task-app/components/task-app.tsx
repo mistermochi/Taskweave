@@ -56,6 +56,8 @@ export function TaskApp({
   const selectedTask = useTaskAppStore((state) => state.selectedTask);
   const selectedTagId = useTaskAppStore((state) => state.selectedTagId);
   const activeView = useTaskAppStore((state) => state.activeView);
+  const taskTab = useTaskAppStore((state) => state.taskTab);
+  const setTaskTab = useTaskAppStore((state) => state.setTaskTab);
   const searchQuery = useTaskAppStore((state) => state.searchQuery);
   const setSearchQuery = useTaskAppStore((state) => state.setSearchQuery);
   const isCollapsed = useTaskAppStore((state) => state.isCollapsed);
@@ -94,7 +96,6 @@ export function TaskApp({
     },
     [setIsCollapsed]
   );
-  const [tab, setTab] = React.useState("active");
   const isMobile = useIsMobile();
   const activeViewRef = React.useRef(activeView);
 
@@ -171,9 +172,9 @@ export function TaskApp({
       }
 
       // Status filter
-      if (tab === "active" && task.status !== "active") return false;
-      if (tab === "completed" && task.status !== "completed") return false;
-      if (tab === "archived" && task.status !== "archived") return false;
+      if (taskTab === "active" && task.status !== "active") return false;
+      if (taskTab === "done" && task.status !== "completed") return false;
+      if (taskTab === "archived" && task.status !== "archived") return false;
 
       // Legacy Tag filter (still used by some parts of the app possibly)
       if (selectedTagId && !tagKeyword) {
@@ -187,7 +188,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [tasks, tab, selectedTagId, tags, searchQuery]);
+  }, [tasks, taskTab, selectedTagId, tags, searchQuery]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail
@@ -204,9 +205,9 @@ export function TaskApp({
   const mainContent = (
     <div className="relative h-full flex flex-col w-full">
       <Tabs
-        defaultValue="active"
+        value={taskTab}
         className="flex h-full flex-col gap-0"
-        onValueChange={(value) => setTab(value)}
+        onValueChange={(value) => setTaskTab(value as any)}
       >
         <AppHeader
           title="Inbox"
@@ -220,10 +221,10 @@ export function TaskApp({
                 Active
               </TabsTrigger>
               <TabsTrigger
-                value="completed"
+                value="done"
                 className="text-zinc-600 dark:text-zinc-200"
               >
-                Completed
+                Done
               </TabsTrigger>
               <TabsTrigger
                 value="archived"
@@ -274,11 +275,11 @@ export function TaskApp({
           ) : (
             <EmptyState
               icon={Search}
-              title={searchQuery ? "No results found" : `No ${tab} tasks`}
+              title={searchQuery ? "No results found" : `No ${taskTab} tasks`}
               message={
                 searchQuery
                   ? `We couldn't find any tasks matching "${searchQuery}".`
-                  : `You don't have any tasks in your ${tab} list yet.`
+                  : `You don't have any tasks in your ${taskTab} list yet.`
               }
               action={
                 searchQuery && (

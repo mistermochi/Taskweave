@@ -1,0 +1,21 @@
+
+> taskweave@0.0.0 dev /app
+> next dev -p 4246
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:4246
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ○ (pwa) PWA support is disabled.
+ ✓ Ready in 2.6s
+ ○ Compiling / ...
+ ✓ Compiled / in 22.2s (3625 modules)
+ GET / 200 in 24257ms
+ ✓ Compiled in 2.4s (1634 modules)
+ GET / 200 in 81ms
+ ✓ Compiled in 15.7s (3616 modules)

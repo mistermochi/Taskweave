@@ -12,10 +12,12 @@ const inter = Inter({ subsets: ["latin"] });
  * Metadata for the Focus Flow application.
  * Defines PWA capabilities and SEO descriptions.
  */
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 export const metadata: Metadata = {
   title: "Focus Flow",
   description: "Biometric-aware productivity system",
-  manifest: "/manifest.json",
+  manifest: `${basePath}/manifest.json`,
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

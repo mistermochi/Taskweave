@@ -48,18 +48,6 @@ export default function HomePage() {
   const [loadingText, setLoadingText] = useState('Initializing...');
 
   useEffect(() => {
-    const registerSW = async () => {
-      if ('serviceWorker' in navigator) {
-        try {
-          await navigator.serviceWorker.register('/sw.js');
-        } catch (error) {
-          console.error('Service Worker registration failed:', error);
-        }
-      }
-    };
-
-    registerSW();
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
             contextApi.setUserId(user.uid);

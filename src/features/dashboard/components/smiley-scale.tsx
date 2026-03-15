@@ -3,6 +3,7 @@
 import React from 'react';
 import { Angry, Frown, Meh, Smile, Laugh } from 'lucide-react';
 import { cn } from "@/shared/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 
 /**
  * Interface for SmileyScale props.
@@ -36,18 +37,31 @@ export const SmileyScale = ({ value, onChange, className }: SmileyScaleProps) =>
         const isActive = value === step.level;
         const Icon = step.icon;
         return (
-          <button
-            key={step.level}
-            onClick={() => onChange(step.level)}
-            className={cn(
-                "group flex flex-col items-center gap-1 transition-all duration-300 outline-none",
-                isActive ? 'scale-110' : 'opacity-40 hover:opacity-80'
-            )}
-            type="button"
-          >
-            <Icon size={24} className={cn("transition-colors duration-300", isActive ? step.color : 'text-muted-foreground')} />
-            <span className="sr-only">{step.label}</span>
-          </button>
+          <Tooltip key={step.level}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => onChange(step.level)}
+                aria-pressed={isActive}
+                className={cn(
+                  "group flex flex-col items-center justify-center p-1 rounded-full transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  isActive ? "scale-110" : "opacity-40 hover:opacity-80"
+                )}
+                type="button"
+              >
+                <Icon
+                  size={24}
+                  className={cn(
+                    "transition-colors duration-300",
+                    isActive ? step.color : "text-muted-foreground"
+                  )}
+                />
+                <span className="sr-only">{step.label}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {step.label}
+            </TooltipContent>
+          </Tooltip>
         );
       })}
     </div>

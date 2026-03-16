@@ -1,0 +1,14 @@
+
+> taskweave@0.0.0 dev /app
+> next dev -p 4246
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:4246
+
+ ✓ Starting...
+ ○ (pwa) PWA support is disabled.
+ ✓ Ready in 2.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 24.6s (3627 modules)
+ GET / 200 in 26622ms
+ ✓ Compiled in 2.5s (1635 modules)

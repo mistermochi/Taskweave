@@ -15,9 +15,16 @@ interface TaskContextType {
   tasksMap: Record<string, TaskEntity>;
   /** Loading state for the tasks subscription. */
   loading: boolean;
+  /** Whether there are local writes that have not yet been synchronized with the server. */
+  hasPendingWrites: boolean;
 }
 
-const TaskContext = createContext<TaskContextType>({ tasks: [], tasksMap: {}, loading: true });
+const TaskContext = createContext<TaskContextType>({
+  tasks: [],
+  tasksMap: {},
+  loading: true,
+  hasPendingWrites: false
+});
 
 /**
  * Provider that manages the core task database for the application.
@@ -31,7 +38,7 @@ const TaskContext = createContext<TaskContextType>({ tasks: [], tasksMap: {}, lo
  *   existing object reference, keeping the downstream component tree stable.
  */
 export const TaskProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  const { data: allTasks, loading } = useFirestoreCollection<TaskEntity>('tasks');
+  const { data: allTasks, loading, hasPendingWrites } = useFirestoreCollection<TaskEntity>('tasks');
 
   /**
    * Local cache for stabilization.
@@ -60,8 +67,9 @@ export const TaskProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const value = useMemo(() => ({
     tasks,
     tasksMap,
-    loading
-  }), [tasks, tasksMap, loading]);
+    loading,
+    hasPendingWrites
+  }), [tasks, tasksMap, loading, hasPendingWrites]);
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
 };

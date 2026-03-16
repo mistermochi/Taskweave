@@ -8,9 +8,8 @@ import { contextApi } from '@/entities/context';
 import LoginView from '@/views/LoginView';
 import { AppProvider } from '@/context/AppProvider';
 import { TaskApp } from "@/features/task-app/components/task-app";
-import { useFirestoreCollection } from "@/hooks/useFirestore";
-import { TaskEntity } from "@/entities/task";
-import { Tag } from "@/entities/tag";
+import { useTaskContext } from "@/context/TaskContext";
+import { useReferenceContext } from "@/context/ReferenceContext";
 
 /**
  * Background manager for user-specific initialization tasks like
@@ -83,15 +82,14 @@ function UserSessionManager({ user }: { user: User }) {
  */
 function MainContent({
   authLoading,
-  user
 }: {
   authLoading: boolean;
-  user: User | null
 }) {
   const defaultLayout = [20, 32, 48];
   const defaultCollapsed = false;
-  const { data: tasks, loading: tasksLoading, hasPendingWrites: tasksPending } = useFirestoreCollection<TaskEntity>("tasks", [], !!user);
-  const { data: tags, loading: tagsLoading, hasPendingWrites: tagsPending } = useFirestoreCollection<Tag>("tags", [], !!user);
+
+  const { tasks, loading: tasksLoading, hasPendingWrites: tasksPending } = useTaskContext();
+  const { tags, loading: tagsLoading, hasPendingWrites: tagsPending } = useReferenceContext();
 
   // If auth is done and no user, the parent will show LoginView.
   // This component handles the rendering of the TaskApp shell.
@@ -143,7 +141,7 @@ export default function HomePage() {
   return (
     <AppProvider>
       {user && <UserSessionManager user={user} />}
-      <MainContent authLoading={authLoading} user={user} />
+      <MainContent authLoading={authLoading} />
     </AppProvider>
   );
 };

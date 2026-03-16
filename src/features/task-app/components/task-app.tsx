@@ -28,6 +28,8 @@ import { TaskDetail } from "./task-detail";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { useHashRouter } from "../lib/use-hash-router";
 import { useNavigation } from "@/context/NavigationContext";
+import { useTaskContext } from "@/context/TaskContext";
+import { useReferenceContext } from "@/context/ReferenceContext";
 import { createDefaultTask } from "../lib/constants";
 import { parseTaskInput } from "@/shared/lib/textParserUtils";
 
@@ -74,37 +76,37 @@ export function TaskApp({
   const optimisticTags = useTaskAppStore((state) => state.optimisticTags);
   const clearOptimisticTag = useTaskAppStore((state) => state.clearOptimisticTag);
 
+  const { tasksMap } = useTaskContext();
+  const { tagsMap } = useReferenceContext();
+
   // Reconciliation: Clear optimistic state when Firestore data catches up
   React.useEffect(() => {
     Object.entries(optimisticTasks).forEach(([id, optimistic]) => {
-      const actual = tasks.find(t => t.id === id);
+      const actual = tasksMap[id];
       if (optimistic === null) {
         // Optimistic delete: clear if gone from Firestore
         if (!actual) clearOptimisticTask(id);
       } else if (actual) {
         // Optimistic update or add: clear if actual exists and is at least as new
-        // We use updatedAt as a heuristic
         if (actual.updatedAt >= (optimistic.updatedAt || 0)) {
            clearOptimisticTask(id);
         }
       }
     });
-  }, [tasks, optimisticTasks, clearOptimisticTask]);
+  }, [tasksMap, optimisticTasks, clearOptimisticTask]);
 
   React.useEffect(() => {
     Object.entries(optimisticTags).forEach(([id, optimistic]) => {
-      const actual = tags.find(t => t.id === id);
+      const actual = tagsMap[id];
       if (optimistic === null) {
         if (!actual) clearOptimisticTag(id);
       } else if (actual) {
-        // Tags don't have updatedAt yet in model, so we just check existence for new ones
-        // For updates, we'd need more metadata. For now, matching name is a good proxy.
         if (actual.name === optimistic.name) {
            clearOptimisticTag(id);
         }
       }
     });
-  }, [tags, optimisticTags, clearOptimisticTag]);
+  }, [tagsMap, optimisticTags, clearOptimisticTag]);
 
   const mergedTasks = React.useMemo(() => {
     const merged = [...tasks];
@@ -141,6 +143,13 @@ export function TaskApp({
     });
     return merged;
   }, [tags, optimisticTags]);
+
+  const mergedTagsMap = React.useMemo(() => {
+    return mergedTags.reduce((acc, tag) => {
+      acc[tag.id] = tag;
+      return acc;
+    }, {} as Record<string, Tag>);
+  }, [mergedTags]);
 
   useHashRouter(mergedTasks);
 
@@ -264,7 +273,7 @@ export function TaskApp({
     const searchTitle = parsedSearch.cleanTitle.toLowerCase();
 
     const selectedTag = selectedTagId
-      ? mergedTags.find((t) => t.id === selectedTagId)
+      ? mergedTagsMap[selectedTagId]
       : null;
 
     const lowerTagKeyword = tagKeyword?.toLowerCase();
@@ -307,7 +316,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [tasks, taskTab, selectedTagId, tags, searchQuery]);
+  }, [mergedTasks, taskTab, selectedTagId, mergedTags, mergedTagsMap, searchQuery]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

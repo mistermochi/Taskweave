@@ -397,13 +397,30 @@ export function TaskApp({
                   : `You don't have any tasks in your ${taskTab} list yet.`
               }
               action={
-                searchQuery && (
+                searchQuery ? (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setSearchQuery("")}
                   >
                     Clear search
+                  </Button>
+                ) : taskTab === "active" ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={createNewTask}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Task
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTaskTab("active")}
+                  >
+                    View Active Tasks
                   </Button>
                 )
               }

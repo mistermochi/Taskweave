@@ -36,14 +36,20 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
         isSelected && "bg-accent/70",
         isInactive && "grayscale opacity-70"
       )}
+      aria-label={`Task: ${task.title}${isInactive ? ` (${task.status})` : ""}`}
       onClick={() => onClick(task)}>
       <div className="flex w-full flex-col gap-1">
         <div className="flex items-center">
           <div className="flex items-center gap-2">
-            <div className={cn(
-              "font-semibold line-clamp-1",
-              isInactive && "line-through"
-            )}>{task.title}</div>
+            <div
+              className={cn(
+                "font-semibold line-clamp-1",
+                isInactive && "line-through"
+              )}
+              title={task.title}
+            >
+              {task.title}
+            </div>
             {task.energy === 'High' && <span className="flex h-2 w-2 rounded-full bg-blue-600" />}
           </div>
         </div>
@@ -62,44 +68,44 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
               className="flex items-center gap-1 text-[10px] px-1.5 py-0"
               style={info.color ? { backgroundColor: `${info.color}33`, color: info.color, borderColor: `${info.color}66` } : {}}
             >
-              <TagIcon className="h-3 w-3" />
+              <TagIcon className="h-3 w-3" aria-hidden="true" />
               {info.name}
             </Badge>
           );
         })()}
         {task.duration > 0 && (
           <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0">
-            <Clock className="h-3 w-3" />
+            <Clock className="h-3 w-3" aria-hidden="true" />
             {task.duration}m
           </Badge>
         )}
         {task.energy && (
           <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-blue-500/30 text-blue-500">
-            <Zap className="h-3 w-3" />
+            <Zap className="h-3 w-3" aria-hidden="true" />
             {task.energy}
           </Badge>
         )}
         {task.assignedDate && (
           <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-blue-500/30 text-blue-400">
-            <Clock className="h-3 w-3" />
+            <Clock className="h-3 w-3" aria-hidden="true" />
             {new Date(task.assignedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
           </Badge>
         )}
         {task.dueDate && (
           <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-red-500/30 text-red-500">
-            <Calendar className="h-3 w-3" />
+            <Calendar className="h-3 w-3" aria-hidden="true" />
             {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
           </Badge>
         )}
         {task.recurrence && (
           <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-purple-500/30 text-purple-400">
-            <Repeat className="h-3 w-3" />
+            <Repeat className="h-3 w-3" aria-hidden="true" />
             {formatRecurrence(task.recurrence)}
           </Badge>
         )}
         {task.blockedBy?.length > 0 && (
           <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-orange-500/30 text-orange-500">
-            <Layers className="h-3 w-3" />
+            <Layers className="h-3 w-3" aria-hidden="true" />
             {task.blockedBy.length}
           </Badge>
         )}

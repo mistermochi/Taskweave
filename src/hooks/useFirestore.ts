@@ -127,12 +127,15 @@ export function useFirestoreDoc<T>(collectionName: string, docId: string | undef
     const docRef = doc(db, 'users', uid, collectionName, docId);
     
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      // Use a local variable to avoid TS narrowing issues with exists()
+      const isFromCache = docSnap.metadata.fromCache;
+
       if (docSnap.exists()) {
         setData({ ...docSnap.data(), id: docSnap.id } as unknown as T);
         setLoading(false);
       } else {
         // If it doesn't exist in cache, wait for the server before confirming it's null
-        if (!docSnap.metadata.fromCache) {
+        if (!isFromCache) {
           setData(null);
           setLoading(false);
         }

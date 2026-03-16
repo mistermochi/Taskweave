@@ -62,34 +62,17 @@ export function useMediaSession({
 
     if (task) {
       const tag = tags.find(t => t.id === task.category);
+      const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
       navigator.mediaSession.metadata = new MediaMetadata({
         title: task.title,
         artist: tag?.name || 'Focus Flow',
         album: 'Focus Session',
         artwork: [
-          { src: 'icons/manifest-icon-192.maskable.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icons/manifest-icon-512.maskable.png', sizes: '512x512', type: 'image/png' },
+          { src: `${basePath}/icons/manifest-icon-192.maskable.png`, sizes: '192x192', type: 'image/png' },
+          { src: `${basePath}/icons/manifest-icon-512.maskable.png`, sizes: '512x512', type: 'image/png' },
         ],
       });
-
-      navigator.mediaSession.playbackState = isActive ? 'playing' : 'paused';
-
-      // Set Position State (helps show progress bar on some platforms)
-      if ('setPositionState' in navigator.mediaSession) {
-        try {
-            const duration = (task.duration || 1) * 60;
-            const position = Math.max(0, duration - timeLeft);
-
-            navigator.mediaSession.setPositionState({
-                duration: duration,
-                playbackRate: isActive ? 1 : 0,
-                position: position,
-            });
-        } catch (e) {
-            console.error('Error setting media session position state:', e);
-        }
-      }
 
       navigator.mediaSession.setActionHandler('play', onPlay);
       navigator.mediaSession.setActionHandler('pause', onPause);
@@ -100,6 +83,39 @@ export function useMediaSession({
     } else {
       navigator.mediaSession.metadata = null;
       navigator.mediaSession.playbackState = 'none';
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
     }
-  }, [task, isActive, timeLeft, tags, onPlay, onPause]);
+
+    return () => {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = null;
+        navigator.mediaSession.playbackState = 'none';
+        navigator.mediaSession.setActionHandler('play', null);
+        navigator.mediaSession.setActionHandler('pause', null);
+      }
+    };
+  }, [task, tags, onPlay, onPause]);
+
+  // Sync Playback State and Position
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator) || !task) return;
+
+    navigator.mediaSession.playbackState = isActive ? 'playing' : 'paused';
+
+    if ('setPositionState' in navigator.mediaSession) {
+      try {
+        const duration = (task.duration || 1) * 60;
+        const position = Math.max(0, duration - timeLeft);
+
+        navigator.mediaSession.setPositionState({
+          duration: duration,
+          playbackRate: isActive ? 1 : 0,
+          position: position,
+        });
+      } catch (e) {
+        console.error('Error setting media session position state:', e);
+      }
+    }
+  }, [isActive, timeLeft, task]);
 }

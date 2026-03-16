@@ -34,6 +34,8 @@ import { parseTaskInput } from "@/shared/lib/textParserUtils";
 interface TaskAppProps {
   tasks: Task[];
   tags: Tag[];
+  tasksLoading?: boolean;
+  tagsLoading?: boolean;
   defaultLayout: number[] | undefined;
   defaultCollapsed?: boolean;
   navCollapsedSize: number;
@@ -43,6 +45,8 @@ interface TaskAppProps {
 export function TaskApp({
   tasks,
   tags,
+  tasksLoading = false,
+  tagsLoading = false,
   defaultLayout = [20, 32, 48],
   defaultCollapsed = false,
   navCollapsedSize,
@@ -385,8 +389,8 @@ export function TaskApp({
           </form>
         </div>
         <div className="min-h-0 flex-1">
-          {filteredTasks.length > 0 ? (
-            <TaskList items={filteredTasks} tags={mergedTags} />
+          {filteredTasks.length > 0 || tasksLoading ? (
+            <TaskList items={filteredTasks} tags={mergedTags} loading={tasksLoading} />
           ) : (
             <EmptyState
               icon={Search}
@@ -464,6 +468,7 @@ export function TaskApp({
               tasks={mergedTasks}
               onToggleCollapsed={toggleCollapsed}
               hasPendingWrites={hasPendingWrites}
+              tagsLoading={tagsLoading}
             />
           </aside>
           {activeView === 'tasks' ? (
@@ -503,6 +508,7 @@ export function TaskApp({
               tags={mergedTags}
               tasks={mergedTasks}
               hasPendingWrites={hasPendingWrites}
+              tagsLoading={tagsLoading}
             />
           </div>
         </div>

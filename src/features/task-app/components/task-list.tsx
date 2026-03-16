@@ -6,10 +6,12 @@ import { useTaskAppStore } from "../use-task-app";
 import { TaskListItem } from "./task-list-item";
 
 import { ScrollArea } from "@/shared/ui/ui/scroll-area";
+import { Skeleton } from "@/shared/ui/ui/skeleton";
 
 interface TaskListProps {
   items: Task[];
   tags: Tag[];
+  loading?: boolean;
 }
 
 type GroupedTasks = {
@@ -19,7 +21,7 @@ type GroupedTasks = {
 
 const ENERGY_MAP: Record<string, number> = { 'High': 3, 'Medium': 2, 'Low': 1 };
 
-export function TaskList({ items, tags }: TaskListProps) {
+export function TaskList({ items, tags, loading = false }: TaskListProps) {
   const selectedTaskId = useTaskAppStore((state) => state.selectedTask?.id);
   const setSelectedTask = useTaskAppStore((state) => state.setSelectedTask);
 
@@ -102,6 +104,22 @@ export function TaskList({ items, tags }: TaskListProps) {
   return (
     <ScrollArea className="h-full">
       <div className="flex flex-col gap-2 p-4 pt-0">
+        {loading && items.length === 0 && (
+          <div className="flex flex-col gap-4 py-4">
+            <Skeleton className="h-4 w-20" />
+            <div className="flex flex-col gap-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center gap-4 p-2 rounded-lg border border-transparent">
+                  <Skeleton className="h-5 w-5 rounded" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {groups.map((group) => (
           <div key={group.label} className="flex flex-col gap-2">
             <div className="text-muted-foreground sticky top-0 bg-background/95 z-10 py-2 text-[10px] font-bold uppercase tracking-wider backdrop-blur">

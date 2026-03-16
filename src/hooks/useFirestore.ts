@@ -81,7 +81,15 @@ export function useFirestoreCollection<T>(
         items.push({ ...doc.data(), id: doc.id } as unknown as T);
       });
       setData(items);
-      setLoading(false);
+
+      // Local-first optimization:
+      // We only stop loading if we have some data (from cache or server)
+      // OR if we know this is a final server-synchronized snapshot.
+      // This avoids flashing the "Empty State" if the cache is empty but server has data.
+      if (items.length > 0 || !snapshot.metadata.fromCache) {
+        setLoading(false);
+      }
+
       setHasPendingWrites(snapshot.metadata.hasPendingWrites);
     }, (error) => {
       console.error(`Error fetching ${collectionName}:`, error);
@@ -121,10 +129,14 @@ export function useFirestoreDoc<T>(collectionName: string, docId: string | undef
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         setData({ ...docSnap.data(), id: docSnap.id } as unknown as T);
+        setLoading(false);
       } else {
-        setData(null);
+        // If it doesn't exist in cache, wait for the server before confirming it's null
+        if (!docSnap.metadata.fromCache) {
+          setData(null);
+          setLoading(false);
+        }
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();

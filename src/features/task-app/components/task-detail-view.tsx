@@ -11,7 +11,9 @@ import {
   Loader2,
   MoreVertical,
   MousePointerClick,
+  Plus,
   Repeat,
+  Save,
   Share,
   Tag,
   Trash2,
@@ -436,153 +438,163 @@ export function TaskDetailView({
       <div className="flex items-center gap-2 p-2">
         <div className="flex items-center gap-2">
           {task && task.id !== "new" && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleToggleComplete}
-                >
-                  {task.status === "completed" ? (
-                    <Undo2 className="h-4 w-4 text-orange-500" />
-                  ) : (
-                    <Check className="h-4 w-4 text-green-500" />
-                  )}
-                  <span className="sr-only">
-                    {task.status === "completed" ? "Mark Active" : "Mark Done"}
-                  </span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {task.status === "completed" ? "Mark Active" : "Mark Done"}
-              </TooltipContent>
-            </Tooltip>
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleToggleComplete}
+                  >
+                    {task.status === "completed" ? (
+                      <Undo2 className="h-4 w-4 text-orange-500" />
+                    ) : (
+                      <Check className="h-4 w-4 text-green-500" />
+                    )}
+                    <span className="sr-only">
+                      {task.status === "completed" ? "Mark Active" : "Mark Done"}
+                    </span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {task.status === "completed" ? "Mark Active" : "Mark Done"}
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isReadOnly || (!!navigation.activeTaskId && navigation.activeTaskId !== task.id)}
+                    onClick={handleStartFocus}
+                  >
+                    <Zap className={cn("h-4 w-4", !!navigation.activeTaskId && navigation.activeTaskId !== task.id && "text-muted-foreground/50")} />
+                    <span className="sr-only">Focus</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {navigation.activeTaskId && navigation.activeTaskId !== task?.id ? "Another task is in focus" : "Focus"}
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isReadOnly}
+                    onClick={handlePlanToday}
+                  >
+                    <CalendarIcon className="h-4 w-4" />
+                    <span className="sr-only">Plan today</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Plan today</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleShare}
+                  >
+                    <Share className="h-4 w-4" />
+                    <span className="sr-only">Share</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Share</TooltipContent>
+              </Tooltip>
+            </>
+          )}
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          {task && task.id !== "new" && (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleToggleArchive}
+                  >
+                    {task?.status === "archived" ? (
+                      <ArchiveX className="h-4 w-4 text-orange-500" />
+                    ) : (
+                      <Archive className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">
+                      {task?.status === "archived"
+                        ? "Remove from Archive"
+                        : "Archive"}
+                    </span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {task?.status === "archived" ? "Remove from Archive" : "Archive"}
+                </TooltipContent>
+              </Tooltip>
+              {task?.status === "archived" && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      ref={deleteButtonRef}
+                      variant="ghost"
+                      size="icon"
+                      className={showDeleteConfirm ? "text-red-500 hover:text-red-600 hover:bg-red-50" : ""}
+                      onClick={handleDelete}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Delete Task</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {showDeleteConfirm ? "Confirm Delete" : "Delete Task"}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              <Separator orientation="vertical" className="mx-1 h-6" />
+            </>
           )}
 
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
-                size="icon"
-                disabled={isReadOnly || !task || task.id === "new" || (!!navigation.activeTaskId && navigation.activeTaskId !== task.id)}
-                onClick={handleStartFocus}
+                variant="default"
+                size="sm"
+                className="gap-2"
+                onClick={handleSave}
+                disabled={isSaving || isReadOnly}
               >
-                <Zap className={cn("h-4 w-4", !!navigation.activeTaskId && navigation.activeTaskId !== task.id && "text-muted-foreground/50")} />
-                <span className="sr-only">Focus</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {navigation.activeTaskId && navigation.activeTaskId !== task?.id ? "Another task is in focus" : "Focus"}
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={isReadOnly || !task || task.id === "new"}
-                onClick={handlePlanToday}
-              >
-                <CalendarIcon className="h-4 w-4" />
-                <span className="sr-only">Plan today</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Plan today</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={!task || task.id === "new"}
-                onClick={handleShare}
-              >
-                <Share className="h-4 w-4" />
-                <span className="sr-only">Share</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Share</TooltipContent>
-          </Tooltip>
-        </div>
-
-        <div className="ml-auto flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={!task || task.id === "new"}
-                onClick={handleToggleArchive}
-              >
-                {task?.status === "archived" ? (
-                  <ArchiveX className="h-4 w-4 text-orange-500" />
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : task?.id === "new" ? (
+                  <Plus className="h-4 w-4" />
                 ) : (
-                  <Archive className="h-4 w-4" />
+                  <Save className="h-4 w-4" />
                 )}
-                <span className="sr-only">
-                  {task?.status === "archived"
-                    ? "Remove from Archive"
-                    : "Archive"}
+                <span>
+                  {isSaving
+                    ? (typeof navigator !== 'undefined' && !navigator.onLine
+                      ? "Saving locally..."
+                      : (task?.id === "new" ? "Creating..." : "Saving..."))
+                    : task?.id === "new" ? "Create Task" : "Save"}
                 </span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {task?.status === "archived" ? "Remove from Archive" : "Archive"}
+              {task?.id === "new" ? "Create Task" : "Save"} ({isMac ? "⌘" : "Ctrl+"}Enter)
             </TooltipContent>
           </Tooltip>
-          {task?.status === "archived" && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  ref={deleteButtonRef}
-                  variant="ghost"
-                  size="icon"
-                  className={showDeleteConfirm ? "text-red-500 hover:text-red-600 hover:bg-red-50" : ""}
-                  onClick={handleDelete}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Delete Task</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {showDeleteConfirm ? "Confirm Delete" : "Delete Task"}
-              </TooltipContent>
-            </Tooltip>
-          )}
         </div>
-
-        <Separator orientation="vertical" className="mx-1 h-6" />
-
-        <DropdownMenu>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={!task || task.id === "new"}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                  <span className="sr-only">More</span>
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent>More actions</TooltipContent>
-          </Tooltip>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Mark as unread</DropdownMenuItem>
-            <DropdownMenuItem>Star thread</DropdownMenuItem>
-            <DropdownMenuItem>Add label</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       <Separator />
 
       {task ? (
-        <div className="flex flex-1 flex-col overflow-y-auto">
+        <div className="flex flex-1 flex-col overflow-y-auto no-scrollbar">
           <div className="flex flex-col gap-4 p-4">
             <AutoResizeTextarea
               className="resize-none border-none p-0 text-2xl font-bold focus-visible:ring-0 bg-transparent"
@@ -592,6 +604,17 @@ export function TaskDetailView({
               placeholder="Task Title..."
               minRows={1}
               maxRows={4}
+              readOnly={isReadOnly}
+            />
+
+            <AutoResizeTextarea
+              className="p-4 bg-muted/20 rounded-lg"
+              placeholder={`Task notes and details...`}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value.substring(0, 5000))}
+              onKeyDown={handleKeyDown}
+              minRows={3}
+              maxRows={8}
               readOnly={isReadOnly}
             />
 
@@ -811,56 +834,6 @@ export function TaskDetailView({
                 </Badge>
               )}
             </div>
-          </div>
-          <Separator className="mt-auto" />
-          <div className="p-4">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSave();
-              }}
-            >
-              <div className="grid gap-4">
-                <AutoResizeTextarea
-                  className="p-4 bg-muted/20"
-                  placeholder={`Task notes and details...`}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value.substring(0, 5000))}
-                  onKeyDown={handleKeyDown}
-                  minRows={3}
-                  maxRows={8}
-                  readOnly={isReadOnly}
-                />
-                <div className="flex items-center">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        type="submit"
-                        size="sm"
-                        className="ml-auto"
-                        disabled={isSaving || isReadOnly}
-                      >
-                        {isSaving ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {typeof navigator !== 'undefined' && !navigator.onLine
-                              ? "Saving locally..."
-                              : (task.id === "new" ? "Creating..." : "Saving...")}
-                          </>
-                        ) : task.id === "new" ? (
-                          "Create Task"
-                        ) : (
-                          "Save"
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {task.id === "new" ? "Create Task" : "Save"} ({isMac ? "⌘" : "Ctrl+"}Enter)
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </div>
-            </form>
           </div>
         </div>
       ) : (

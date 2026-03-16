@@ -40,6 +40,7 @@ interface TaskNavigationContentProps {
   onToggleCollapsed?: (collapsed: boolean) => void;
   hasPendingWrites?: boolean;
   tagsLoading?: boolean;
+  onNavItemClick?: () => void;
 }
 
 export function TaskNavigationContent({
@@ -49,6 +50,7 @@ export function TaskNavigationContent({
   onToggleCollapsed,
   hasPendingWrites = false,
   tagsLoading = false,
+  onNavItemClick,
 }: TaskNavigationContentProps) {
   const { setIsCollapsed } = useTaskAppStore();
   const [isOnline, setIsOnline] = React.useState(
@@ -130,23 +132,27 @@ export function TaskNavigationContent({
             {
               title: "Dashboard",
               icon: LayoutDashboard,
-              variant: "ghost"
+              variant: "ghost",
+              onClick: onNavItemClick
             },
             {
               title: "Tasks",
               label: tasks.filter(t => t.status === 'active').length.toString(),
               icon: CheckCircle2,
-              variant: "default"
+              variant: "default",
+              onClick: onNavItemClick
             },
             {
               title: "Insights",
               icon: BarChart3,
-              variant: "ghost"
+              variant: "ghost",
+              onClick: onNavItemClick
             },
             {
               title: "Settings",
               icon: Settings,
-              variant: "ghost"
+              variant: "ghost",
+              onClick: onNavItemClick
             }
           ]}
         />

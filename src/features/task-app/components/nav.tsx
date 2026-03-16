@@ -17,6 +17,7 @@ interface NavProps {
     icon: LucideIcon;
     dot?: ReactNode;
     variant: "default" | "ghost";
+    onClick?: () => void;
   }[];
 }
 
@@ -35,7 +36,10 @@ export function Nav({ links, isCollapsed }: NavProps) {
           const variant = isActive ? "default" : "ghost";
 
           const href = `#/${viewId}`;
-          const handleClick = () => setActiveView(viewId);
+          const handleClick = () => {
+            setActiveView(viewId);
+            link.onClick?.();
+          };
 
           if (isCollapsed) {
             return (

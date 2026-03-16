@@ -51,7 +51,7 @@ export function TaskNavigation({
               <MenuIcon />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 [&>button:first-of-type]:hidden" onClick={() => setOpen(false)}>
+          <SheetContent side="left" className="p-0 [&>button:first-of-type]:hidden">
             <VisuallyHidden>
               <DialogHeader>
                 <DialogTitle>Navigation</DialogTitle>
@@ -63,6 +63,7 @@ export function TaskNavigation({
               tasks={tasks}
               hasPendingWrites={hasPendingWrites}
               tagsLoading={tagsLoading}
+              onNavItemClick={() => setOpen(false)}
             />
           </SheetContent>
         </Sheet>

@@ -1,28 +1,6 @@
 import React from 'react';
-import { Loader2, AlertCircle, LucideIcon, RotateCcw } from 'lucide-react';
+import { AlertCircle, LucideIcon, RotateCcw } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { Skeleton } from './skeleton';
-
-/**
- * Standard fullscreen or container-level loading indicator.
- *
- * @component
- */
-export const LoadingScreen: React.FC<{ text?: string }> = ({ text = "Loading..." }) => (
-  <div className="h-full w-full flex flex-col items-center justify-center p-6 text-muted-foreground animate-in fade-in duration-500">
-    <div className="w-full max-w-sm space-y-4">
-        <div className="flex flex-col items-center mb-4">
-             <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
-             <span className="text-[10px] font-bold tracking-widest uppercase">{text}</span>
-        </div>
-        <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-[90%]" />
-            <Skeleton className="h-4 w-[80%]" />
-        </div>
-    </div>
-  </div>
-);
 
 /**
  * Interface for EmptyState props.

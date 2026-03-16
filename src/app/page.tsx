@@ -5,7 +5,6 @@ import { auth, db } from '@/shared/api/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from 'firebase/firestore';
 import { contextApi } from '@/entities/context';
-import { LoadingScreen } from '@/shared/ui/ui/Feedback';
 import LoginView from '@/views/LoginView';
 import { AppProvider } from '@/context/AppProvider';
 import { TaskApp } from "@/features/task-app/components/task-app";

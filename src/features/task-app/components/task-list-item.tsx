@@ -21,6 +21,14 @@ interface TaskListItemProps {
 }
 
 export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: TaskListItemProps) => {
+  const itemRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    if (isSelected) {
+      itemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [isSelected]);
+
   const getTagInfo = (categoryId: string) => {
     const tag = tagsMap[categoryId];
     if (tag) return { name: tag.name, color: tag.color };
@@ -31,6 +39,7 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
 
   return (
     <button
+      ref={itemRef}
       className={cn(
         "hover:bg-accent/70 flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all w-full",
         isSelected && "bg-accent/70",

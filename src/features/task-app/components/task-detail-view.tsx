@@ -389,8 +389,12 @@ export function TaskDetailView({
         } as Task;
 
         // Optimistic UI update in store
-        useTaskAppStore.getState().setOptimisticTask(newTaskId, newTask);
-        useTaskAppStore.getState().setSelectedTask(newTask);
+        const store = useTaskAppStore.getState();
+        store.setOptimisticTask(newTaskId, newTask);
+        store.setActiveView('tasks');
+        store.setTaskTab('active');
+        store.setSearchQuery("");
+        store.setSelectedTask(newTask);
         onClose?.();
         useTaskAppStore.getState().showToast(isOffline ? "Task saved locally" : "Task created");
       } else {

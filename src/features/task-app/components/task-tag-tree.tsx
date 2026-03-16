@@ -162,10 +162,12 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
         const TagActions = (
           <>
             <DropdownMenuItem
-              onClick={() => {
-                setEditingTag(tag);
-                setNewName(tag.name);
-                setNewColor(tag.color);
+              onSelect={() => {
+                setTimeout(() => {
+                  setEditingTag(tag);
+                  setNewName(tag.name);
+                  setNewColor(tag.color);
+                }, 0);
               }}
             >
               <Edit2 className="mr-2 size-4" />
@@ -173,19 +175,14 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
-              onClick={() => {
-                setDeletingTag(tag);
+              onSelect={() => {
+                setTimeout(() => {
+                  setDeletingTag(tag);
+                }, 0);
               }}
             >
               <Trash2 className="mr-2 size-4" />
               Delete
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => tagApi.createTag("New Sub-project", tag.id)}
-            >
-              <Plus className="mr-2 size-4" />
-              Add Sub-project
             </DropdownMenuItem>
           </>
         );
@@ -248,7 +245,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
 
                   <div className="ml-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     {isActive ? (
-                      <DropdownMenu modal={false}>
+                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
@@ -270,7 +267,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                     )}
 
                     {!isActive && (
-                       <DropdownMenu modal={false}>
+                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
@@ -291,10 +288,12 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
               </ContextMenuTrigger>
               <ContextMenuContent>
                 <ContextMenuItem
-                  onClick={() => {
-                    setEditingTag(tag);
-                    setNewName(tag.name);
-                    setNewColor(tag.color);
+                  onSelect={() => {
+                    setTimeout(() => {
+                      setEditingTag(tag);
+                      setNewName(tag.name);
+                      setNewColor(tag.color);
+                    }, 0);
                   }}
                 >
                   <Edit2 className="mr-2 size-4" />
@@ -302,19 +301,14 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                 </ContextMenuItem>
                 <ContextMenuItem
                   className="text-destructive focus:text-destructive"
-                  onClick={() => {
-                    setDeletingTag(tag);
+                  onSelect={() => {
+                    setTimeout(() => {
+                      setDeletingTag(tag);
+                    }, 0);
                   }}
                 >
                   <Trash2 className="mr-2 size-4" />
                   Delete
-                </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem
-                  onClick={() => tagApi.createTag("New Sub-project", tag.id)}
-                >
-                  <Plus className="mr-2 size-4" />
-                  Add Sub-project
                 </ContextMenuItem>
               </ContextMenuContent>
             </ContextMenu>

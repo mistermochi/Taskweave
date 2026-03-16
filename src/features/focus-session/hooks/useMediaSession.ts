@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { SILENT_AUDIO_URI } from '../lib/silent-audio';
+import { useEffect } from 'react';
 import { Task } from '@/entities/task';
 import { Tag } from '@/entities/tag';
 
@@ -26,40 +25,6 @@ export function useMediaSession({
   onPlay,
   onPause,
 }: MediaSessionProps) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Initialize audio element for background persistence
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const audio = new Audio(SILENT_AUDIO_URI);
-    audio.loop = true;
-    audioRef.current = audio;
-
-    return () => {
-      audio.pause();
-      audioRef.current = null;
-    };
-  }, []);
-
-  // Sync Audio Playback with Focus Session State
-  useEffect(() => {
-    if (!audioRef.current) return;
-
-    if (isActive) {
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          // Playback might be blocked by browser policy until user interacts
-          // or due to format support issues.
-          console.warn('MediaSession audio play failed:', err);
-        });
-      }
-    } else {
-      audioRef.current.pause();
-    }
-  }, [isActive]);
-
   // Sync Metadata and Actions
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;

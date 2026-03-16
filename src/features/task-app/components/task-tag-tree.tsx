@@ -193,7 +193,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
         const node = (
           <div className="flex flex-col w-full">
             <ContextMenu>
-              <ContextMenuTrigger>
+              <ContextMenuTrigger disabled={typeof window !== 'undefined' && ('ontouchstart' in window)}>
                 <div
                   className={cn(
                     "group flex items-center h-8 w-full gap-2 px-2 rounded-md cursor-pointer transition-all relative select-none",
@@ -246,10 +246,10 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                     </span>
                   </div>
 
-                  <div className="ml-auto flex items-center gap-1">
+                  <div className="ml-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     {isActive ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -270,8 +270,8 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                     )}
 
                     {!isActive && (
-                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                       <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"

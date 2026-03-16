@@ -204,7 +204,7 @@ export function TaskNavigationContent({
             </Tooltip>
           )}
 
-          {!isCollapsed && <span>v0.1.0</span>}
+          {!isCollapsed && <span>{process.env.NEXT_PUBLIC_BUILD_NUMBER}</span>}
         </div>
       </div>
     </div>

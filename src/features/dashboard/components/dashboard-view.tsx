@@ -158,28 +158,6 @@ export const DashboardView: React.FC = () => {
                     )}
                 </section>
 
-
-                {state.overdueTasks.length > 0 && (
-                    <section>
-                        <SectionHeader
-                            title="Past Due"
-                            action={<span className="bg-destructive/10 text-destructive px-2 py-0.5 rounded-full text-[10px] font-bold">{state.overdueTasks.length}</span>}
-                            className="text-destructive"
-                        />
-                        <div className="space-y-2">
-                            {state.overdueTasks.map(task => (
-                                <TaskListItem
-                                    key={task.id}
-                                    task={task as unknown as Task}
-                                    tagsMap={tagsMap}
-                                    isSelected={selectedTask?.id === task.id}
-                                    onClick={setSelectedTask}
-                                />
-                            ))}
-                        </div>
-                    </section>
-                )}
-
                 <Button
                     variant="outline"
                     className="w-full py-6 border-dashed border-2 hover:bg-accent/50 text-muted-foreground flex items-center justify-start gap-3 px-4 group rounded-xl"

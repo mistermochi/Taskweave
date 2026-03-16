@@ -32,7 +32,7 @@ To further enhance the mobile experience and make Taskweave feel like a truly na
 *   **Implementation:** Trigger short vibrations (`navigator.vibrate()`) when a task is completed, when a focus timer ends, or when interacting with the "Zap" (Focus Now) button.
 *   **Benefit:** Provides physical confirmation of actions, which is common in high-quality native mobile apps.
 
-## 7. Media Session API
+## 7. Media Session API (Implemented)
 *   **Goal:** Control focus sessions from the lock screen.
 *   **Implementation:** Use the Media Session API to show "playing" status during a focus session.
 *   **Benefit:** Users can see the current task title and potentially pause/resume the focus timer directly from their phone's lock screen or notification shade.

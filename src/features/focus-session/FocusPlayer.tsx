@@ -3,7 +3,9 @@
 import React from 'react';
 import { Play, Pause, Check, ChevronUp } from 'lucide-react';
 import { useFocusSessionController } from '@/hooks/controllers/useFocusSessionController';
+import { useMediaSession } from './hooks/useMediaSession';
 import { useNavigation } from '@/context/NavigationContext';
+import { useReferenceContext } from '@/context/ReferenceContext';
 import { Button } from '@/shared/ui/ui/button';
 import { Progress } from '@/shared/ui/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/ui/tooltip';
@@ -15,6 +17,16 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/ui/tooltip'
 export const FocusPlayer: React.FC = () => {
   const { activeTaskId, toggleFocusExpansion } = useNavigation();
   const { state, actions } = useFocusSessionController(activeTaskId);
+  const { tags } = useReferenceContext();
+
+  useMediaSession({
+    task: state.task,
+    isActive: state.isActive,
+    timeLeft: state.timeLeft,
+    tags: tags,
+    onPlay: actions.toggleTimer,
+    onPause: actions.toggleTimer,
+  });
 
   if (!state.task) return null;
 

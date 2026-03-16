@@ -77,6 +77,11 @@ This epic leverages PWA features for a more premium, native-like experience on s
     - [x] **Sub-task:** Define at least one shortcut: "Add Task" pointing to `/#/tasks/new`.
     - [x] **Sub-task:** Leverage existing hash routing to handle shortcuts without extra logic.
 
+- [x] **Implement Media Session API:**
+    - [x] **Sub-task:** Add `useMediaSession` hook to sync focus sessions with the browser's media session.
+    - [x] **Sub-task:** Implement silent audio loop for background persistence.
+    - [x] **Sub-task:** Sync task metadata (title, category) and playback controls (play/pause).
+
 -   [ ] **Implement Share Target (Chrome/Android):**
     -   [ ] **Sub-task:** Add a `share_target` member to the `public/manifest.json`.
     -   [ ] **Sub-task:** Configure the `share_target` object to accept shared text/URLs:

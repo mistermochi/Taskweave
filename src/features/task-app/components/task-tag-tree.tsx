@@ -184,13 +184,6 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
               <Trash2 className="mr-2 size-4" />
               Delete
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={() => tagApi.createTag("New Sub-project", tag.id)}
-            >
-              <Plus className="mr-2 size-4" />
-              Add Sub-project
-            </DropdownMenuItem>
           </>
         );
 
@@ -316,13 +309,6 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                 >
                   <Trash2 className="mr-2 size-4" />
                   Delete
-                </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem
-                  onSelect={() => tagApi.createTag("New Sub-project", tag.id)}
-                >
-                  <Plus className="mr-2 size-4" />
-                  Add Sub-project
                 </ContextMenuItem>
               </ContextMenuContent>
             </ContextMenu>

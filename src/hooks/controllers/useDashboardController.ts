@@ -33,7 +33,7 @@ export const useDashboardController = () => {
   const [recommendation, setRecommendation] = useState<{ taskId: string; reason: string; } | null>(null);
 
   /** Real-time subscription to completed tasks for context generation. */
-  const completedTasks = useMemo(() => allTasks.filter(t => t.status === 'completed'), [allTasks]);
+  const { data: completedTasks } = useFirestoreCollection<TaskEntity>('tasks', [where('status', '==', 'completed')]);
 
   /**
    * Effect that triggers the AI Recommendation Engine whenever relevant context changes.

@@ -15,6 +15,13 @@ import {
   ContextMenuTrigger,
   ContextMenuSeparator,
 } from "@/shared/ui/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/shared/ui/ui/dropdown-menu";
 import { Button } from "@/shared/ui/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 import {
@@ -32,6 +39,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/ui/ui/collapsible";
+
+const COLORS = ['#9333ea', '#d97706', '#16a34a', '#0284c7', '#db2777', '#dc2626', '#7c3aed', '#ca8a04', '#64748b'];
 
 interface TaskTagTreeProps {
   tags: Tag[];
@@ -52,6 +61,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
   // CRUD state
   const [editingTag, setEditingTag] = React.useState<Tag | null>(null);
   const [newName, setNewName] = React.useState("");
+  const [newColor, setNewColor] = React.useState("");
   const [deletingTag, setDeletingTag] = React.useState<Tag | null>(null);
 
   // Pre-calculate task counts per tag
@@ -122,7 +132,10 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
 
   const handleRename = async () => {
     if (editingTag && newName.trim()) {
-        await tagApi.updateTag(editingTag.id, { name: newName.trim() });
+        await tagApi.updateTag(editingTag.id, {
+          name: newName.trim(),
+          color: newColor
+        });
         setEditingTag(null);
     }
   };
@@ -143,6 +156,37 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
         const isExpanded = expanded.has(tag.id);
         const isActive = searchTagKeyword?.toLowerCase() === tag.name.toLowerCase();
         const count = tagCounts[tag.id] || tagCounts[tag.name] || 0;
+
+        const TagActions = (
+          <>
+            <DropdownMenuItem
+              onClick={() => {
+                setEditingTag(tag);
+                setNewName(tag.name);
+                setNewColor(tag.color);
+              }}
+            >
+              <Edit2 className="mr-2 size-4" />
+              Edit Details
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => {
+                setDeletingTag(tag);
+              }}
+            >
+              <Trash2 className="mr-2 size-4" />
+              Delete
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => tagApi.createTag("New Sub-project", tag.id)}
+            >
+              <Plus className="mr-2 size-4" />
+              Add Sub-project
+            </DropdownMenuItem>
+          </>
+        );
 
         const node = (
           <div className="flex flex-col w-full">
@@ -200,11 +244,47 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
                     </span>
                   </div>
 
-                  {count > 0 && (
-                    <span className="ml-auto text-[10px] tabular-nums text-muted-foreground/70 group-hover:text-muted-foreground">
-                      {count}
-                    </span>
-                  )}
+                  <div className="ml-auto flex items-center gap-1">
+                    {isActive ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-5 hover:bg-muted"
+                            aria-label="Tag actions"
+                          >
+                            <Edit2 size={12} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          {TagActions}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : count > 0 && (
+                      <span className="text-[10px] tabular-nums text-muted-foreground/70 group-hover:hidden">
+                        {count}
+                      </span>
+                    )}
+
+                    {!isActive && (
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-5 hidden group-hover:flex hover:bg-muted"
+                            aria-label="Tag actions"
+                          >
+                            <Edit2 size={12} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          {TagActions}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </div>
               </ContextMenuTrigger>
               <ContextMenuContent>
@@ -212,6 +292,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
                   onClick={() => {
                     setEditingTag(tag);
                     setNewName(tag.name);
+                    setNewColor(tag.color);
                   }}
                 >
                   <Edit2 className="mr-2 size-4" />
@@ -321,14 +402,14 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
       </div>
 
       <Dialog open={!!editingTag} onOpenChange={(open) => !open && setEditingTag(null)}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Rename Project</DialogTitle>
+            <DialogTitle>Edit Project</DialogTitle>
             <DialogDescription>
-              Enter a new name for your project.
+              Update the name and color of your project.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-6 py-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Name</Label>
               <Input
@@ -338,6 +419,26 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
                 autoFocus
                 onKeyDown={(e) => e.key === "Enter" && handleRename()}
               />
+            </div>
+            <div className="grid gap-2">
+              <Label>Color</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setNewColor(c)}
+                    className={cn(
+                      "h-8 w-full rounded-md border-2 transition-all",
+                      newColor === c
+                        ? "border-primary ring-2 ring-primary/20 scale-110 shadow-sm"
+                        : "border-transparent opacity-80 hover:opacity-100 hover:scale-105"
+                    )}
+                    style={{ backgroundColor: c }}
+                    aria-label={`Select color ${c}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
           <DialogFooter>

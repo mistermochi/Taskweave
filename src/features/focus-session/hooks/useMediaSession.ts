@@ -47,10 +47,14 @@ export function useMediaSession({
     if (!audioRef.current) return;
 
     if (isActive) {
-      audioRef.current.play().catch((err) => {
-        // Playback might be blocked by browser policy until user interacts
-        console.warn('MediaSession audio play failed:', err);
-      });
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          // Playback might be blocked by browser policy until user interacts
+          // or due to format support issues.
+          console.warn('MediaSession audio play failed:', err);
+        });
+      }
     } else {
       audioRef.current.pause();
     }

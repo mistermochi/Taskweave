@@ -22,7 +22,8 @@ import { RecommendationEngine } from '@/services/RecommendationEngine';
  */
 export const useDashboardController = () => {
   const uid = useUserId();
-  const { tasks: activeTasks } = useTaskContext();
+  const { tasks: allTasks } = useTaskContext();
+  const activeTasks = useMemo(() => allTasks.filter(t => t.status === 'active'), [allTasks]);
   const { vitals } = useVitalsContext();
   const { tags } = useReferenceContext();
   const energyModel = useEnergyModel();
@@ -32,7 +33,7 @@ export const useDashboardController = () => {
   const [recommendation, setRecommendation] = useState<{ taskId: string; reason: string; } | null>(null);
 
   /** Real-time subscription to completed tasks for context generation. */
-  const { data: completedTasks } = useFirestoreCollection<TaskEntity>('tasks', [where('status', '==', 'completed')]);
+  const completedTasks = useMemo(() => allTasks.filter(t => t.status === 'completed'), [allTasks]);
 
   /**
    * Effect that triggers the AI Recommendation Engine whenever relevant context changes.
@@ -76,7 +77,7 @@ export const useDashboardController = () => {
    * Partitions tasks based on focus state, assigned dates, and hard deadlines.
    * Injects AI recommendations into the plan if not already present.
    */
-  const { suggestedPlan, overdueTasks, completedCount } = useMemo(() => {
+  const { suggestedPlan, completedCount } = useMemo(() => {
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const endOfToday = startOfToday + 86400000;
@@ -85,7 +86,7 @@ export const useDashboardController = () => {
       if (!task.blockedBy || task.blockedBy.length === 0) return false;
       return task.blockedBy.some(blockerId => tasks.some(t => t.id === blockerId));
     };
-    
+
     let planCandidates = activeTasks.filter(task => {
         if (isBlocked(task, activeTasks)) return false;
         const isAssignedToday = task.assignedDate && task.assignedDate >= startOfToday && task.assignedDate < endOfToday;
@@ -106,8 +107,9 @@ export const useDashboardController = () => {
     if (planCandidates.length === 0) {
         const inboxTasks = activeTasks.filter(task => {
             if (isBlocked(task, activeTasks)) return false;
-            const isScheduledOrOverdue = (task.assignedDate && task.assignedDate >= startOfToday && task.assignedDate < endOfToday) || (task.dueDate && task.dueDate < endOfToday);
-            return !isScheduledOrOverdue;
+            const isAssignedToday = task.assignedDate && task.assignedDate >= startOfToday && task.assignedDate < endOfToday;
+            const isDueTodayOrOverdue = task.dueDate && task.dueDate < endOfToday;
+            return !isAssignedToday && !isDueTodayOrOverdue;
         });
 
         if (inboxTasks.length > 0) {
@@ -124,27 +126,32 @@ export const useDashboardController = () => {
     }
 
     planCandidates.sort((a, b) => {
-        if (a.isFocused) return -1;
-        if (b.isFocused) return 1;
+        // 1. Focused tasks always first
+        if (a.isFocused && !b.isFocused) return -1;
+        if (!a.isFocused && b.isFocused) return 1;
+
+        // 2. Overdue tasks next
+        const isAOverdue = a.dueDate && a.dueDate < startOfToday;
+        const isBOverdue = b.dueDate && b.dueDate < startOfToday;
+        if (isAOverdue && !isBOverdue) return -1;
+        if (!isAOverdue && isBOverdue) return 1;
+
+        // 3. Due today/Assigned today
         const aTime = a.assignedDate || a.dueDate || Infinity;
         const bTime = b.assignedDate || b.dueDate || Infinity;
         if (aTime !== bTime) return aTime - bTime;
+
+        // 4. Energy requirement
         const energyMap = { 'High': 3, 'Medium': 2, 'Low': 1 };
         const energyDiff = (energyMap[b.energy] || 2) - (energyMap[a.energy] || 2);
         if (energyDiff !== 0) return energyDiff;
+
+        // 5. Creation date
         return (a.createdAt || 0) - (b.createdAt || 0);
     });
 
-    const planIds = new Set(planCandidates.map(t => t.id));
-    const overdue = activeTasks.filter(task => {
-        if (planIds.has(task.id)) return false;
-        if (isBlocked(task, activeTasks)) return false;
-        return task.dueDate && task.dueDate < startOfToday;
-    }).sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0));
-
     return {
         suggestedPlan: planCandidates,
-        overdueTasks: overdue,
         completedCount: completedTasks.length
     };
   }, [activeTasks, completedTasks, recommendation]);
@@ -237,7 +244,6 @@ export const useDashboardController = () => {
   return {
     state: {
       suggestedPlan,
-      overdueTasks,
       activeTasks: activeTasks,
       taskCount: activeTasks.length,
       latestMood: energyModel.moodIndex,

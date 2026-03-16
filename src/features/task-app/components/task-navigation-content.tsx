@@ -39,6 +39,7 @@ interface TaskNavigationContentProps {
   tasks: Task[];
   onToggleCollapsed?: (collapsed: boolean) => void;
   hasPendingWrites?: boolean;
+  tagsLoading?: boolean;
 }
 
 export function TaskNavigationContent({
@@ -47,6 +48,7 @@ export function TaskNavigationContent({
   tasks,
   onToggleCollapsed,
   hasPendingWrites = false,
+  tagsLoading = false,
 }: TaskNavigationContentProps) {
   const { setIsCollapsed } = useTaskAppStore();
   const [isOnline, setIsOnline] = React.useState(
@@ -151,7 +153,12 @@ export function TaskNavigationContent({
 
         <Separator />
 
-        <TaskTagTree isCollapsed={isCollapsed} tags={tags} tasks={tasks} />
+        <TaskTagTree
+          isCollapsed={isCollapsed}
+          tags={tags}
+          tasks={tasks}
+          loading={tagsLoading}
+        />
       </ScrollArea>
 
       <div className={cn(

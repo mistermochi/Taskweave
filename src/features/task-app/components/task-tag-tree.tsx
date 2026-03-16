@@ -34,6 +34,7 @@ import {
 } from "@/shared/ui/ui/dialog";
 import { Input } from "@/shared/ui/ui/input";
 import { Label } from "@/shared/ui/ui/label";
+import { Skeleton } from "@/shared/ui/ui/skeleton";
 import {
   Collapsible,
   CollapsibleContent,
@@ -46,9 +47,10 @@ interface TaskTagTreeProps {
   tags: Tag[];
   tasks: Task[];
   isCollapsed: boolean;
+  loading?: boolean;
 }
 
-export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
+export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskTagTreeProps) {
   const [expanded, setExpanded] = React.useState<Set<string>>(new Set());
   const selectedTagId = useTaskAppStore((state) => state.selectedTagId);
   const setSelectedTagId = useTaskAppStore((state) => state.setSelectedTagId);
@@ -393,11 +395,20 @@ export function TaskTagTree({ tags, tasks, isCollapsed }: TaskTagTreeProps) {
           </Tooltip>
         </div>
         <div
-          className="flex flex-col min-h-[20px]"
+          className="flex flex-col min-h-[20px] px-2 gap-1"
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, null)}
         >
-          {buildTree(null)}
+          {loading && tags.length === 0 ? (
+            <div className="flex flex-col gap-2">
+               {[...Array(4)].map((_, i) => (
+                 <div key={i} className="flex items-center gap-2 h-8 px-2">
+                    <Skeleton className="size-2 rounded-full" />
+                    <Skeleton className="h-4 flex-1" />
+                 </div>
+               ))}
+            </div>
+          ) : buildTree(null)}
         </div>
       </div>
 

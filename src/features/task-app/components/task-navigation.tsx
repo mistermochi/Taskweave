@@ -16,6 +16,7 @@ interface TaskNavigationProps {
   isCollapsed: boolean;
   onToggleCollapsed?: (collapsed: boolean) => void;
   hasPendingWrites?: boolean;
+  tagsLoading?: boolean;
 }
 
 export function TaskNavigation({
@@ -24,6 +25,7 @@ export function TaskNavigation({
   isCollapsed,
   onToggleCollapsed,
   hasPendingWrites = false,
+  tagsLoading = false,
 }: TaskNavigationProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -37,6 +39,7 @@ export function TaskNavigation({
           tasks={tasks}
           onToggleCollapsed={onToggleCollapsed}
           hasPendingWrites={hasPendingWrites}
+          tagsLoading={tagsLoading}
         />
       </div>
 
@@ -59,6 +62,7 @@ export function TaskNavigation({
               tags={tags}
               tasks={tasks}
               hasPendingWrites={hasPendingWrites}
+              tagsLoading={tagsLoading}
             />
           </SheetContent>
         </Sheet>

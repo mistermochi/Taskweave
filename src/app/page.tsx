@@ -82,19 +82,27 @@ function UserSessionManager({ user }: { user: User }) {
 /**
  * Main Content component that handles data fetching and renders the TaskApp.
  */
-function MainContent() {
+function MainContent({
+  authLoading,
+  user
+}: {
+  authLoading: boolean;
+  user: User | null
+}) {
   const defaultLayout = [20, 32, 48];
   const defaultCollapsed = false;
-  const { data: tasks, loading: tasksLoading, hasPendingWrites: tasksPending } = useFirestoreCollection<TaskEntity>("tasks");
-  const { data: tags, loading: tagsLoading, hasPendingWrites: tagsPending } = useFirestoreCollection<Tag>("tags");
+  const { data: tasks, loading: tasksLoading, hasPendingWrites: tasksPending } = useFirestoreCollection<TaskEntity>("tasks", [], !!user);
+  const { data: tags, loading: tagsLoading, hasPendingWrites: tagsPending } = useFirestoreCollection<Tag>("tags", [], !!user);
 
+  // If auth is done and no user, the parent will show LoginView.
+  // This component handles the rendering of the TaskApp shell.
   return (
     <div className="h-screen rounded-md border bg-background text-foreground">
       <TaskApp
         tasks={tasks}
         tags={tags}
-        tasksLoading={tasksLoading}
-        tagsLoading={tagsLoading}
+        tasksLoading={authLoading || tasksLoading}
+        tagsLoading={authLoading || tagsLoading}
         defaultLayout={defaultLayout}
         defaultCollapsed={defaultCollapsed}
         navCollapsedSize={4}
@@ -109,7 +117,7 @@ function MainContent() {
  */
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -120,24 +128,23 @@ export default function HomePage() {
         contextApi.setUserId(null);
         setUser(null);
       }
-      setLoading(false);
+      setAuthLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  if (loading) {
-      return <LoadingScreen text="Initializing..." />;
-  }
-
-  if (!user) {
+  // If authentication is finished and no user is found, show login.
+  if (!authLoading && !user) {
       return <LoginView />;
   }
 
+  // Otherwise, render the App shell immediately.
+  // If authLoading is true, MainContent will show skeletons.
   return (
     <AppProvider>
-      <UserSessionManager user={user} />
-      <MainContent />
+      {user && <UserSessionManager user={user} />}
+      <MainContent authLoading={authLoading} user={user} />
     </AppProvider>
   );
 };

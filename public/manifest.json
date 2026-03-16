@@ -38,5 +38,14 @@
       "type": "image/png",
       "purpose": "any"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Task",
+      "short_name": "Add Task",
+      "description": "Quickly add a new task",
+      "url": "./#/tasks/new",
+      "icons": [{ "src": "icons/manifest-icon-192.maskable.png", "sizes": "192x192" }]
+    }
   ]
 }

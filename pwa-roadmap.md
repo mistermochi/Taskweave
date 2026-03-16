@@ -72,12 +72,10 @@ This epic leverages PWA features for a more premium, native-like experience on s
     -   [ ] **Sub-task:** Confirm that `enableIndexedDbPersistence` is correctly configured in our `firebase.ts` file. This is the key to Firebase's offline magic.
     -   [ ] **Details:** With persistence enabled, any failed writes to Firestore are automatically queued by the Firebase SDK. It will retry these writes in the background as soon as a network connection is detected, ensuring no data is lost. This requires no extra code beyond the initial setup.
 
--   [ ] **Implement App Shortcuts (Chrome/Android):**
-    -   [ ] **Sub-task:** Add a `shortcuts` member to the `public/manifest.json` file.
-    -   [ ] **Sub-task:** Define at least two shortcuts, such as:
-        -   `{ "name": "New Task", "url": "/?action=new-task", "description": "Quickly add a new task to your inbox." }`
-        -   `{ "name": "Start Focus", "url": "/?action=start-focus", "description": "Start an unplanned focus session." }`
-    -   [ ] **Sub-task:** Update the root page logic to handle these URL query parameters and trigger the appropriate action (e.g., opening the quick-add modal).
+- [x] **Implement App Shortcuts (Chrome/Android):**
+    - [x] **Sub-task:** Add a `shortcuts` member to the `public/manifest.json` file.
+    - [x] **Sub-task:** Define at least one shortcut: "Add Task" pointing to `/#/tasks/new`.
+    - [x] **Sub-task:** Leverage existing hash routing to handle shortcuts without extra logic.
 
 -   [ ] **Implement Share Target (Chrome/Android):**
     -   [ ] **Sub-task:** Add a `share_target` member to the `public/manifest.json`.

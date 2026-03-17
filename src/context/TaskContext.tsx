@@ -32,7 +32,7 @@ const TaskContext = createContext<TaskContextType>({
  * performance optimizations to prevent unnecessary re-renders.
  *
  * @logic
- * - Subscribes to the 'tasks' collection filtered by `status == 'active'`.
+ * - Subscribes to the full 'tasks' collection.
  * - Uses a "Stabilization" pattern: It compares incoming tasks with a cached
  *   version via `updatedAt`. If a task hasn't changed, it reuses the
  *   existing object reference, keeping the downstream component tree stable.

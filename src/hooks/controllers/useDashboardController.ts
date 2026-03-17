@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { db } from '@/shared/api/firebase';
-import { doc, setDoc, where } from 'firebase/firestore';
-import { useUserId, useFirestoreCollection } from '@/hooks/useFirestore';
+import { doc, setDoc } from 'firebase/firestore';
+import { useUserId } from '@/hooks/useFirestore';
 import { contextApi } from "@/entities/context";
 import { useTaskContext } from '@/context/TaskContext';
 import { useVitalsContext } from '@/context/VitalsContext';
@@ -32,8 +32,11 @@ export const useDashboardController = () => {
   /** Current AI task recommendation with its reasoning. */
   const [recommendation, setRecommendation] = useState<{ taskId: string; reason: string; } | null>(null);
 
-  /** Real-time subscription to completed tasks for context generation. */
-  const { data: completedTasks } = useFirestoreCollection<TaskEntity>('tasks', [where('status', '==', 'completed')]);
+  /**
+   * Derive completed tasks from the global task context.
+   * Bolt ⚡ Optimization: Reuse existing TaskContext subscription instead of creating a new one.
+   */
+  const completedTasks = useMemo(() => allTasks.filter(t => t.status === 'completed'), [allTasks]);
 
   /**
    * Effect that triggers the AI Recommendation Engine whenever relevant context changes.

@@ -72,56 +72,57 @@ export function IntegrationsForm() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-4">
         <CardTitle>Integrations</CardTitle>
         <CardDescription>
-          Connect external services to import tasks and sync your schedule.
+          External services and data sync.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Main Import Trigger */}
-        <div className="flex flex-col gap-4 p-4 rounded-xl border bg-card">
+        <div className="flex flex-col gap-3 p-3 rounded-lg border bg-muted/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white p-1 rounded-full border">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" className="w-5 h-5" alt="Google Calendar" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" className="w-4 h-4" alt="Google Calendar" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium">Google Calendar</span>
-                <span className="text-xs text-muted-foreground">Sync your events</span>
+                <span className="text-xs font-medium">Google Calendar</span>
+                <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">Sync your events</span>
               </div>
             </div>
             <Button
               variant="outline"
               size="sm"
+              className="h-8 text-[11px]"
               onClick={calendarActions.startImport}
               disabled={calendarState.isLoading}
             >
               {calendarState.isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-3 w-3 mr-1" />
               )}
-              Import Events
+              Import
             </Button>
           </div>
 
           {calendarState.error && (
-            <p className="text-xs text-destructive">{calendarState.error}</p>
+            <p className="text-[10px] text-destructive">{calendarState.error}</p>
           )}
 
           {/* Individual Calendar Configuration */}
-          <div className="pt-2 border-t space-y-3">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Calendar to Project Mapping</label>
-            <div className="space-y-2">
+          <div className="pt-2 border-t space-y-2">
+            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Mapping</label>
+            <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1 no-scrollbar">
               {calendars.length === 0 ? (
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="w-full"
+                  className="w-full h-8 text-xs"
                   onClick={handleConnectCalendar}
                 >
-                  <Calendar className="h-4 w-4 mr-2" />
+                  <Calendar className="h-3 w-3 mr-2" />
                   Connect Account
                 </Button>
               ) : calendars.map(calendar => (

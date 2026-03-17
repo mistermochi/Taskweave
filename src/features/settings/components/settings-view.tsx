@@ -28,34 +28,30 @@ export function SettingsView() {
         nav={<TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />}
       />
       <ScrollArea className="flex-1">
-        <div className="container max-w-2xl mx-auto py-10 px-4 space-y-12">
-          <section id="profile">
-            <ProfileForm />
-          </section>
-          <Separator />
-          <section id="appearance">
-            <AppearanceForm />
-          </section>
-          <Separator />
-          <section id="schedule">
-            <ScheduleForm />
-          </section>
-          <Separator />
-          <section id="sensors">
-            <SensorsForm />
-          </section>
-          <Separator />
-          <section id="integrations">
-            <IntegrationsForm />
-          </section>
-          <Separator />
-          <section id="mental-model">
-            <MentalModelForm />
-          </section>
-          <Separator />
-          <section id="account">
-            <AccountForm />
-          </section>
+        <div className="container max-w-6xl mx-auto py-6 px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+            <section id="profile" className="lg:col-span-1">
+              <ProfileForm />
+            </section>
+            <section id="appearance">
+              <AppearanceForm />
+            </section>
+            <section id="schedule">
+              <ScheduleForm />
+            </section>
+            <section id="sensors">
+              <SensorsForm />
+            </section>
+            <section id="integrations">
+              <IntegrationsForm />
+            </section>
+            <section id="mental-model">
+              <MentalModelForm />
+            </section>
+            <section id="account">
+              <AccountForm />
+            </section>
+          </div>
         </div>
       </ScrollArea>
     </div>

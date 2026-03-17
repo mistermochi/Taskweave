@@ -26,30 +26,31 @@ export function AccountForm() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-4">
         <CardTitle>Account</CardTitle>
         <CardDescription>
-          Manage your account security and sessions.
+          Security and sessions.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-            <UserCircle className="h-8 w-8 text-muted-foreground" />
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 border">
+          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+            <UserCircle className="h-5 w-5 text-muted-foreground" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold">{auth.currentUser?.email}</span>
-            <span className="text-xs text-muted-foreground">Personal Account</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs font-semibold truncate">{auth.currentUser?.email}</span>
+            <span className="text-[10px] text-muted-foreground">Personal Account</span>
           </div>
         </div>
 
-        <div className="pt-6 border-t">
+        <div className="pt-2">
           <Button
             variant="destructive"
-            className="w-full justify-start"
+            size="sm"
+            className="w-full justify-start h-8 text-xs"
             onClick={handleSignOut}
           >
-            <LogOut className="h-4 w-4 mr-2" />
+            <LogOut className="h-3 w-3 mr-2" />
             Sign Out
           </Button>
         </div>

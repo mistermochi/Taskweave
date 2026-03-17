@@ -65,15 +65,15 @@ export function ProfileForm() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-4">
         <CardTitle>Profile</CardTitle>
         <CardDescription>
           Manage your public profile and display name.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center gap-4 py-4">
-          <Avatar className="h-14 w-14">
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-3 py-2 border-b">
+          <Avatar className="h-10 w-10">
             <AvatarImage
               src={settings.photoURL || `https://picsum.photos/seed/${seed}/100`}
               alt={settings.displayName || "User"}
@@ -82,9 +82,9 @@ export function ProfileForm() {
               {settings.displayName?.substring(0, 2).toUpperCase() || "TW"}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col">
-            <div className="text-lg font-medium">{settings.displayName}</div>
-            <div className="text-xs text-muted-foreground">{auth.currentUser?.email}</div>
+          <div className="flex flex-col min-w-0">
+            <div className="text-sm font-semibold truncate">{settings.displayName}</div>
+            <div className="text-[10px] text-muted-foreground truncate">{auth.currentUser?.email}</div>
           </div>
         </div>
 
@@ -94,13 +94,13 @@ export function ProfileForm() {
               control={form.control}
               name="username"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your display name" {...field} />
+                    <Input placeholder="Your display name" {...field} className="h-9" />
                   </FormControl>
-                  <FormDescription>
-                    This is your public display name. It can be your real name or a pseudonym.
+                  <FormDescription className="text-[10px]">
+                    This is your public display name.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -108,12 +108,14 @@ export function ProfileForm() {
             />
             <Button
               type="submit"
+              size="sm"
+              className="w-full"
               disabled={!form.formState.isDirty || form.formState.isSubmitting}
             >
               {form.formState.isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
               )}
-              Update profile
+              Update Profile
             </Button>
           </form>
         </Form>

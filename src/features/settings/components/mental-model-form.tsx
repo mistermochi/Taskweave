@@ -68,67 +68,69 @@ export function MentalModelForm() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-4">
         <CardTitle>Mental Model</CardTitle>
         <CardDescription>
-          Teach the scheduling engine how you work best.
+          Teach the scheduling engine.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between">
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border">
           <div className="flex items-center gap-2">
-            <Brain className={cn("h-5 w-5", isReady ? "text-primary" : "text-muted-foreground")} />
-            <span className="text-sm font-semibold">Engine Status</span>
+            <Brain className={cn("h-4 w-4", isReady ? "text-primary" : "text-muted-foreground")} />
+            <span className="text-xs font-semibold">Engine Status</span>
           </div>
           <span className={cn(
-            "text-[10px] font-bold uppercase px-2 py-1 rounded",
+            "text-[9px] font-bold uppercase px-1.5 py-0.5 rounded",
             isReady ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
           )}>
             {isReady ? "Ready" : "Cold Start"}
           </span>
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {/* AI Synthetic Calibration */}
-          <div className="space-y-3">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs font-medium">AI Calibration</span>
-              <p className="text-[11px] text-muted-foreground">Generate synthetic success scenarios using Gemini.</p>
+          <div className="space-y-2">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">AI Calibration</span>
+              <p className="text-[10px] text-muted-foreground">Generate synthetic success scenarios.</p>
             </div>
             <Button
               onClick={handleAICalibration}
               disabled={calibrationStatus === 'loading' || tasks.length === 0}
               variant={calibrationStatus === 'success' ? "outline" : "default"}
-              className={cn("w-full justify-start", calibrationStatus === 'success' && "border-primary text-primary hover:bg-primary/5")}
+              size="sm"
+              className={cn("w-full justify-start h-8 text-xs", calibrationStatus === 'success' && "border-primary text-primary hover:bg-primary/5")}
             >
               {calibrationStatus === 'loading' ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analyzing...</>
+                <><Loader2 className="h-3 w-3 mr-2 animate-spin" /> Analyzing...</>
               ) : calibrationStatus === 'success' ? (
-                <><CheckCircle2 className="h-4 w-4 mr-2" /> AI Calibrated ({calibrationCount})</>
+                <><CheckCircle2 className="h-3 w-3 mr-2" /> AI Calibrated ({calibrationCount})</>
               ) : (
-                <><Sparkles className="h-4 w-4 mr-2 text-yellow-500" /> Calibrate with AI</>
+                <><Sparkles className="h-3 w-3 mr-2 text-yellow-500" /> Calibrate AI</>
               )}
             </Button>
           </div>
 
           {/* Historical Re-learning */}
-          <div className="space-y-3">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs font-medium">Historical Learning</span>
-              <p className="text-[11px] text-muted-foreground">Replay previous task completions to train the model.</p>
+          <div className="space-y-2">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Historical Learning</span>
+              <p className="text-[10px] text-muted-foreground">Replay previous completions.</p>
             </div>
             <Button
               onClick={handleHistoryCalibration}
               disabled={historyCalibrationStatus === 'loading' || tasks.filter(t => t.status === 'completed').length === 0}
               variant={historyCalibrationStatus === 'success' ? "outline" : "secondary"}
-              className={cn("w-full justify-start", historyCalibrationStatus === 'success' && "border-primary text-primary hover:bg-primary/5")}
+              size="sm"
+              className={cn("w-full justify-start h-8 text-xs", historyCalibrationStatus === 'success' && "border-primary text-primary hover:bg-primary/5")}
             >
               {historyCalibrationStatus === 'loading' ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Learning...</>
+                <><Loader2 className="h-3 w-3 mr-2 animate-spin" /> Learning...</>
               ) : historyCalibrationStatus === 'success' ? (
-                <><CheckCircle2 className="h-4 w-4 mr-2" /> Re-Learned ({historyCalibrationCount})</>
+                <><CheckCircle2 className="h-3 w-3 mr-2" /> Re-Learned ({historyCalibrationCount})</>
               ) : (
-                <><Brain className="h-4 w-4 mr-2" /> Learn from History</>
+                <><Brain className="h-3 w-3 mr-2" /> Learn from History</>
               )}
             </Button>
           </div>

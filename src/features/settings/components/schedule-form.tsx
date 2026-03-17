@@ -8,7 +8,6 @@ import { Button } from "@/shared/ui/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -28,7 +27,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/shared/ui/ui/card";
-import { User, BedDouble } from 'lucide-react';
+import { User, BedDouble, Save } from 'lucide-react';
 import { toast } from "sonner";
 
 const scheduleFormSchema = z.object({
@@ -67,6 +66,7 @@ export function ScheduleForm() {
         sleepEndHour: parseInt(data.sleepEndHour),
       });
       toast.success("Schedule updated successfully.");
+      form.reset(data);
     } catch (error) {
       toast.error("Failed to update schedule.");
     }
@@ -74,38 +74,38 @@ export function ScheduleForm() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Typical Schedule</CardTitle>
+      <CardHeader className="pb-4">
+        <CardTitle>Schedule</CardTitle>
         <CardDescription>
-          Define your typical work and sleep hours to help the engine schedule tasks.
+          Your typical work and sleep hours.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid gap-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid gap-4">
               {/* Work Schedule */}
-              <div className="flex flex-col gap-4 p-4 rounded-xl border bg-card">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-3 p-3 rounded-lg border bg-muted/30">
+                <div className="flex items-center gap-2 mb-1">
                   <User className="h-4 w-4 text-orange-400" />
-                  <span className="text-sm font-semibold">Work Schedule</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Work Schedule</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <FormField
                     control={form.control}
                     name="workStartHour"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Start Time</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormItem className="space-y-1">
+                        <FormLabel className="text-[10px] text-muted-foreground">Start Time</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select start hour" />
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Select" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {hours.map(h => (
-                              <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                              <SelectItem key={h.value} value={h.value} className="text-xs">{h.label}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -117,17 +117,17 @@ export function ScheduleForm() {
                     control={form.control}
                     name="workEndHour"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">End Time</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormItem className="space-y-1">
+                        <FormLabel className="text-[10px] text-muted-foreground">End Time</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select end hour" />
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Select" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {hours.map(h => (
-                              <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                              <SelectItem key={h.value} value={h.value} className="text-xs">{h.label}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -139,27 +139,27 @@ export function ScheduleForm() {
               </div>
 
               {/* Sleep Routine */}
-              <div className="flex flex-col gap-4 p-4 rounded-xl border bg-card">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-3 p-3 rounded-lg border bg-muted/30">
+                <div className="flex items-center gap-2 mb-1">
                   <BedDouble className="h-4 w-4 text-blue-400" />
-                  <span className="text-sm font-semibold">Sleep Routine</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sleep Routine</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <FormField
                     control={form.control}
                     name="sleepStartHour"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Start Time</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormItem className="space-y-1">
+                        <FormLabel className="text-[10px] text-muted-foreground">Start Time</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select start hour" />
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Select" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {hours.map(h => (
-                              <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                              <SelectItem key={h.value} value={h.value} className="text-xs">{h.label}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -171,17 +171,17 @@ export function ScheduleForm() {
                     control={form.control}
                     name="sleepEndHour"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">End Time</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormItem className="space-y-1">
+                        <FormLabel className="text-[10px] text-muted-foreground">End Time</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select end hour" />
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Select" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {hours.map(h => (
-                              <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                              <SelectItem key={h.value} value={h.value} className="text-xs">{h.label}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -192,7 +192,15 @@ export function ScheduleForm() {
                 </div>
               </div>
             </div>
-            <Button type="submit">Save Changes</Button>
+            <Button
+              type="submit"
+              size="sm"
+              className="w-full"
+              disabled={!form.formState.isDirty}
+            >
+              <Save className="h-3 w-3 mr-2" />
+              Save Changes
+            </Button>
           </form>
         </Form>
       </CardContent>

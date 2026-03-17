@@ -5,6 +5,13 @@ import { useTaskContext } from '@/context/TaskContext';
 import { useVitalsContext } from '@/context/VitalsContext';
 import { RecommendationEngine } from '@/services/RecommendationEngine';
 import { Button } from "@/shared/ui/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/shared/ui/ui/card";
 import { Brain, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
@@ -60,15 +67,14 @@ export function MentalModelForm() {
   const isReady = calibrationStatus === 'success' || historyCalibrationStatus === 'success';
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Mental Model</h3>
-        <p className="text-sm text-muted-foreground">
+    <Card>
+      <CardHeader>
+        <CardTitle>Mental Model</CardTitle>
+        <CardDescription>
           Teach the scheduling engine how you work best.
-        </p>
-      </div>
-
-      <div className="p-6 rounded-xl border bg-card space-y-6">
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Brain className={cn("h-5 w-5", isReady ? "text-primary" : "text-muted-foreground")} />
@@ -127,7 +133,7 @@ export function MentalModelForm() {
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

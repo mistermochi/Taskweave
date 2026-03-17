@@ -21,6 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/shared/ui/ui/card";
 import { User, BedDouble } from 'lucide-react';
 import { toast } from "sonner";
 
@@ -66,128 +73,129 @@ export function ScheduleForm() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Typical Schedule</h3>
-        <p className="text-sm text-muted-foreground">
+    <Card>
+      <CardHeader>
+        <CardTitle>Typical Schedule</CardTitle>
+        <CardDescription>
           Define your typical work and sleep hours to help the engine schedule tasks.
-        </p>
-      </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="grid gap-6">
-            {/* Work Schedule */}
-            <div className="flex flex-col gap-4 p-4 rounded-xl border bg-card">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-orange-400" />
-                <span className="text-sm font-semibold">Work Schedule</span>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid gap-6">
+              {/* Work Schedule */}
+              <div className="flex flex-col gap-4 p-4 rounded-xl border bg-card">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-orange-400" />
+                  <span className="text-sm font-semibold">Work Schedule</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="workStartHour"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Start Time</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select start hour" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {hours.map(h => (
+                              <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="workEndHour"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">End Time</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select end hour" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {hours.map(h => (
+                              <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="workStartHour"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">Start Time</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select start hour" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {hours.map(h => (
-                            <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="workEndHour"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">End Time</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select end hour" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {hours.map(h => (
-                            <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
+              {/* Sleep Routine */}
+              <div className="flex flex-col gap-4 p-4 rounded-xl border bg-card">
+                <div className="flex items-center gap-2">
+                  <BedDouble className="h-4 w-4 text-blue-400" />
+                  <span className="text-sm font-semibold">Sleep Routine</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="sleepStartHour"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Start Time</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select start hour" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {hours.map(h => (
+                              <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="sleepEndHour"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">End Time</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select end hour" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {hours.map(h => (
+                              <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </div>
-
-            {/* Sleep Routine */}
-            <div className="flex flex-col gap-4 p-4 rounded-xl border bg-card">
-              <div className="flex items-center gap-2">
-                <BedDouble className="h-4 w-4 text-blue-400" />
-                <span className="text-sm font-semibold">Sleep Routine</span>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="sleepStartHour"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">Start Time</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select start hour" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {hours.map(h => (
-                            <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="sleepEndHour"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">End Time</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select end hour" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {hours.map(h => (
-                            <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          </div>
-          <Button type="submit">Save Changes</Button>
-        </form>
-      </Form>
-    </div>
+            <Button type="submit">Save Changes</Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

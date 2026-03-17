@@ -9,6 +9,13 @@ import { CalendarMappingRow } from '@/features/import-calendar/CalendarMappingRo
 import { useReferenceContext } from '@/context/ReferenceContext';
 import { CalendarImportModal } from '@/features/import-calendar/CalendarImportModal';
 import { Button } from "@/shared/ui/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/shared/ui/ui/card";
 import { Calendar, Plus, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
 
@@ -64,15 +71,14 @@ export function IntegrationsForm() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Integrations</h3>
-        <p className="text-sm text-muted-foreground">
+    <Card>
+      <CardHeader>
+        <CardTitle>Integrations</CardTitle>
+        <CardDescription>
           Connect external services to import tasks and sync your schedule.
-        </p>
-      </div>
-
-      <div className="space-y-4">
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
         {/* Main Import Trigger */}
         <div className="flex flex-col gap-4 p-4 rounded-xl border bg-card">
           <div className="flex items-center justify-between">
@@ -132,19 +138,19 @@ export function IntegrationsForm() {
             </div>
           </div>
         </div>
-      </div>
 
-      <CalendarImportModal
-        isOpen={calendarState.isOpen}
-        events={calendarState.events}
-        selectedIds={calendarState.selectedIds}
-        importedEventIds={calendarState.importedEventIds}
-        onToggle={calendarActions.toggleSelection}
-        onConfirm={handleConfirmImport}
-        onCancel={calendarActions.cancelImport}
-        tags={tags}
-        settings={settings}
-      />
-    </div>
+        <CalendarImportModal
+          isOpen={calendarState.isOpen}
+          events={calendarState.events}
+          selectedIds={calendarState.selectedIds}
+          importedEventIds={calendarState.importedEventIds}
+          onToggle={calendarActions.toggleSelection}
+          onConfirm={handleConfirmImport}
+          onCancel={calendarActions.cancelImport}
+          tags={tags}
+          settings={settings}
+        />
+      </CardContent>
+    </Card>
   );
 }

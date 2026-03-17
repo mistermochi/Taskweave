@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { isToday, isPast, isTomorrow, startOfToday } from "date-fns";
 import { Task } from "@/entities/task";
 import { Tag } from "@/entities/tag";
+import { useReferenceContext } from "@/context/ReferenceContext";
 import { useTaskAppStore } from "../use-task-app";
 import { TaskListItem } from "./task-list-item";
 
@@ -24,13 +25,7 @@ const ENERGY_MAP: Record<string, number> = { 'High': 3, 'Medium': 2, 'Low': 1 };
 export function TaskList({ items, tags, loading = false }: TaskListProps) {
   const selectedTaskId = useTaskAppStore((state) => state.selectedTask?.id);
   const setSelectedTask = useTaskAppStore((state) => state.setSelectedTask);
-
-  const tagsMap = useMemo(() => {
-    return tags.reduce((acc, tag) => {
-      acc[tag.id] = tag;
-      return acc;
-    }, {} as Record<string, Tag>);
-  }, [tags]);
+  const { tagsMap } = useReferenceContext();
 
   const groups = useMemo(() => {
     const overdue: Task[] = [];

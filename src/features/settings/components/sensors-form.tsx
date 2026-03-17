@@ -6,6 +6,13 @@ import { Switch } from "@/shared/ui/ui/switch";
 import { Button } from "@/shared/ui/ui/button";
 import { MapPin, Move, Battery, Zap } from 'lucide-react';
 import { contextApi } from '@/entities/context';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/shared/ui/ui/card";
 import { toast } from "sonner";
 
 export function SensorsForm() {
@@ -68,15 +75,14 @@ export function SensorsForm() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Context Sensors</h3>
-        <p className="text-sm text-muted-foreground">
+    <Card>
+      <CardHeader>
+        <CardTitle>Context Sensors</CardTitle>
+        <CardDescription>
           Allow Taskweave to adapt to your environment using hardware sensors.
-        </p>
-      </div>
-
-      <div className="space-y-4">
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
         {/* Location Toggle */}
         <div className="flex items-center justify-between p-4 rounded-xl border bg-card">
           <div className="flex items-center gap-3">
@@ -139,7 +145,7 @@ export function SensorsForm() {
           </div>
           <span className="text-[10px] font-bold text-primary uppercase bg-primary/10 px-2 py-1 rounded">Always On</span>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

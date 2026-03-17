@@ -3,6 +3,14 @@
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { Sun, Moon } from 'lucide-react';
 import { cn } from "@/shared/lib/utils";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/shared/ui/ui/card";
+import { Label } from "@/shared/ui/ui/label";
 
 const THEME_COLORS = {
   green: { name: 'Mantis', hsl: '149 80% 46%' },
@@ -16,19 +24,19 @@ export function AppearanceForm() {
   const { settings, updateSettings } = useUserSettings();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h3 className="text-lg font-medium">Appearance</h3>
-        <p className="text-sm text-muted-foreground">
+    <Card>
+      <CardHeader>
+        <CardTitle>Appearance</CardTitle>
+        <CardDescription>
           Customize the appearance of the app. Automatically switch between day and night themes.
-        </p>
-      </div>
-
-      <div className="space-y-6">
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Theme Mode</label>
+          <Label>Theme Mode</Label>
           <div className="grid grid-cols-2 gap-4">
             <button
+              type="button"
               onClick={() => updateSettings({ themeMode: 'light' })}
               className={cn(
                 "flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all hover:bg-accent",
@@ -41,6 +49,7 @@ export function AppearanceForm() {
               <span className="text-xs font-semibold">Light</span>
             </button>
             <button
+              type="button"
               onClick={() => updateSettings({ themeMode: 'dark' })}
               className={cn(
                 "flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all hover:bg-accent",
@@ -56,11 +65,12 @@ export function AppearanceForm() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Accent Color</label>
+          <Label>Accent Color</Label>
           <div className="flex flex-wrap gap-4">
             {Object.entries(THEME_COLORS).map(([key, value]) => (
               <button
                 key={key}
+                type="button"
                 onClick={() => updateSettings({ themeColor: key })}
                 className="flex flex-col items-center gap-2 group"
                 title={value.name}
@@ -84,7 +94,7 @@ export function AppearanceForm() {
             ))}
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

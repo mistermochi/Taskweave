@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { SidebarNav } from "./sidebar-nav";
 import { ProfileForm } from "./profile-form";
 import { AppearanceForm } from "./appearance-form";
 import { ScheduleForm } from "./schedule-form";
@@ -14,68 +13,51 @@ import { TaskNavigation } from "@/features/task-app/components/task-navigation";
 import { useFirestoreCollection } from "@/hooks/useFirestore";
 import { TaskEntity } from "@/entities/task";
 import { Tag } from "@/entities/tag";
-
-const settingsTabs = [
-  {
-    id: "profile",
-    title: "Profile",
-  },
-  {
-    id: "appearance",
-    title: "Appearance",
-  },
-  {
-    id: "schedule",
-    title: "Schedule",
-  },
-  {
-    id: "sensors",
-    title: "Sensors",
-  },
-  {
-    id: "integrations",
-    title: "Integrations",
-  },
-  {
-    id: "mental-model",
-    title: "Mental Model",
-  },
-  {
-    id: "account",
-    title: "Account",
-  },
-];
+import { ScrollArea } from "@/shared/ui/ui/scroll-area";
+import { Separator } from "@/shared/ui/ui/separator";
 
 export function SettingsView() {
-  const [activeTab, setActiveTab] = React.useState("profile");
   const { data: tasks } = useFirestoreCollection<TaskEntity>("tasks");
   const { data: tags } = useFirestoreCollection<Tag>("tags");
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden bg-background">
       <AppHeader
         title="Settings"
         subtitle="Account preferences"
         nav={<TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />}
       />
-      <div className="flex-1 flex flex-col lg:flex-row lg:space-x-12 lg:space-y-0 p-4">
-        <aside className="lg:w-1/5">
-          <SidebarNav
-            items={settingsTabs}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-        </aside>
-        <div className="flex-1 lg:max-w-2xl mt-4 lg:mt-0">
-          {activeTab === "profile" && <ProfileForm />}
-          {activeTab === "appearance" && <AppearanceForm />}
-          {activeTab === "schedule" && <ScheduleForm />}
-          {activeTab === "sensors" && <SensorsForm />}
-          {activeTab === "integrations" && <IntegrationsForm />}
-          {activeTab === "mental-model" && <MentalModelForm />}
-          {activeTab === "account" && <AccountForm />}
+      <ScrollArea className="flex-1">
+        <div className="container max-w-2xl mx-auto py-10 px-4 space-y-12">
+          <section id="profile">
+            <ProfileForm />
+          </section>
+          <Separator />
+          <section id="appearance">
+            <AppearanceForm />
+          </section>
+          <Separator />
+          <section id="schedule">
+            <ScheduleForm />
+          </section>
+          <Separator />
+          <section id="sensors">
+            <SensorsForm />
+          </section>
+          <Separator />
+          <section id="integrations">
+            <IntegrationsForm />
+          </section>
+          <Separator />
+          <section id="mental-model">
+            <MentalModelForm />
+          </section>
+          <Separator />
+          <section id="account">
+            <AccountForm />
+          </section>
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

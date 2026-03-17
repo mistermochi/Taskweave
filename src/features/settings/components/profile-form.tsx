@@ -18,6 +18,13 @@ import {
 } from "@/shared/ui/ui/form";
 import { Input } from "@/shared/ui/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/ui/avatar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/shared/ui/ui/card";
 import { auth } from "@/shared/api/firebase";
 
 const profileFormSchema = z.object({
@@ -57,52 +64,60 @@ export function ProfileForm() {
   const seed = settings.displayName || 'taskweave';
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-4 p-4 rounded-xl border bg-card text-card-foreground">
-        <Avatar className="h-14 w-14 border border-border shrink-0">
-          <AvatarImage
-            src={settings.photoURL || `https://picsum.photos/seed/${seed}/100`}
-            alt={settings.displayName || "User"}
-          />
-          <AvatarFallback className="bg-primary/10 text-primary">
-            {settings.displayName?.substring(0, 2).toUpperCase() || "TW"}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <div className="text-lg font-medium">{settings.displayName}</div>
-          <div className="text-xs text-muted-foreground">{auth.currentUser?.email}</div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Profile</CardTitle>
+        <CardDescription>
+          Manage your public profile and display name.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex items-center gap-4 py-4">
+          <Avatar className="h-14 w-14">
+            <AvatarImage
+              src={settings.photoURL || `https://picsum.photos/seed/${seed}/100`}
+              alt={settings.displayName || "User"}
+            />
+            <AvatarFallback>
+              {settings.displayName?.substring(0, 2).toUpperCase() || "TW"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <div className="text-lg font-medium">{settings.displayName}</div>
+            <div className="text-xs text-muted-foreground">{auth.currentUser?.email}</div>
+          </div>
         </div>
-      </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="Your display name" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is your public display name. It can be your real name or a pseudonym.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button
-          type="submit"
-          disabled={!form.formState.isDirty || form.formState.isSubmitting}
-        >
-          {form.formState.isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          Update profile
-        </Button>
-      </form>
-    </Form>
-    </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Your display name" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    This is your public display name. It can be your real name or a pseudonym.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              disabled={!form.formState.isDirty || form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Update profile
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

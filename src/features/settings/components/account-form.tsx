@@ -4,6 +4,13 @@ import React from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/shared/api/firebase';
 import { Button } from "@/shared/ui/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/shared/ui/ui/card";
 import { LogOut, UserCircle } from 'lucide-react';
 import { toast } from "sonner";
 
@@ -18,15 +25,14 @@ export function AccountForm() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Account</h3>
-        <p className="text-sm text-muted-foreground">
+    <Card>
+      <CardHeader>
+        <CardTitle>Account</CardTitle>
+        <CardDescription>
           Manage your account security and sessions.
-        </p>
-      </div>
-
-      <div className="p-6 rounded-xl border bg-card space-y-6">
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
             <UserCircle className="h-8 w-8 text-muted-foreground" />
@@ -47,7 +53,7 @@ export function AccountForm() {
             Sign Out
           </Button>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

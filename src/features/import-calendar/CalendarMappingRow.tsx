@@ -44,15 +44,16 @@ export const CalendarMappingRow: React.FC<CalendarMappingRowProps> = ({
     onToggleEnabled
 }) => {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-border last:border-0 gap-4">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+    <div className="flex items-center justify-between py-2 border-b border-border last:border-0 gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
             <Checkbox
                 checked={isEnabled}
                 onCheckedChange={() => onToggleEnabled(calendar.id)}
+                className="scale-90"
             />
             <div className="flex flex-col min-w-0">
-                <span className="text-sm font-medium text-foreground truncate">{calendar.summary}</span>
-                <span className="text-[10px] text-muted-foreground font-mono truncate">{calendar.id}</span>
+                <span className="text-[11px] font-medium text-foreground truncate">{calendar.summary}</span>
+                <span className="text-[9px] text-muted-foreground font-mono truncate">{calendar.id}</span>
             </div>
         </div>
         <div className="shrink-0">
@@ -60,13 +61,13 @@ export const CalendarMappingRow: React.FC<CalendarMappingRowProps> = ({
                 value={selectedProject}
                 onValueChange={(value) => onMappingChange(calendar.id, value)}
             >
-                <SelectTrigger className="h-8 text-xs min-w-[140px]">
-                    <SelectValue placeholder="No Project Mapping" />
+                <SelectTrigger className="h-7 text-[10px] min-w-[110px] max-w-[140px]">
+                    <SelectValue placeholder="No Project" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="none">No Project Mapping</SelectItem>
+                    <SelectItem value="none" className="text-[10px]">No Project</SelectItem>
                     {projects.map(tag => (
-                        <SelectItem key={tag.id} value={tag.id}>{tag.name}</SelectItem>
+                        <SelectItem key={tag.id} value={tag.id} className="text-[10px]">{tag.name}</SelectItem>
                     ))}
                 </SelectContent>
             </Select>

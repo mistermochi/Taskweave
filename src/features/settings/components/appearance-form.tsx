@@ -11,6 +11,7 @@ import {
   CardTitle
 } from "@/shared/ui/ui/card";
 import { Label } from "@/shared/ui/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/ui/toggle-group";
 
 const THEME_COLORS = {
   green: { name: 'Mantis', hsl: '149 80% 46%' },
@@ -25,71 +26,58 @@ export function AppearanceForm() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-4">
         <CardTitle>Appearance</CardTitle>
         <CardDescription>
-          Customize the appearance of the app. Automatically switch between day and night themes.
+          Customize the appearance of the app.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label>Theme Mode</Label>
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              type="button"
-              onClick={() => updateSettings({ themeMode: 'light' })}
-              className={cn(
-                "flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all hover:bg-accent",
-                settings.themeMode === 'light'
-                  ? "border-primary bg-primary/5 text-primary"
-                  : "border-muted bg-transparent text-muted-foreground"
-              )}
+        <div className="space-y-3">
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Theme Mode</Label>
+          <ToggleGroup
+            type="single"
+            value={settings.themeMode}
+            onValueChange={(value) => value && updateSettings({ themeMode: value as 'light' | 'dark' })}
+            className="grid grid-cols-2 gap-2"
+          >
+            <ToggleGroupItem
+              value="light"
+              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5"
             >
-              <Sun className="h-6 w-6" />
-              <span className="text-xs font-semibold">Light</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => updateSettings({ themeMode: 'dark' })}
-              className={cn(
-                "flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all hover:bg-accent",
-                settings.themeMode === 'dark'
-                  ? "border-primary bg-primary/5 text-primary"
-                  : "border-muted bg-transparent text-muted-foreground"
-              )}
+              <Sun className="h-4 w-4" />
+              <span className="text-xs font-medium">Light</span>
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="dark"
+              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5"
             >
-              <Moon className="h-6 w-6" />
-              <span className="text-xs font-semibold">Dark</span>
-            </button>
-          </div>
+              <Moon className="h-4 w-4" />
+              <span className="text-xs font-medium">Dark</span>
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
 
-        <div className="space-y-2">
-          <Label>Accent Color</Label>
-          <div className="flex flex-wrap gap-4">
+        <div className="space-y-3">
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Accent Color</Label>
+          <div className="flex flex-wrap gap-2">
             {Object.entries(THEME_COLORS).map(([key, value]) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => updateSettings({ themeColor: key })}
-                className="flex flex-col items-center gap-2 group"
+                className="flex items-center justify-center p-0.5"
                 title={value.name}
               >
                 <div
                   style={{ backgroundColor: `hsl(${value.hsl})` }}
                   className={cn(
-                    "w-10 h-10 rounded-full border-4 transition-all group-hover:scale-110",
+                    "w-8 h-8 rounded-full border-2 transition-all hover:scale-110",
                     settings.themeColor === key
-                      ? "border-foreground"
-                      : "border-transparent opacity-70"
+                      ? "border-foreground scale-110"
+                      : "border-transparent opacity-80"
                   )}
                 />
-                <span className={cn(
-                  "text-[10px] font-medium uppercase tracking-wider",
-                  settings.themeColor === key ? "text-foreground" : "text-muted-foreground opacity-0 group-hover:opacity-100"
-                )}>
-                  {value.name}
-                </span>
               </button>
             ))}
           </div>

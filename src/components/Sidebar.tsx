@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { TagTree } from '@/components/TagSidebar';
 import { tagApi } from '@/entities/tag';
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/ui/avatar";
 
 /**
  * Global navigation sidebar component.
@@ -69,9 +70,16 @@ export const Sidebar: React.FC = () => {
                     className="flex items-center gap-3 cursor-pointer hover:bg-sidebar-accent/50 p-2 rounded-lg transition-colors border border-transparent hover:border-sidebar-border"
                     onClick={showSettings}
                 >
-                    <div className="h-8 w-8 rounded-lg border border-sidebar-border overflow-hidden bg-sidebar-primary/10 flex items-center justify-center shrink-0">
-                        <img src={settings.photoURL || `https://picsum.photos/seed/${seed}/100`} className="h-full w-full object-cover" alt="User avatar" />
-                    </div>
+                    <Avatar className="h-8 w-8 rounded-lg border border-sidebar-border shrink-0">
+                        <AvatarImage
+                          src={settings.photoURL || `https://picsum.photos/seed/${seed}/100`}
+                          alt="User avatar"
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="rounded-lg bg-sidebar-primary/10 uppercase">
+                          {settings.displayName?.charAt(0) || 'U'}
+                        </AvatarFallback>
+                    </Avatar>
                     <div className="flex flex-col min-w-0 flex-1">
                         <span className="text-sm font-bold text-sidebar-foreground truncate">{settings.displayName}</span>
                         <span className="text-xxs text-sidebar-foreground/50 truncate">Personal Workspace</span>

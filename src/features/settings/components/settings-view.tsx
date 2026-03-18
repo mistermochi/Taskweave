@@ -10,15 +10,14 @@ import { MentalModelForm } from "./mental-model-form";
 import { AccountForm } from "./account-form";
 import { AppHeader } from "@/shared/ui/ui/app-header";
 import { TaskNavigation } from "@/features/task-app/components/task-navigation";
-import { useFirestoreCollection } from "@/hooks/useFirestore";
-import { TaskEntity } from "@/entities/task";
-import { Tag } from "@/entities/tag";
+import { useTaskContext } from "@/context/TaskContext";
+import { useReferenceContext } from "@/context/ReferenceContext";
 import { ScrollArea } from "@/shared/ui/ui/scroll-area";
 import { Separator } from "@/shared/ui/ui/separator";
 
 export function SettingsView() {
-  const { data: tasks } = useFirestoreCollection<TaskEntity>("tasks");
-  const { data: tags } = useFirestoreCollection<Tag>("tags");
+  const { tasks } = useTaskContext();
+  const { tags } = useReferenceContext();
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-background">

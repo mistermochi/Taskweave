@@ -1,8 +1,6 @@
 import { useMemo } from "react";
 import { useVitalsContext } from '@/context/VitalsContext';
-import { useFirestoreCollection } from '@/hooks/useFirestore';
-import { where } from 'firebase/firestore';
-import { TaskEntity } from "@/entities/task";
+import { useTaskContext } from '@/context/TaskContext';
 import { Category } from "@/entities/tag";
 
 /**
@@ -14,16 +12,13 @@ import { Category } from "@/entities/tag";
  */
 export const useInsightsController = () => {
   const { vitals: recentVitals, loading: contextLoading } = useVitalsContext();
+  const { tasks: allTasks, loading: tasksLoading } = useTaskContext();
 
   /**
-   * Real-time subscription to all completed tasks.
-   * Constraints: Fetch only items with 'completed' status.
+   * Derive completed tasks from the global task context.
+   * Bolt ⚡ Optimization: Reuse existing TaskContext subscription instead of creating a new one.
    */
-  const historyConstraints = useMemo(() => [
-    where('status', '==', 'completed')
-  ], []);
-
-  const { data: allCompletedTasks, loading: historyLoading } = useFirestoreCollection<TaskEntity>('tasks', historyConstraints);
+  const allCompletedTasks = useMemo(() => allTasks.filter(t => t.status === 'completed'), [allTasks]);
 
   /**
    * Most recent 50 vitals, sorted by time descending.
@@ -96,7 +91,7 @@ export const useInsightsController = () => {
 
   return {
     state: {
-      isLoading: contextLoading || historyLoading,
+      isLoading: contextLoading || tasksLoading,
       ...stats,
       recentVitals: sortedVitals
     }

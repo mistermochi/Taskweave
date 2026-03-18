@@ -8,11 +8,10 @@ import { LinUCBService } from '@/services/LinUCBService';
 import { contextApi } from '@/entities/context';
 import { SuggestionContext } from '@/types/scheduling';
 import { taskApi } from '@/entities/task';
-import { useUserId, useFirestoreCollection } from '@/hooks/useFirestore';
+import { useUserId } from '@/hooks/useFirestore';
 import { useEnergyModel } from '@/hooks/useEnergyModel';
 import { calculateSessionImpact } from '@/shared/lib/energyUtils';
 import { getNextRecurrenceDate } from '@/shared/lib/timeUtils';
-import { where } from 'firebase/firestore';
 
 /**
  * View Controller for the Task Inventory (Database) interface.
@@ -25,7 +24,7 @@ import { where } from 'firebase/firestore';
  */
 export const useTaskDatabaseController = (activeTagFilter: string | null) => {
   const uid = useUserId();
-  const { tasks: allActiveTasks } = useTaskContext();
+  const { tasks: allTasks } = useTaskContext();
   const { tags } = useReferenceContext();
   const energyModel = useEnergyModel();
   
@@ -33,7 +32,14 @@ export const useTaskDatabaseController = (activeTagFilter: string | null) => {
   /** Current AI-driven recommendation for the "Best Next Task" in the inventory. */
   const [recommendation, setRecommendation] = useState<{ taskId: string; reason: string; strategy: string } | null>(null);
   
-  const { data: completedTasks } = useFirestoreCollection<TaskEntity>('tasks', [where('status', '==', 'completed')]);
+  /**
+   * Derive completed tasks from the global task context.
+   * Bolt ⚡ Optimization: Reuse existing TaskContext subscription instead of creating a new one.
+   */
+  const completedTasks = useMemo(() => allTasks.filter(t => t.status === 'completed'), [allTasks]);
+  // We keep all tasks in the local 'allActiveTasks' variable to maintain compatibility with
+  // previous behavior where completed tasks were processed into sections (falling into 'inbox').
+  const allActiveTasks = allTasks;
   const taskService = taskApi;
 
   /**

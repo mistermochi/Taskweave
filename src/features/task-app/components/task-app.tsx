@@ -151,6 +151,14 @@ export function TaskApp({
     }, {} as Record<string, Tag>);
   }, [mergedTags]);
 
+  // Bolt ⚡: Separate map for name-based lookups to avoid ID collisions
+  const mergedTagsByName = React.useMemo(() => {
+    return mergedTags.reduce((acc, tag) => {
+      acc[tag.name.toLowerCase()] = tag;
+      return acc;
+    }, {} as Record<string, Tag>);
+  }, [mergedTags]);
+
   useHashRouter(mergedTasks);
 
   React.useEffect(() => {
@@ -268,20 +276,27 @@ export function TaskApp({
   }, [createNewTask, setSearchQuery]);
 
   const filteredTasks = React.useMemo(() => {
-    const parsedSearch = parseTaskInput(searchQuery);
-    const tagKeyword = parsedSearch.attributes.tagKeyword;
-    const searchTitle = parsedSearch.cleanTitle.toLowerCase();
+    // Bolt ⚡: Hoist search parsing and only execute if query exists
+    const parsedSearch = searchQuery ? parseTaskInput(searchQuery) : null;
+    const tagKeyword = parsedSearch?.attributes.tagKeyword;
+    const searchTitle = parsedSearch?.cleanTitle.toLowerCase();
+    const lowerTagKeyword = tagKeyword?.toLowerCase();
 
     const selectedTag = selectedTagId
       ? mergedTagsMap[selectedTagId]
       : null;
 
-    const lowerTagKeyword = tagKeyword?.toLowerCase();
     const matchedTag = lowerTagKeyword
-      ? mergedTags.find(t => t.name.toLowerCase() === lowerTagKeyword)
+      ? mergedTagsByName[lowerTagKeyword] // Bolt ⚡: O(1) lookup from specialized map
       : null;
 
     return mergedTasks.filter((task) => {
+      // Bolt ⚡ Optimization: Fast status check first to skip expensive
+      // search/matching logic for thousands of non-visible tasks.
+      if (taskTab === "active" && task.status !== "active") return false;
+      if (taskTab === "done" && task.status !== "completed") return false;
+      if (taskTab === "archived" && task.status !== "archived") return false;
+
       // Search filter
       if (searchQuery) {
           // If there's a tag keyword, task must match it
@@ -299,11 +314,6 @@ export function TaskApp({
           }
       }
 
-      // Status filter
-      if (taskTab === "active" && task.status !== "active") return false;
-      if (taskTab === "done" && task.status !== "completed") return false;
-      if (taskTab === "archived" && task.status !== "archived") return false;
-
       // Legacy Tag filter (still used by some parts of the app possibly)
       if (selectedTagId && !tagKeyword) {
         if (!selectedTag) return false;
@@ -316,7 +326,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [mergedTasks, taskTab, selectedTagId, mergedTags, mergedTagsMap, searchQuery]);
+  }, [mergedTasks, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

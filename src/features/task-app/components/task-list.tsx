@@ -117,7 +117,7 @@ export function TaskList({ items, tags, loading = false }: TaskListProps) {
         )}
         {groups.map((group) => (
           <div key={group.label} className="flex flex-col gap-2">
-            <div className="text-muted-foreground sticky top-0 bg-background/95 z-10 py-2 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
+            <div className="text-muted-foreground sticky top-0 bg-background/95 z-10 py-2 text-xs font-bold uppercase tracking-wider backdrop-blur">
                 {group.label}
             </div>
             {group.tasks.map((item) => (

@@ -13,3 +13,7 @@ This journal tracks critical UX and accessibility learnings for the taskweave pr
 ## 2026-05-15 - Ultra-Compact Responsive Pickers
 **Learning:** For inline pickers, maintaining a side-by-side layout even on small viewports (by scaling down and using concise labels) preserves the hierarchy and efficiency of the "Quick Select + Precision" pattern better than stacking.
 **Action:** Optimized `DatePicker` with reduced scaling (scale-90) and abbreviated labels (TMW, WKND) to fit side-by-side on mobile.
+
+## 2026-05-16 - Enforcing Minimal Accessible Font Size
+**Learning:** Font sizes below 12px (text-xs) significantly impair readability and fail WCAG accessibility standards for many users. While compact UI is desirable, functional labels and metadata must remain legible.
+**Action:** Use `text-xs` (12px) as the absolute minimum font size for all functional UI elements, replacing any legacy `text-[10px]` or smaller definitions.

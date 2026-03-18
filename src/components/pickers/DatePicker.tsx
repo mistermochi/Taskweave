@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { addDays, nextSaturday } from 'date-fns';
+import { addDays } from 'date-fns';
 import { Calendar } from '@/shared/ui/ui/calendar';
 import { Button } from '@/shared/ui/ui/button';
-import { cn } from '@/shared/lib/utils';
+import { CardContent, CardFooter } from '@/shared/ui/ui/card';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 
 /**
@@ -21,13 +21,15 @@ interface DatePickerProps {
 
 /**
  * A specialized date selection component for tasks.
- * It provides quick-select buttons for common offsets (Today, Tomorrow, Weekend, Next Week)
+ * It provides quick-select buttons for common offsets (Today, Tomorrow, 3 days, Week, 2 Weeks)
  * and a standard shadcn Calendar for custom selection.
  *
  * @component
  */
 export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type }) => {
-  const today = new Date();
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(
+    value ? new Date(value) : new Date()
+  );
 
   const handleSelect = (date: Date | undefined) => {
     if (!date) {
@@ -38,16 +40,19 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type })
     const d = new Date(date);
     d.setHours(type === 'due' ? 23 : 12, type === 'due' ? 59 : 0, 0, 0);
     onChange(d.getTime());
+    setCurrentMonth(new Date(d.getFullYear(), d.getMonth(), 1));
   };
 
-  const setQuick = (date: Date) => {
-    const d = new Date(date);
+  const setQuick = (days: number) => {
+    const newDate = addDays(new Date(), days);
+    const d = new Date(newDate);
     d.setHours(type === 'due' ? 23 : 12, type === 'due' ? 59 : 0, 0, 0);
     onChange(d.getTime());
+    setCurrentMonth(new Date(d.getFullYear(), d.getMonth(), 1));
   };
 
   return (
-    <div className="flex flex-col w-[260px]">
+    <div className="flex flex-col w-[280px]">
       <div className="flex items-center justify-between px-3 py-2 border-b">
         <div className="flex items-center gap-2">
             <CalendarIcon size={14} className="text-muted-foreground" />
@@ -67,35 +72,38 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type })
         )}
       </div>
 
-      <div className="flex flex-row items-stretch">
-        <div className="flex-1 p-1">
-          <Calendar
-            mode="single"
-            selected={value ? new Date(value) : undefined}
-            onSelect={handleSelect}
-            initialFocus
-            className="p-0"
-          />
-        </div>
-        <div className="w-[64px] border-l bg-muted/20 flex flex-col gap-0.5 p-1 pt-2">
-            {[
-                { label: 'Today', date: today },
-                { label: 'Tmw', date: addDays(today, 1) },
-                { label: 'Wknd', date: nextSaturday(today) },
-                { label: 'Next', date: addDays(today, 7) }
-            ].map((preset) => (
-                <Button
-                    key={preset.label}
-                    variant="ghost"
-                    size="sm"
-                    className="justify-center font-bold text-[9px] h-7 px-0 uppercase tracking-tighter hover:bg-accent"
-                    onClick={() => setQuick(preset.date)}
-                >
-                    {preset.label}
-                </Button>
-            ))}
-        </div>
-      </div>
+      <CardContent className="p-1">
+        <Calendar
+          mode="single"
+          selected={value ? new Date(value) : undefined}
+          onSelect={handleSelect}
+          month={currentMonth}
+          onMonthChange={setCurrentMonth}
+          fixedWeeks
+          initialFocus
+          className="p-0"
+        />
+      </CardContent>
+
+      <CardFooter className="flex flex-wrap gap-1 border-t p-2">
+        {[
+          { label: "Today", value: 0 },
+          { label: "Tomorrow", value: 1 },
+          { label: "In 3 days", value: 3 },
+          { label: "In a week", value: 7 },
+          { label: "In 2 weeks", value: 14 },
+        ].map((preset) => (
+          <Button
+            key={preset.value}
+            variant="outline"
+            size="sm"
+            className="flex-1 font-bold text-[9px] h-7 px-1 uppercase tracking-tighter"
+            onClick={() => setQuick(preset.value)}
+          >
+            {preset.label}
+          </Button>
+        ))}
+      </CardFooter>
     </div>
   );
 };

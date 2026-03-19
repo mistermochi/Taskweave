@@ -116,11 +116,23 @@ export const useFocusSessionController = (taskId: string | undefined) => {
         const actualSeconds = totalSeconds - timeLeftRef.current;
         const activeTasks = tasks.filter(t => t.status === 'active');
 
-        // 1. Immediately mark task as complete and adjust duration
+        // 1. Mark task as complete optimistically
+        const completedAt = Date.now();
+        useTaskAppStore.getState().setOptimisticTask(task.id, {
+            status: 'completed',
+            completedAt,
+            updatedAt: completedAt,
+            actualDuration: Math.max(0, actualSeconds),
+            remainingSeconds: null,
+            lastStartedAt: null,
+            isFocused: false
+        });
+
+        // 2. Immediately mark task as complete and adjust duration in Firestore
         // This ensures the task is saved even if the user closes the summary modal
         await taskService.completeTask(task, actualSeconds, activeTasks);
 
-        // 2. Clear focus selection and move to done tab in background
+        // 3. Clear focus selection and move to done tab in background
         useTaskAppStore.getState().setSelectedTask(null);
         useTaskAppStore.getState().setTaskTab('done');
 

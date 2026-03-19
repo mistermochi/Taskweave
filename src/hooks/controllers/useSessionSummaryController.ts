@@ -26,8 +26,8 @@ export const useSessionSummaryController = (taskId: string | undefined) => {
 
   const plannedTime = (task?.duration ?? 25) * 60;
   // Use actualDuration if task is already completed (which it should be per our new flow)
-  // Otherwise, default to 0 for a missing duration as a safe fallback.
-  const actualTimeSpent = task?.actualDuration ?? 0;
+  // Otherwise, default to planned duration for a missing duration as a safe fallback.
+  const actualTimeSpent = task?.actualDuration ?? plannedTime;
   const timeDifference = actualTimeSpent - plannedTime;
   
   const currentEnergy = energyModel.currentEnergy;

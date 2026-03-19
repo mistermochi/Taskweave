@@ -5,3 +5,7 @@
 ## 2025-05-23 - [Redundant Firestore Subscriptions]
 **Learning:** Top-level components often accidentally duplicate Firestore subscriptions that are already managed by global context providers. This creates redundant snapshot listeners, duplicate reconciliation work, and increased memory usage.
 **Action:** Before calling `useFirestoreCollection` in a view, check if a global context (like `TaskContext` or `ReferenceContext`) already provides that data. Consolidate to a single source of truth to reduce CPU and network overhead.
+
+## 2025-05-24 - [Lookup Map Collisions & Filter Reordering]
+**Learning:** Mixing IDs and human-readable names in a single lookup map (e.g., `mergedTagsMap`) for "O(1) convenience" introduces a critical risk of collisions if a name matches an ID. Furthermore, in high-volume list filtering, reordering the filter callback to perform fast, highly-selective status checks before expensive string parsing or search matching significantly reduces CPU overhead for users with large histories.
+**Action:** Use separate specialized maps for different key types (IDs vs names) to ensure safety. Always place the most selective and computationally cheapest filters at the top of iteration logic.

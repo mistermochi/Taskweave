@@ -4,7 +4,7 @@ import React from 'react';
 import { Calendar } from 'lucide-react';
 import { CalendarEvent } from '@/hooks/controllers/useCalendarImportController';
 import { Modal } from '@/shared/ui/ui/dialog';
-import { EmptyState } from '@/shared/ui/ui/Feedback';
+import { EmptyState } from '@/shared/ui/ui/empty-state';
 import { TaskRow } from '@/entities/task';
 import { Tag } from '@/entities/tag';
 import { TaskEntity, EnergyLevel } from '@/entities/task';

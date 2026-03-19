@@ -85,13 +85,16 @@ export const useDashboardController = () => {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const endOfToday = startOfToday + 86400000;
 
-    const isBlocked = (task: TaskEntity, tasks: TaskEntity[]): boolean => {
+    // Bolt ⚡: O(1) lookup for active task IDs to avoid O(N^2) in isBlocked
+    const activeTaskIds = new Set(activeTasks.map(t => t.id));
+
+    const isBlocked = (task: TaskEntity): boolean => {
       if (!task.blockedBy || task.blockedBy.length === 0) return false;
-      return task.blockedBy.some(blockerId => tasks.some(t => t.id === blockerId));
+      return task.blockedBy.some(blockerId => activeTaskIds.has(blockerId));
     };
 
     let planCandidates = activeTasks.filter(task => {
-        if (isBlocked(task, activeTasks)) return false;
+        if (isBlocked(task)) return false;
         const isAssignedToday = task.assignedDate && task.assignedDate >= startOfToday && task.assignedDate < endOfToday;
         const isDueTodayOrOverdue = task.dueDate && task.dueDate < endOfToday;
         return task.isFocused || isAssignedToday || isDueTodayOrOverdue;
@@ -101,7 +104,7 @@ export const useDashboardController = () => {
         const isAlreadyInPlan = planCandidates.some(t => t.id === recommendation.taskId);
         if (!isAlreadyInPlan) {
             const recommendedTask = activeTasks.find(t => t.id === recommendation.taskId);
-            if (recommendedTask && !isBlocked(recommendedTask, activeTasks)) {
+            if (recommendedTask && !isBlocked(recommendedTask)) {
                 planCandidates.push(recommendedTask);
             }
         }
@@ -109,7 +112,7 @@ export const useDashboardController = () => {
 
     if (planCandidates.length === 0) {
         const inboxTasks = activeTasks.filter(task => {
-            if (isBlocked(task, activeTasks)) return false;
+            if (isBlocked(task)) return false;
             const isAssignedToday = task.assignedDate && task.assignedDate >= startOfToday && task.assignedDate < endOfToday;
             const isDueTodayOrOverdue = task.dueDate && task.dueDate < endOfToday;
             return !isAssignedToday && !isDueTodayOrOverdue;
@@ -128,6 +131,9 @@ export const useDashboardController = () => {
         }
     }
 
+    // Bolt ⚡: Hoist map to avoid redundant object creation during sort
+    const energyMap = { 'High': 3, 'Medium': 2, 'Low': 1 };
+
     planCandidates.sort((a, b) => {
         // 1. Focused tasks always first
         if (a.isFocused && !b.isFocused) return -1;
@@ -145,7 +151,6 @@ export const useDashboardController = () => {
         if (aTime !== bTime) return aTime - bTime;
 
         // 4. Energy requirement
-        const energyMap = { 'High': 3, 'Medium': 2, 'Low': 1 };
         const energyDiff = (energyMap[b.energy] || 2) - (energyMap[a.energy] || 2);
         if (energyDiff !== 0) return energyDiff;
 

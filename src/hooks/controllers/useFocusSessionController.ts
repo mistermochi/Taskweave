@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useUserId } from '@/hooks/useFirestore';
 import { useTaskContext } from '@/context/TaskContext';
 import { taskApi } from '@/entities/task';
@@ -26,6 +26,12 @@ export const useFocusSessionController = (taskId: string | undefined) => {
   const [hasAutoStarted, setHasAutoStarted] = useState(false);
   
   const isActive = metrics.status === 'running';
+
+  // Use a ref for timeLeft to keep action callbacks stable
+  const timeLeftRef = useRef(timeLeft);
+  useEffect(() => {
+    timeLeftRef.current = timeLeft;
+  }, [timeLeft]);
 
   const taskService = taskApi;
 
@@ -70,42 +76,42 @@ export const useFocusSessionController = (taskId: string | undefined) => {
   /**
    * Toggles between Start and Pause for the current focus session.
    */
-  const toggleTimer = () => {
+  const toggleTimer = useCallback(() => {
     if (!task || !uid) return;
 
     if (isActive) {
-      taskService.pauseSession(task.id, timeLeft);
+      taskService.pauseSession(task.id, timeLeftRef.current);
     } else {
-      taskService.startSession(task.id, timeLeft, tasks);
+      taskService.startSession(task.id, timeLeftRef.current, tasks);
     }
-  };
+  }, [task, uid, isActive, tasks]);
 
   /**
    * Stops the session and returns to the previous view without completing the task.
    */
-  const stopCurrentSession = () => {
+  const stopCurrentSession = useCallback(() => {
     if (!task || !uid) return;
-    taskService.stopSession(task.id, timeLeft);
+    taskService.stopSession(task.id, timeLeftRef.current);
     clearFocusSession();
-  };
+  }, [task, uid, clearFocusSession]);
 
   /**
    * Pauses the timer and navigates to the breathing exercise view.
    */
-  const handleBreathing = () => {
+  const handleBreathing = useCallback(() => {
     if (isActive && task) {
-       taskService.pauseSession(task.id, timeLeft);
+       taskService.pauseSession(task.id, timeLeftRef.current);
     }
     startBreathing();
-  };
+  }, [isActive, task, startBreathing]);
 
   /**
    * Marks the task as completed and transitions to the Reflection (Session Summary) view.
    */
-  const completeSession = async () => {
+  const completeSession = useCallback(async () => {
     if (task && uid) {
         const totalSeconds = task.duration * 60;
-        const actualSeconds = totalSeconds - timeLeft;
+        const actualSeconds = totalSeconds - timeLeftRef.current;
         const activeTasks = tasks.filter(t => t.status === 'active');
         await taskService.completeTask(task, actualSeconds, activeTasks);
 
@@ -114,7 +120,7 @@ export const useFocusSessionController = (taskId: string | undefined) => {
         useTaskAppStore.getState().setTaskTab('done');
     }
     completeFocusSession(task?.id);
-  };
+  }, [task, uid, tasks, completeFocusSession]);
 
   return {
     state: {

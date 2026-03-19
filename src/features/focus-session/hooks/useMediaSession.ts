@@ -70,7 +70,10 @@ export function useMediaSession({
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator) || !task) return;
 
-    navigator.mediaSession.playbackState = isActive ? 'playing' : 'paused';
+    const playbackState = isActive ? 'playing' : 'paused';
+    if (navigator.mediaSession.playbackState !== playbackState) {
+      navigator.mediaSession.playbackState = playbackState;
+    }
 
     if ('setPositionState' in navigator.mediaSession) {
       try {

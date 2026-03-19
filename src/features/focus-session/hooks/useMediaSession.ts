@@ -75,11 +75,14 @@ export function useMediaSession({
     if ('setPositionState' in navigator.mediaSession) {
       try {
         const duration = (task.duration || 1) * 60;
-        const position = Math.max(0, duration - timeLeft);
+        // Clamp position between 0 and duration to avoid errors during overtime
+        const position = Math.min(duration, Math.max(0, duration - timeLeft));
 
         navigator.mediaSession.setPositionState({
           duration: duration,
-          playbackRate: isActive ? 1 : 0,
+          // MediaSession API requires playbackRate > 0.
+          // The browser uses this rate to estimate position when playbackState is 'playing'.
+          playbackRate: 1.0,
           position: position,
         });
       } catch (e) {

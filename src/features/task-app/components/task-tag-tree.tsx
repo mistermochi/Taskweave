@@ -194,11 +194,14 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                 <div
                   className={cn(
                     "group flex items-center h-8 w-full gap-2 px-2 rounded-md cursor-pointer transition-all relative select-none",
+                    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset focus-visible:outline-none",
                     isActive
                       ? "bg-accent text-accent-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
                     draggedTagId === tag.id && "opacity-50"
                   )}
+                  tabIndex={0}
+                  role="button"
                   onClick={(e) => {
                     if (isActive) {
                       setSearchQuery("");
@@ -208,6 +211,12 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                     setSelectedTagId(null);
                     selectTag(null);
                     setActiveView("tasks");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.currentTarget.click();
+                    }
                   }}
                   draggable
                   onDragStart={(e) => handleDragStart(e, tag.id)}
@@ -243,7 +252,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                     </span>
                   </div>
 
-                  <div className="ml-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="ml-auto flex items-center gap-1 relative" onClick={(e) => e.stopPropagation()}>
                     {isActive ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -261,7 +270,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                         </DropdownMenuContent>
                       </DropdownMenu>
                     ) : count > 0 && (
-                      <span className="text-[10px] tabular-nums text-muted-foreground/70 group-hover:hidden">
+                      <span className="text-[10px] tabular-nums text-muted-foreground/70 transition-opacity group-hover:opacity-0 group-focus-within:opacity-0">
                         {count}
                       </span>
                     )}
@@ -272,7 +281,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="size-5 hidden group-hover:flex hover:bg-muted"
+                            className="size-5 flex opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 hover:bg-muted transition-opacity absolute right-0"
                             aria-label="Tag actions"
                           >
                             <Edit2 size={12} />
@@ -378,7 +387,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="size-5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition-opacity"
                 onClick={() => tagApi.createTag("New Project", null)}
               >
                 <Plus size={14} />

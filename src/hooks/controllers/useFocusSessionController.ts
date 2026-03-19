@@ -106,13 +106,30 @@ export const useFocusSessionController = (taskId: string | undefined) => {
   }, [isActive, task, startBreathing]);
 
   /**
-   * Finishes the current focus session and triggers the Session Summary dialog.
-   * NOTE: The task is NOT marked as complete here. That final action is performed
-   * within the Session Summary (Reflection) view after user feedback.
+   * Finishes the current focus session, marks the task as complete,
+   * and triggers the Session Summary dialog for reflection.
    */
   const completeSession = useCallback(async () => {
-    completeFocusSession(task?.id);
-  }, [task?.id, completeFocusSession]);
+    if (task && uid) {
+        // Calculate actual time spent before marking as complete
+        const totalSeconds = task.duration * 60;
+        const actualSeconds = totalSeconds - timeLeftRef.current;
+        const activeTasks = tasks.filter(t => t.status === 'active');
+
+        // 1. Immediately mark task as complete and adjust duration
+        // This ensures the task is saved even if the user closes the summary modal
+        await taskService.completeTask(task, actualSeconds, activeTasks);
+
+        // 2. Clear focus selection and move to done tab in background
+        useTaskAppStore.getState().setSelectedTask(null);
+        useTaskAppStore.getState().setTaskTab('done');
+
+        // 3. Trigger the summary modal for reflection
+        completeFocusSession(task.id);
+    } else {
+        completeFocusSession(task?.id);
+    }
+  }, [task, uid, tasks, completeFocusSession]);
 
   return {
     state: {

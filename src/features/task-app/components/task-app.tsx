@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { Button } from "@/shared/ui/ui/button";
 import { Fab } from "@/shared/ui/ui/fab";
-import { EmptyState } from "@/shared/ui/ui/Feedback";
+import { EmptyState } from "@/shared/ui/ui/empty-state";
 import { Toaster } from "@/shared/ui/ui/sonner";
 import { toast } from "sonner";
 import { AppHeader } from "@/shared/ui/ui/app-header";

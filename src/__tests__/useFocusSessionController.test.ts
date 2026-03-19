@@ -163,8 +163,8 @@ describe('useFocusSessionController', () => {
       await result.current.actions.completeSession();
     });
 
-    // Verify task completion was NOT called directly (per new requirement)
-    expect(mockTaskApiInstance.completeTask).not.toHaveReturned();
+    // Verify task completion WAS called immediately (per newest seamless flow)
+    expect(mockTaskApiInstance.completeTask).toHaveBeenCalledWith(mockTask, expect.any(Number), [mockTask]);
 
     // Verify navigation was called
     expect(mockCompleteFocusSession).toHaveBeenCalledWith('task-1');

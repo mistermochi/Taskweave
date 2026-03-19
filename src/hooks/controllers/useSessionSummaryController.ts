@@ -24,8 +24,10 @@ export const useSessionSummaryController = (taskId: string | undefined) => {
   const [mood, setMood] = useState<'Energized' | 'Neutral' | 'Drained'>('Neutral');
   const [notes, setNotes] = useState("");
 
-  const actualTimeSpent = task?.actualDuration ?? (task?.duration ?? 25) * 60;
   const plannedTime = (task?.duration ?? 25) * 60;
+  // Use actualDuration if task is already completed (which it should be per our new flow)
+  // Otherwise, default to planned duration for a missing duration as a safe fallback.
+  const actualTimeSpent = task?.actualDuration ?? plannedTime;
   const timeDifference = actualTimeSpent - plannedTime;
   
   const currentEnergy = energyModel.currentEnergy;

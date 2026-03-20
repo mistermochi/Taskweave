@@ -169,9 +169,9 @@ export const useDashboardController = () => {
    */
   const latestFocus = useMemo(() => {
     const startOfDay = getStartOfDay();
+    // Bolt ⚡ Optimization: Remove redundant sort as VitalsContext already provides data sorted desc
     const todaysFocus = vitals
-        .filter(v => v.type === 'focus' && v.timestamp >= startOfDay)
-        .sort((a, b) => b.timestamp - a.timestamp);
+        .filter(v => v.type === 'focus' && v.timestamp >= startOfDay);
     return todaysFocus.length > 0 ? (todaysFocus[0].value as string) : '';
   }, [vitals]);
 

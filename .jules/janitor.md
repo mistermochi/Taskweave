@@ -9,3 +9,8 @@
 **Clutter:** Deprecated `Toast` and unused `ErrorState` components in `Feedback.tsx`. Inconsistent file naming (`Feedback.tsx` vs. kebab-case elsewhere).
 **Learning:** The project uses `sonner` for toasts. `EmptyState` was the only active component in `Feedback.tsx`.
 **Action:** Removed dead code and renamed the file to `empty-state.tsx` to align with project conventions and improve discoverability.
+
+## 2026-03-20 - Removed Unused useContextApi Hook
+**Clutter:** The `useContextApi` hook in `src/entities/context/lib/useContextApi.ts` was a redundant wrapper around a singleton that provided no reactivity.
+**Learning:** boilerplate hooks that use `useSyncExternalStore` with a no-op subscription (emptySubscribe) add mental overhead without functional benefits. Direct singleton access is preferred when no React-lifecycle-dependent state sync is needed.
+**Action:** Deleted the hook file and removed its export from the entity index.

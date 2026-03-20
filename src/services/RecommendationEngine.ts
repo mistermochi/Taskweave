@@ -247,9 +247,12 @@ export class RecommendationEngine {
    */
   private getValidStrategies(ctx: SuggestionContext): number[] {
     const allActiveTasks = ctx.tasks;
+    // Bolt ⚡: O(1) lookup for active task IDs to avoid O(N^2) in isBlocked
+    const activeTaskIds = new Set(allActiveTasks.map(t => t.id));
+
     const isBlocked = (task: TaskEntity): boolean => {
         if (!task.blockedBy || task.blockedBy.length === 0) return false;
-        return task.blockedBy.some(blockerId => allActiveTasks.some(t => t.id === blockerId));
+        return task.blockedBy.some(blockerId => activeTaskIds.has(blockerId));
     };
     const t = allActiveTasks.filter(t => !isBlocked(t));
 
@@ -297,9 +300,12 @@ export class RecommendationEngine {
    */
   private resolveStrategy(arm: number, ctx: SuggestionContext): Suggestion | null {
     const allActiveTasks = ctx.tasks;
+    // Bolt ⚡: O(1) lookup for active task IDs to avoid O(N^2) in isBlocked
+    const activeTaskIds = new Set(allActiveTasks.map(t => t.id));
+
     const isBlocked = (task: TaskEntity): boolean => {
         if (!task.blockedBy || task.blockedBy.length === 0) return false;
-        return task.blockedBy.some(blockerId => allActiveTasks.some(t => t.id === blockerId));
+        return task.blockedBy.some(blockerId => activeTaskIds.has(blockerId));
     };
     let tasks = allActiveTasks.filter(t => !isBlocked(t));
     

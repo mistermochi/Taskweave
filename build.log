@@ -1,0 +1,138 @@
+
+> taskweave@0.0.0 build /app
+> next build
+
+  ▲ Next.js 14.2.35
+
+   Creating an optimized production build ...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for client (static)...
+ ○ (pwa) Service worker: /app/public/sw.js
+ ○ (pwa)   URL: /sw.js
+ ○ (pwa)   Scope: /
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./src/app/page.tsx
+70:9  Warning: Unexpected console statement.  no-console
+
+./src/entities/tag/api/tagApi.ts
+107:7  Warning: Unexpected console statement.  no-console
+127:7  Warning: Unexpected console statement.  no-console
+
+./src/entities/task/api/taskApi.ts
+118:13  Warning: Unexpected console statement.  no-console
+175:13  Warning: Unexpected console statement.  no-console
+200:13  Warning: Unexpected console statement.  no-console
+245:13  Warning: Unexpected console statement.  no-console
+260:13  Warning: Unexpected console statement.  no-console
+368:13  Warning: Unexpected console statement.  no-console
+410:13  Warning: Unexpected console statement.  no-console
+475:25  Warning: Unexpected console statement.  no-console
+492:29  Warning: Unexpected console statement.  no-console
+
+./src/features/focus-session/hooks/useMediaSession.ts
+92:9  Warning: Unexpected console statement.  no-console
+
+./src/features/settings/components/integrations-form.tsx
+40:7  Warning: Unexpected console statement.  no-console
+87:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/features/settings/components/mental-model-form.tsx
+41:7  Warning: Unexpected console statement.  no-console
+61:7  Warning: Unexpected console statement.  no-console
+
+./src/features/settings/components/sensors-form.tsx
+26:69  Warning: Unexpected console statement.  no-console
+65:11  Warning: Unexpected console statement.  no-console
+
+./src/features/task-app/components/task-app.tsx
+196:11  Warning: Unexpected console statement.  no-console
+
+./src/features/task-app/components/task-detail-view.tsx
+207:7  Warning: Unexpected console statement.  no-console
+260:7  Warning: Unexpected console statement.  no-console
+286:7  Warning: Unexpected console statement.  no-console
+325:7  Warning: Unexpected console statement.  no-console
+434:7  Warning: Unexpected console statement.  no-console
+
+./src/hooks/controllers/useCalendarImportController.ts
+83:13  Warning: Unexpected console statement.  no-console
+195:17  Warning: Unexpected console statement.  no-console
+
+./src/hooks/controllers/useDashboardController.ts
+72:9  Warning: Unexpected console statement.  no-console
+246:11  Warning: Unexpected console statement.  no-console
+
+./src/hooks/controllers/useFocusSessionController.ts
+87:6  Warning: React Hook useCallback has a missing dependency: 'taskService'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+96:6  Warning: React Hook useCallback has a missing dependency: 'taskService'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+106:6  Warning: React Hook useCallback has a missing dependency: 'taskService'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+144:6  Warning: React Hook useCallback has a missing dependency: 'taskService'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/hooks/controllers/useSchedulingController.ts
+82:7  Warning: Unexpected console statement.  no-console
+114:7  Warning: Unexpected console statement.  no-console
+
+./src/hooks/controllers/useTaskDatabaseController.ts
+85:9  Warning: Unexpected console statement.  no-console
+
+./src/hooks/useFirestore.ts
+95:7  Warning: Unexpected console statement.  no-console
+
+./src/services/AIService.ts
+28:17  Warning: Unexpected console statement.  no-console
+31:13  Warning: Unexpected console statement.  no-console
+86:13  Warning: Unexpected console statement.  no-console
+141:13  Warning: Unexpected console statement.  no-console
+
+./src/services/GoogleCalendarService.ts
+54:9  Warning: Unexpected console statement.  no-console
+93:9  Warning: Unexpected console statement.  no-console
+136:17  Warning: Unexpected console statement.  no-console
+152:10  Warning: Unexpected console statement.  no-console
+
+./src/services/LearningEngine.ts
+47:7  Warning: Unexpected console statement.  no-console
+90:9  Warning: Unexpected console statement.  no-console
+
+./src/services/LinUCBService.ts
+164:11  Warning: Unexpected console statement.  no-console
+242:7  Warning: Unexpected console statement.  no-console
+259:13  Warning: Unexpected console statement.  no-console
+286:7  Warning: Unexpected console statement.  no-console
+
+./src/services/LocationService.ts
+66:13  Warning: Unexpected console statement.  no-console
+
+./src/services/MotionService.ts
+82:17  Warning: Unexpected console statement.  no-console
+
+./src/shared/api/firebase.ts
+38:7  Warning: Unexpected console statement.  no-console
+42:7  Warning: Unexpected console statement.  no-console
+
+./src/views/LoginView.tsx
+31:13  Warning: Unexpected console statement.  no-console
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/4) ...
+   Generating static pages (1/4)
+   Generating static pages (2/4)
+   Generating static pages (3/4)
+ ✓ Generating static pages (4/4)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    202 kB          427 kB
+└ ○ /_not-found                          871 B          90.5 kB
++ First Load JS shared by all            89.6 kB
+  ├ chunks/484-d4ee65e417e9103d.js       34 kB
+  ├ chunks/dbae917e-9f2ad1048641a1ae.js  53.6 kB
+  └ other shared chunks (total)          1.96 kB
+
+
+○  (Static)  prerendered as static content

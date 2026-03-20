@@ -57,6 +57,7 @@ import { EnergyPicker } from "@/components/pickers/EnergyPicker";
 import { DurationPicker } from "@/components/pickers/DurationPicker";
 import { DatePicker } from "@/components/pickers/DatePicker";
 import { RecurrencePicker as RecurrenceInlinePicker } from "@/components/pickers/RecurrencePicker";
+import { ENERGY_COLORS } from "@/entities/task/lib/colors";
 
 interface TaskDetailViewProps {
   task: Task | null;
@@ -671,7 +672,7 @@ export function TaskDetailView({
                   {localEnergy ? (
                     <Badge
                       variant="outline"
-                      className="flex items-center gap-1 border-blue-500/30 text-blue-500 cursor-pointer hover:bg-blue-500/10 transition-colors"
+                      className={cn("flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity", ENERGY_COLORS[localEnergy].bg, ENERGY_COLORS[localEnergy].text, ENERGY_COLORS[localEnergy].border)}
                     >
                       <Zap className="h-3 w-3" />
                       {localEnergy}

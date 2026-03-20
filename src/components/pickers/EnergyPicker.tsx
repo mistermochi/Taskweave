@@ -2,6 +2,8 @@ import React from 'react';
 import { EnergyLevel } from '@/entities/task';
 import { Check } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
+import { Separator } from '@/shared/ui/ui/separator';
+import { ENERGY_COLORS } from '@/entities/task/lib/colors';
 
 /**
  * Interface for EnergyPicker props.
@@ -20,17 +22,7 @@ interface EnergyPickerProps {
  *
  * @component
  */
-import { Separator } from '@/shared/ui/ui/separator';
-
 export const EnergyPicker: React.FC<EnergyPickerProps> = ({ energy, onChange }) => {
-    const getEnergyMeta = (level: EnergyLevel) => {
-        switch(level) {
-            case 'Low': return { color: 'bg-emerald-500', label: 'Low Energy' };
-            case 'Medium': return { color: 'bg-yellow-500', label: 'Medium Energy' };
-            case 'High': return { color: 'bg-orange-500', label: 'High Energy' };
-        }
-    };
-    
     return (
         <div className="w-44 flex flex-col">
             <div className="px-2 py-1.5">
@@ -39,7 +31,7 @@ export const EnergyPicker: React.FC<EnergyPickerProps> = ({ energy, onChange }) 
             <Separator />
             <div className="p-1">
                 {(['Low', 'Medium', 'High'] as EnergyLevel[]).map((lvl) => {
-                    const meta = getEnergyMeta(lvl);
+                    const meta = ENERGY_COLORS[lvl];
                     const isSelected = energy === lvl;
                     return (
                         <button
@@ -56,8 +48,8 @@ export const EnergyPicker: React.FC<EnergyPickerProps> = ({ energy, onChange }) 
                             )}>
                                 <Check className="h-3 w-3" />
                             </div>
-                            <span className={cn("w-2 h-2 rounded-full shrink-0", meta.color)}></span>
-                            <span className="flex-1 text-left text-xs truncate">{meta.label}</span>
+                            <span className={cn("w-2 h-2 rounded-full shrink-0", meta.hex === '#10b981' ? 'bg-emerald-500' : meta.hex === '#f59e0b' ? 'bg-amber-500' : 'bg-orange-500')}></span>
+                            <span className="flex-1 text-left text-xs truncate">{lvl} Energy</span>
                         </button>
                     );
                 })}

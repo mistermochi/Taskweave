@@ -12,6 +12,7 @@ import { Tag } from "@/entities/tag";
 import { cn } from "@/shared/lib/utils";
 import { formatRecurrence } from "@/shared/lib/timeUtils";
 import { Badge } from "@/shared/ui/ui/badge";
+import { ENERGY_COLORS } from "@/entities/task/lib/colors";
 
 interface TaskListItemProps {
   task: Task;
@@ -36,16 +37,20 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
   };
 
   const isInactive = task.status === 'completed' || task.status === 'archived';
+  const tagInfo = task.category ? getTagInfo(task.category) : null;
+  const energyStyle = task.energy ? ENERGY_COLORS[task.energy] : null;
 
   return (
     <button
       ref={itemRef}
       className={cn(
-        "hover:bg-accent/70 flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all w-full",
+        "hover:bg-accent/70 flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all w-full relative overflow-hidden",
+        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         isSelected && "bg-accent/70",
         isInactive && "grayscale opacity-70"
       )}
-      aria-label={`Task: ${task.title}${isInactive ? ` (${task.status})` : ""}`}
+      style={tagInfo?.color ? { borderLeft: `4px solid ${tagInfo.color}` } : { borderLeft: '4px solid transparent' }}
+      aria-label={`Task: ${task.title}${task.energy === 'High' ? " (High Energy)" : ""}${isInactive ? ` (${task.status})` : ""}`}
       onClick={() => onClick(task)}>
       <div className="flex w-full flex-col gap-1">
         <div className="flex items-center">
@@ -59,7 +64,7 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
             >
               {task.title}
             </div>
-            {task.energy === 'High' && <span className="flex h-2 w-2 rounded-full bg-blue-600" />}
+            {task.energy === 'High' && <span className="flex h-2 w-2 rounded-full bg-orange-500" />}
           </div>
         </div>
       </div>
@@ -88,8 +93,11 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
             {task.duration}m
           </Badge>
         )}
-        {task.energy && (
-          <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-blue-500/30 text-blue-500">
+        {task.energy && energyStyle && (
+          <Badge
+            variant="outline"
+            className={cn("flex items-center gap-1 text-[10px] px-1.5 py-0", energyStyle.bg, energyStyle.text, energyStyle.border)}
+          >
             <Zap className="h-3 w-3" aria-hidden="true" />
             {task.energy}
           </Badge>

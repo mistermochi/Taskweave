@@ -13,3 +13,7 @@
 ## 2025-05-25 - [Hot-Path Date Logic & Redundant Sorting]
 **Learning:** Performing `new Date()` or complex `date-fns` calls (like `isToday`) inside large iteration loops (e.g., `TaskList` grouping) is a common source of CPU overhead and GC pressure. Pre-calculating DST-safe boundaries once outside the loop allows for fast numeric timestamp comparisons. Additionally, blindly sorting filtered arrays (e.g., `vitals`) is often redundant if the source context already provides sorted data via database constraints.
 **Action:** Always pre-calculate date boundaries outside loops. Check upstream data providers for existing sort order before applying manual `.sort()`.
+
+## 2025-05-26 - [Single-Pass Data Aggregation]
+**Learning:** Chaining multiple higher-order functions (`filter`, `map`, `reduce`) over large arrays in data-heavy controllers (like `useInsightsController`) leads to redundant iterations and increased CPU overhead. Consolidating these operations into a single $O(N)$ `forEach` pass significantly improves performance as the dataset (e.g., user history) grows.
+**Action:** When calculating multiple metrics from the same array, prioritize a single-pass aggregation loop over multiple specialized iterations.

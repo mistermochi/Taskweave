@@ -5,6 +5,7 @@ import {
   Archive,
   ArchiveX,
   Calendar as CalendarIcon,
+  CalendarClock,
   Check,
   Clock,
   Layers,
@@ -641,7 +642,7 @@ export function TaskDetailView({
                             : {}
                         }
                       >
-                        <Tag className="h-3 w-3" />
+                        <Tag className="h-3 w-3" aria-hidden="true" />
                         {info.name}
                       </Badge>
                     ) : (
@@ -649,7 +650,7 @@ export function TaskDetailView({
                         variant="outline"
                         className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
                       >
-                        <Tag className="h-3 w-3" />
+                        <Tag className="h-3 w-3" aria-hidden="true" />
                         Add Project
                       </Badge>
                     );
@@ -671,9 +672,14 @@ export function TaskDetailView({
                   {localEnergy ? (
                     <Badge
                       variant="outline"
-                      className="flex items-center gap-1 border-blue-500/30 text-blue-500 cursor-pointer hover:bg-blue-500/10 transition-colors"
+                      className={cn(
+                        "flex items-center gap-1 cursor-pointer transition-colors",
+                        localEnergy === 'High' ? "border-orange-500/30 text-orange-500 hover:bg-orange-500/10" :
+                        localEnergy === 'Low' ? "border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10" :
+                        "border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
+                      )}
                     >
-                      <Zap className="h-3 w-3" />
+                      <Zap className="h-3 w-3" aria-hidden="true" />
                       {localEnergy}
                     </Badge>
                   ) : (
@@ -703,7 +709,7 @@ export function TaskDetailView({
                       variant="outline"
                       className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors"
                     >
-                      <Clock className="h-3 w-3" />
+                      <Clock className="h-3 w-3" aria-hidden="true" />
                       {localDuration}m
                     </Badge>
                   ) : (
@@ -711,7 +717,7 @@ export function TaskDetailView({
                       variant="outline"
                       className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
                     >
-                      <Clock className="h-3 w-3" />
+                      <Clock className="h-3 w-3" aria-hidden="true" />
                       Add Duration
                     </Badge>
                   )}
@@ -733,7 +739,7 @@ export function TaskDetailView({
                       variant="outline"
                       className="flex items-center gap-1 border-blue-500/30 text-blue-400 cursor-pointer hover:bg-blue-400/10 transition-colors"
                     >
-                      <Clock className="h-3 w-3" />
+                      <CalendarClock className="h-3 w-3" aria-hidden="true" />
                       {new Date(localAssignedDate).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",
@@ -767,7 +773,7 @@ export function TaskDetailView({
                       variant="outline"
                       className="flex items-center gap-1 border-red-500/30 text-red-500 cursor-pointer hover:bg-red-500/10 transition-colors"
                     >
-                      <CalendarIcon className="h-3 w-3" />
+                      <CalendarIcon className="h-3 w-3" aria-hidden="true" />
                       {new Date(localDueDate).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",
@@ -778,7 +784,7 @@ export function TaskDetailView({
                       variant="outline"
                       className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
                     >
-                      <CalendarIcon className="h-3 w-3" />
+                      <CalendarIcon className="h-3 w-3" aria-hidden="true" />
                       Set Deadline
                     </Badge>
                   )}
@@ -802,7 +808,7 @@ export function TaskDetailView({
                         variant="outline"
                         className="flex items-center gap-1 border-purple-500/30 text-purple-400 cursor-pointer hover:bg-purple-400/10 transition-colors"
                       >
-                        <Repeat className="h-3 w-3" />
+                        <Repeat className="h-3 w-3" aria-hidden="true" />
                         {formatRecurrence(localRecurrence)}
                       </Badge>
                     ) : (
@@ -810,7 +816,7 @@ export function TaskDetailView({
                         variant="outline"
                         className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
                       >
-                        <Repeat className="h-3 w-3" />
+                        <Repeat className="h-3 w-3" aria-hidden="true" />
                         Add Repeat
                       </Badge>
                     )}
@@ -833,7 +839,7 @@ export function TaskDetailView({
                   variant="outline"
                   className="flex items-center gap-1 border-orange-500/30 text-orange-500"
                 >
-                  <Layers className="h-3 w-3" />
+                  <Layers className="h-3 w-3" aria-hidden="true" />
                   {task.blockedBy.length}
                 </Badge>
               )}

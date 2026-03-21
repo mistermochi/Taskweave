@@ -14,3 +14,8 @@
 **Clutter:** The `useContextApi` hook in `src/entities/context/lib/useContextApi.ts` was a redundant wrapper around a singleton that provided no reactivity.
 **Learning:** boilerplate hooks that use `useSyncExternalStore` with a no-op subscription (emptySubscribe) add mental overhead without functional benefits. Direct singleton access is preferred when no React-lifecycle-dependent state sync is needed.
 **Action:** Deleted the hook file and removed its export from the entity index.
+
+## 2026-03-21 - Removed Unused Toast Component and Dependency
+**Clutter:** The Radix-based `toast.tsx` component and its `@radix-ui/react-toast` dependency.
+**Learning:** The application has fully migrated to `sonner` for toast notifications. Keeping the old implementation and its dependency adds unnecessary bundle size and maintenance overhead.
+**Action:** Deleted `src/shared/ui/ui/toast.tsx` and uninstalled `@radix-ui/react-toast`.

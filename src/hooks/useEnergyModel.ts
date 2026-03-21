@@ -31,9 +31,9 @@ export const useEnergyModel = (): EnergyModel => {
     const startOfDay = getStartOfDay();
 
     // Filter for today's mood vitals (since 4 AM)
+    // Bolt ⚡ Optimization: Remove redundant sort as VitalsContext already provides data sorted desc
     const todaysVitals = vitals
-      .filter(v => v.type === 'mood' && v.timestamp >= startOfDay)
-      .sort((a, b) => b.timestamp - a.timestamp);
+      .filter(v => v.type === 'mood' && v.timestamp >= startOfDay);
 
     let currentEnergy = 60; // Default / Fallback
     let moodIndex = 3;

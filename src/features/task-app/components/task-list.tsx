@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { isToday, isPast, isTomorrow, startOfToday } from "date-fns";
+import { startOfToday, startOfTomorrow, addDays } from "date-fns";
 import { Task } from "@/entities/task";
 import { Tag } from "@/entities/tag";
 import { useReferenceContext } from "@/context/ReferenceContext";
@@ -34,7 +34,12 @@ export function TaskList({ items, tags, loading = false }: TaskListProps) {
     const upcoming: Task[] = [];
     const later: Task[] = [];
 
-    const now = startOfToday();
+    // Bolt ⚡ Optimization: Pre-calculate date boundaries once to avoid redundant
+    // expensive calls to `isToday`, `isTomorrow`, etc., within the iteration loop.
+    // This is DST-safe by using `date-fns` for boundary calculation.
+    const todayStart = startOfToday().getTime();
+    const todayEnd = startOfTomorrow().getTime();
+    const tomorrowEnd = addDays(todayEnd, 1).getTime();
 
     items.forEach(task => {
         if (task.status === 'completed') {
@@ -42,19 +47,27 @@ export function TaskList({ items, tags, loading = false }: TaskListProps) {
             return;
         }
 
-        const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-        const assignedDate = task.assignedDate ? new Date(task.assignedDate) : null;
+        // Bolt ⚡ Optimization: Direct numeric comparisons on timestamps.
+        // If dueDate/assignedDate is missing (0/undefined), it naturally falls through to 'later'.
+        const dueDate = Number(task.dueDate) || 0;
+        const assignedDate = Number(task.assignedDate) || 0;
 
-        if (dueDate && isPast(dueDate) && !isToday(dueDate)) {
+        if (dueDate > 0 && dueDate < todayStart) {
             overdue.push(task);
         } else if (
-            (dueDate && isToday(dueDate)) ||
-            (assignedDate && (isToday(assignedDate) || isPast(assignedDate)))
+            (dueDate > 0 && dueDate < todayEnd) ||
+            (assignedDate > 0 && assignedDate < todayEnd)
         ) {
             today.push(task);
-        } else if ((dueDate && isTomorrow(dueDate)) || (assignedDate && isTomorrow(assignedDate))) {
+        } else if (
+            (dueDate > 0 && dueDate < tomorrowEnd) ||
+            (assignedDate > 0 && assignedDate < tomorrowEnd)
+        ) {
             tomorrow.push(task);
-        } else if ((dueDate && dueDate > now) || (assignedDate && assignedDate > now)) {
+        } else if (
+            (dueDate >= tomorrowEnd) ||
+            (assignedDate >= tomorrowEnd)
+        ) {
             upcoming.push(task);
         } else {
             later.push(task);

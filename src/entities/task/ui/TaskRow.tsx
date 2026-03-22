@@ -117,7 +117,7 @@ const TaskRowComponent: React.FC<TaskRowProps> = ({
                                 <div className="flex items-start gap-3">
                                     <div onClick={(e) => e.stopPropagation()} className="flex items-center mt-0.5 relative">
                                         {task.energy === 'High' && !isCompleted && !isCompleting && (
-                                            <span className="absolute -left-2 top-1.5 flex h-2 w-2 rounded-full bg-blue-600" />
+                                            <span className="absolute -left-2 top-1.5 flex h-2 w-2 rounded-full bg-orange-500" />
                                         )}
                                         <Checkbox
                                             checked={isSelectionMode ? isSelected : (isCompleted || isCompleting)}

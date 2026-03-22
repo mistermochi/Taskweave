@@ -1,6 +1,7 @@
 import * as React from "react";
 import {
   Calendar,
+  CalendarClock,
   Clock,
   Tag as TagIcon,
   Zap,
@@ -59,7 +60,7 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
             >
               {task.title}
             </div>
-            {task.energy === 'High' && <span className="flex h-2 w-2 rounded-full bg-blue-600" />}
+            {task.energy === 'High' && <span className="flex h-2 w-2 rounded-full bg-orange-500" />}
           </div>
         </div>
       </div>
@@ -89,14 +90,22 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
           </Badge>
         )}
         {task.energy && (
-          <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-blue-500/30 text-blue-500">
+          <Badge
+            variant="outline"
+            className={cn(
+              "flex items-center gap-1 text-[10px] px-1.5 py-0",
+              task.energy === 'High' ? "text-orange-500 border-orange-500/30" :
+              task.energy === 'Low' ? "text-emerald-500 border-emerald-500/30" :
+              "text-yellow-500 border-yellow-500/30"
+            )}
+          >
             <Zap className="h-3 w-3" aria-hidden="true" />
             {task.energy}
           </Badge>
         )}
         {task.assignedDate && (
           <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-blue-500/30 text-blue-400">
-            <Clock className="h-3 w-3" aria-hidden="true" />
+            <CalendarClock className="h-3 w-3" aria-hidden="true" />
             {new Date(task.assignedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
           </Badge>
         )}

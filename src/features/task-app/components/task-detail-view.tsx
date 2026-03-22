@@ -5,6 +5,7 @@ import {
   Archive,
   ArchiveX,
   Calendar as CalendarIcon,
+  CalendarClock,
   Check,
   Clock,
   Layers,
@@ -671,7 +672,12 @@ export function TaskDetailView({
                   {localEnergy ? (
                     <Badge
                       variant="outline"
-                      className="flex items-center gap-1 border-blue-500/30 text-blue-500 cursor-pointer hover:bg-blue-500/10 transition-colors"
+                      className={cn(
+                        "flex items-center gap-1 cursor-pointer transition-colors",
+                        localEnergy === 'High' ? "text-orange-500 border-orange-500/30 hover:bg-orange-500/10" :
+                        localEnergy === 'Low' ? "text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/10" :
+                        "text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/10"
+                      )}
                     >
                       <Zap className="h-3 w-3" />
                       {localEnergy}
@@ -733,7 +739,7 @@ export function TaskDetailView({
                       variant="outline"
                       className="flex items-center gap-1 border-blue-500/30 text-blue-400 cursor-pointer hover:bg-blue-400/10 transition-colors"
                     >
-                      <Clock className="h-3 w-3" />
+                      <CalendarClock className="h-3 w-3" />
                       {new Date(localAssignedDate).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",
@@ -744,7 +750,7 @@ export function TaskDetailView({
                       variant="outline"
                       className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
                     >
-                      <Clock className="h-3 w-3" />
+                      <CalendarClock className="h-3 w-3" />
                       Set Schedule
                     </Badge>
                   )}

@@ -21,10 +21,11 @@ export const useInsightsController = () => {
   const allCompletedTasks = useMemo(() => allTasks.filter(t => t.status === 'completed'), [allTasks]);
 
   /**
-   * Most recent 50 vitals, sorted by time descending.
+   * Most recent 50 vitals.
+   * Bolt ⚡ Optimization: Remove redundant sort as VitalsContext already provides data sorted desc
    */
   const sortedVitals = useMemo(() => {
-    return [...recentVitals].sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
+    return recentVitals.slice(0, 50);
   }, [recentVitals]);
 
   /**
@@ -37,32 +38,47 @@ export const useInsightsController = () => {
    */
   const stats = useMemo(() => {
     const totalTasks = allCompletedTasks.length;
-    const totalSeconds = allCompletedTasks.reduce((acc, t) => 
-      acc + (t.actualDuration ? t.actualDuration : t.duration * 60), 0);
+    const hourCounts = new Array(24).fill(0);
+    const categories: Category[] = ['Work', 'Wellbeing', 'Personal', 'Hobbies'];
+
+    // Bolt ⚡ Optimization: Aggregate all metrics in a single pass $O(N)$
+    // instead of multiple filter/reduce/map passes (~10 traversals).
+    let totalSeconds = 0;
+    const categoryMetrics: Record<string, { count: number; seconds: number }> = {
+      'Work': { count: 0, seconds: 0 },
+      'Wellbeing': { count: 0, seconds: 0 },
+      'Personal': { count: 0, seconds: 0 },
+      'Hobbies': { count: 0, seconds: 0 }
+    };
+
+    allCompletedTasks.forEach(t => {
+      const seconds = (t.actualDuration ? t.actualDuration : t.duration * 60);
+      totalSeconds += seconds;
+
+      if (categoryMetrics[t.category]) {
+        categoryMetrics[t.category].count++;
+        categoryMetrics[t.category].seconds += seconds;
+      }
+
+      const date = new Date(t.completedAt || t.createdAt);
+      hourCounts[date.getHours()]++;
+    });
+
     const totalHours = Math.floor(totalSeconds / 3600);
     const totalMinutesRemainder = Math.floor((totalSeconds % 3600) / 60);
 
-    const categories: Category[] = ['Work', 'Wellbeing', 'Personal', 'Hobbies'];
     const categoryStats = categories.map(cat => {
-      const catTasks = allCompletedTasks.filter(t => t.category === cat);
-      const count = catTasks.length;
-      const seconds = catTasks.reduce((acc, t) => acc + (t.actualDuration ? t.actualDuration : t.duration * 60), 0);
+      const metrics = categoryMetrics[cat];
       return { 
         category: cat, 
-        count, 
-        seconds,
-        percentage: totalSeconds > 0 ? (seconds / totalSeconds) * 100 : 0
+        count: metrics.count,
+        seconds: metrics.seconds,
+        percentage: totalSeconds > 0 ? (metrics.seconds / totalSeconds) * 100 : 0
       };
     }).sort((a, b) => b.seconds - a.seconds);
 
     const topCategory = categoryStats[0]?.seconds > 0 ? categoryStats[0] : null;
 
-    const hourCounts = new Array(24).fill(0);
-    allCompletedTasks.forEach(t => {
-      const date = new Date(t.completedAt || t.createdAt);
-      hourCounts[date.getHours()]++;
-    });
-    
     const maxTasksInHour = Math.max(...hourCounts);
     const peakHourIndex = hourCounts.indexOf(maxTasksInHour);
     

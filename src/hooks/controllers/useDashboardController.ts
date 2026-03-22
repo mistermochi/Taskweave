@@ -23,7 +23,18 @@ import { RecommendationEngine } from '@/services/RecommendationEngine';
 export const useDashboardController = () => {
   const uid = useUserId();
   const { tasks: allTasks } = useTaskContext();
-  const activeTasks = useMemo(() => allTasks.filter(t => t.status === 'active'), [allTasks]);
+
+  // Bolt ⚡ Optimization: Single-pass partitioning of active and completed tasks
+  const { activeTasks, completedTasks } = useMemo(() => {
+    const active: TaskEntity[] = [];
+    const completed: TaskEntity[] = [];
+    allTasks.forEach(t => {
+      if (t.status === 'active') active.push(t);
+      else if (t.status === 'completed') completed.push(t);
+    });
+    return { activeTasks: active, completedTasks: completed };
+  }, [allTasks]);
+
   const { vitals } = useVitalsContext();
   const { tags } = useReferenceContext();
   const energyModel = useEnergyModel();
@@ -31,12 +42,6 @@ export const useDashboardController = () => {
 
   /** Current AI task recommendation with its reasoning. */
   const [recommendation, setRecommendation] = useState<{ taskId: string; reason: string; } | null>(null);
-
-  /**
-   * Derive completed tasks from the global task context.
-   * Bolt ⚡ Optimization: Reuse existing TaskContext subscription instead of creating a new one.
-   */
-  const completedTasks = useMemo(() => allTasks.filter(t => t.status === 'completed'), [allTasks]);
 
   /**
    * Effect that triggers the AI Recommendation Engine whenever relevant context changes.
@@ -119,12 +124,15 @@ export const useDashboardController = () => {
         });
 
         if (inboxTasks.length > 0) {
-            inboxTasks.sort((a, b) => {
-                const durationDiff = a.duration - b.duration;
-                if (durationDiff !== 0) return durationDiff;
-                return b.createdAt - a.createdAt;
+            // Bolt ⚡ Optimization: O(N) search for best inbox task instead of O(N log N) sort
+            const bestInboxTask = inboxTasks.reduce((best, curr) => {
+                const durationDiff = curr.duration - best.duration;
+                if (durationDiff < 0) return curr;
+                if (durationDiff > 0) return best;
+                // Tie-breaker: newest task first
+                return curr.createdAt > best.createdAt ? curr : best;
             });
-            const bestInboxTask = inboxTasks[0];
+
             if (bestInboxTask) {
                 planCandidates.push(bestInboxTask);
             }

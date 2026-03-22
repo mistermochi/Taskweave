@@ -17,3 +17,7 @@
 ## 2025-05-26 - [Single-Pass Data Aggregation]
 **Learning:** Chaining multiple higher-order functions (`filter`, `map`, `reduce`) over large arrays in data-heavy controllers (like `useInsightsController`) leads to redundant iterations and increased CPU overhead. Consolidating these operations into a single $O(N)$ `forEach` pass significantly improves performance as the dataset (e.g., user history) grows.
 **Action:** When calculating multiple metrics from the same array, prioritize a single-pass aggregation loop over multiple specialized iterations.
+
+## 2025-05-27 - [Algorithmic Optimization of Recommendation Engine]
+**Learning:** Using $O(N \log N)$ sorting and repeated $O(N)$ filtering in hot loops (like history recalibration) leads to $O(N^2)$ complexity, which degrades rapidly for users with large histories. Replacing these with $O(N)$ linear scans and sliding pointers reduces complexity to $O(N \log N)$ or $O(N)$, significantly improving processing speed.
+**Action:** Always prefer single-pass linear searches (`reduce`) or sliding pointers over sorting when identifying a single "best" element or processing chronological event streams. Use array slicing or index tracking instead of repeated filtering within loops.

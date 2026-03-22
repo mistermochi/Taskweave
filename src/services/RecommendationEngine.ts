@@ -115,17 +115,26 @@ export class RecommendationEngine {
       .sort((a, b) => a.timestamp - b.timestamp);
 
     let processedCount = 0;
+    let vitalPointer = 0;
     
-    for (const task of completedTasks) {
+    for (let i = 0; i < completedTasks.length; i++) {
+      const task = completedTasks[i];
       const completionTime = task.completedAt!;
       
       let energyAtTime = 75;
-      const priorVital = sortedVitals.findLast(v => v.timestamp < completionTime);
-      if (priorVital) {
-        energyAtTime = normalizeEnergy(priorVital.value as number);
+
+      // Bolt ⚡ Optimization: Use sliding pointer for O(1) amortized lookup in sorted vitals
+      while (vitalPointer < sortedVitals.length && sortedVitals[vitalPointer].timestamp < completionTime) {
+          vitalPointer++;
       }
 
-      const previousCompletions = completedTasks.filter(t => t.completedAt! < completionTime);
+      if (vitalPointer > 0) {
+          const priorVital = sortedVitals[vitalPointer - 1];
+          energyAtTime = normalizeEnergy(priorVital.value as number);
+      }
+
+      // Bolt ⚡ Optimization: Efficient slice instead of O(N) filter in loop
+      const previousCompletions = completedTasks.slice(0, i);
       
       const activeTasksAtTime = allTasks.filter(t => {
         if (t.id === task.id) return false;
@@ -218,7 +227,8 @@ export class RecommendationEngine {
     let lastCats = [0, 0, 0, 0];
 
     if (ctx.completedTasks.length > 0) {
-      const last = ctx.completedTasks.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))[0];
+      // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
+      const last = this.getLatestCompletedTask(ctx.completedTasks)!;
       const msSince = Date.now() - (last.completedAt || 0);
       const hoursSince = msSince / (1000 * 60 * 60);
       timeSinceLast = Math.max(0, 1.0 - (hoursSince / 4));
@@ -257,9 +267,8 @@ export class RecommendationEngine {
     const t = allActiveTasks.filter(t => !isBlocked(t));
 
     const indices: number[] = [];
-    const last = ctx.completedTasks.length > 0 
-        ? [...ctx.completedTasks].sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))[0] 
-        : null;
+    // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
+    const last = this.getLatestCompletedTask(ctx.completedTasks);
     const hour = ctx.currentTime.getHours();
 
     if (t.some(x => x.energy === 'High' && x.duration > 30)) indices.push(StrategyArm.DEEP_FLOW);
@@ -342,7 +351,8 @@ export class RecommendationEngine {
 
       case StrategyArm.THE_CRUSHER:
         tasks = tasks.filter(t => t.dueDate && t.dueDate < Date.now() + 86400000);
-        chosenTask = tasks.sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0))[0];
+        // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
+        chosenTask = tasks.length > 0 ? tasks.reduce((prev, curr) => (curr.dueDate || 0) < (prev.dueDate || 0) ? curr : prev) : null;
         reason = "The Crusher: Clear urgent items.";
         break;
 
@@ -373,7 +383,8 @@ export class RecommendationEngine {
       case StrategyArm.ARCHAEOLOGIST:
         const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
         tasks = tasks.filter(t => t.createdAt < fourteenDaysAgo && !t.dueDate);
-        chosenTask = tasks.sort((a, b) => a.createdAt - b.createdAt)[0]; 
+        // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
+        chosenTask = tasks.length > 0 ? tasks.reduce((prev, curr) => curr.createdAt < prev.createdAt ? curr : prev) : null;
         reason = "The Archaeologist: Clear stagnant items.";
         break;
 
@@ -488,9 +499,8 @@ export class RecommendationEngine {
   async logOrganicSelection(task: TaskEntity, context: SuggestionContext) {
     const validArms = this.getValidStrategies(context);
     const x = this.buildContextVector(context);
-    const last = context.completedTasks.length > 0 
-        ? [...context.completedTasks].sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))[0] 
-        : null;
+    // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
+    const last = this.getLatestCompletedTask(context.completedTasks);
 
     for (const arm of validArms) {
       let matches = false;
@@ -533,5 +543,16 @@ export class RecommendationEngine {
          await LinUCBService.getInstance().update(x, arm, 1.0);
       }
     }
+  }
+
+  /**
+   * Finds the most recently completed task in a list.
+   * Bolt ⚡ Optimization: O(N) single-pass traversal.
+   */
+  private getLatestCompletedTask(tasks: TaskEntity[]): TaskEntity | null {
+    if (tasks.length === 0) return null;
+    return tasks.reduce((latest, current) =>
+      (current.completedAt || 0) > (latest.completedAt || 0) ? current : latest
+    );
   }
 }

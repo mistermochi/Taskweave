@@ -1,5 +1,42 @@
+/** @jest-environment node */
 import { RecommendationEngine } from '../services/RecommendationEngine';
 import { TaskEntity, UserVital } from '@/types/scheduling';
+
+// --- Mocks ---
+
+// Mock Firebase services to avoid initialization errors
+jest.mock('firebase/app', () => ({
+  initializeApp: jest.fn(),
+  getApps: jest.fn(() => []),
+  getApp: jest.fn(),
+}));
+
+jest.mock('firebase/auth', () => ({
+  getAuth: jest.fn(),
+}));
+
+jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(),
+  enableIndexedDbPersistence: jest.fn(() => Promise.resolve()),
+  enableMultiTabIndexedDbPersistence: jest.fn(() => Promise.resolve()),
+  doc: jest.fn(),
+  setDoc: jest.fn(),
+}));
+
+// Mock LinUCBService to avoid database dependencies
+jest.mock('../services/LinUCBService', () => {
+  const original = jest.requireActual('../services/LinUCBService');
+  return {
+    ...original,
+    LinUCBService: {
+      getInstance: () => ({
+        resetModel: jest.fn(),
+        update: jest.fn(),
+        batchTrain: jest.fn(),
+      }),
+    },
+  };
+});
 
 describe('RecommendationEngine Performance', () => {
   it('should handle history recalibration efficiently', async () => {
@@ -33,7 +70,6 @@ describe('RecommendationEngine Performance', () => {
 
     const duration = end - start;
 
-    // O(N^2) for 1000 tasks with findLast and repeated filtering would likely be much slower.
     // O(N log N + N*A) should easily complete in under 500ms on a typical machine.
     expect(duration).toBeLessThan(500);
   });

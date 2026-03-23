@@ -19,3 +19,8 @@
 **Clutter:** Obsolete Radix-based toast implementation (`src/shared/ui/ui/toast.tsx`) and the `@radix-ui/react-toast` dependency.
 **Learning:** The application has completely migrated to `sonner` for toast notifications. Maintaining unused UI components from previous implementations increases bundle size and potential confusion for developers.
 **Action:** Deleted the unreferenced `toast.tsx` file and removed the `@radix-ui/react-toast` dependency.
+
+## 2026-03-25 - Resolved Redundant Context Provider Nesting
+**Clutter:** `AppProvider` was wrapping the application in both `src/app/layout.tsx` and `src/app/page.tsx`.
+**Learning:** Redundant context provider nesting in Next.js App Router can cause double-initialization of global data listeners (Firestore) and side effects. Global providers should be consolidated in the root layout to ensure a single state tree and consistent side-effect execution.
+**Action:** Removed the nested provider from `page.tsx` and verified structural integrity with a production build.

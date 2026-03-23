@@ -109,54 +109,56 @@ export function TaskApp({
   }, [tagsMap, optimisticTags, clearOptimisticTag]);
 
   const mergedTasks = React.useMemo(() => {
-    const merged = [...tasks];
+    // Bolt ⚡ Optimization: Use a Map for O(N + M) reconciliation instead of O(N * M) findIndex.
+    const taskMap = new Map<string, Task>(tasks.map(t => [t.id, t]));
 
-    // Apply optimistic updates and additions
     Object.entries(optimisticTasks).forEach(([id, update]) => {
-      const existingIdx = merged.findIndex(t => t.id === id);
       if (update === null) {
-        // Optimistic delete
-        if (existingIdx !== -1) merged.splice(existingIdx, 1);
-      } else if (existingIdx !== -1) {
-        // Optimistic update
-        merged[existingIdx] = { ...merged[existingIdx], ...update };
+        taskMap.delete(id);
       } else {
-        // Optimistic addition
-        merged.push(update as Task);
+        const existing = taskMap.get(id);
+        if (existing) {
+          taskMap.set(id, { ...existing, ...update });
+        } else {
+          taskMap.set(id, update as Task);
+        }
       }
     });
 
-    return merged;
+    return Array.from(taskMap.values());
   }, [tasks, optimisticTasks]);
 
   const mergedTags = React.useMemo(() => {
-    const merged = [...tags];
+    // Bolt ⚡ Optimization: Use a Map for O(N + M) reconciliation instead of O(N * M) findIndex.
+    const tagMap = new Map<string, Tag>(tags.map(t => [t.id, t]));
+
     Object.entries(optimisticTags).forEach(([id, update]) => {
-      const existingIdx = merged.findIndex(t => t.id === id);
       if (update === null) {
-        if (existingIdx !== -1) merged.splice(existingIdx, 1);
-      } else if (existingIdx !== -1) {
-        merged[existingIdx] = { ...merged[existingIdx], ...update };
+        tagMap.delete(id);
       } else {
-        merged.push(update as Tag);
+        const existing = tagMap.get(id);
+        if (existing) {
+          tagMap.set(id, { ...existing, ...update });
+        } else {
+          tagMap.set(id, update as Tag);
+        }
       }
     });
-    return merged;
+
+    return Array.from(tagMap.values());
   }, [tags, optimisticTags]);
 
-  const mergedTagsMap = React.useMemo(() => {
-    return mergedTags.reduce((acc, tag) => {
-      acc[tag.id] = tag;
-      return acc;
-    }, {} as Record<string, Tag>);
-  }, [mergedTags]);
+  // Bolt ⚡ Optimization: Consolidate tag lookup maps into a single pass O(T).
+  const { mergedTagsMap, mergedTagsByName } = React.useMemo(() => {
+    const idMap: Record<string, Tag> = {};
+    const nameMap: Record<string, Tag> = {};
 
-  // Bolt ⚡: Separate map for name-based lookups to avoid ID collisions
-  const mergedTagsByName = React.useMemo(() => {
-    return mergedTags.reduce((acc, tag) => {
-      acc[tag.name.toLowerCase()] = tag;
-      return acc;
-    }, {} as Record<string, Tag>);
+    mergedTags.forEach(tag => {
+      idMap[tag.id] = tag;
+      nameMap[tag.name.toLowerCase()] = tag;
+    });
+
+    return { mergedTagsMap: idMap, mergedTagsByName: nameMap };
   }, [mergedTags]);
 
   useHashRouter(mergedTasks);

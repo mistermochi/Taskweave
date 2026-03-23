@@ -21,3 +21,7 @@
 ## 2025-05-27 - [Algorithmic Optimization of Recommendation Engine]
 **Learning:** Using $O(N \log N)$ sorting and repeated $O(N)$ filtering in hot loops (like history recalibration) leads to $O(N^2)$ complexity, which degrades rapidly for users with large histories. Replacing these with $O(N)$ linear scans and sliding pointers reduces complexity to $O(N \log N)$ or $O(N)$, significantly improving processing speed.
 **Action:** Always prefer single-pass linear searches (`reduce`) or sliding pointers over sorting when identifying a single "best" element or processing chronological event streams. Use array slicing or index tracking instead of repeated filtering within loops.
+
+## 2025-05-28 - [Reconciliation Optimization & Consolidated Mapping]
+**Learning:** Performing array searches (`findIndex`, `find`) inside loops when merging optimistic UI state with server data creates an $O(N \cdot M)$ bottleneck. Converting the source array to a `Map` allows for $O(N + M)$ reconciliation. Additionally, multiple `useMemo` hooks that iterate over the same array to create different lookup maps can be consolidated into a single $O(T)$ pass to reduce iteration overhead.
+**Action:** Use `Map`-based reconciliation for merging state and consolidate multiple lookup map iterations into a single pass.

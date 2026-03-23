@@ -38,7 +38,7 @@ export function MentalModelForm() {
       setCalibrationStatus('success');
       toast.success(`AI Calibrated with ${count} samples`);
     } catch (e) {
-      console.error(e);
+      console.error("AI calibration failed:", e);
       setCalibrationStatus('error');
       toast.error("AI calibration failed");
     }
@@ -58,7 +58,7 @@ export function MentalModelForm() {
       setHistoryCalibrationStatus('success');
       toast.success(`Re-learned from ${count} tasks`);
     } catch (e) {
-      console.error(e);
+      console.error("Historical learning failed:", e);
       setHistoryCalibrationStatus('error');
       toast.error("Historical learning failed");
     }

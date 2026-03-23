@@ -6,7 +6,6 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from 'firebase/firestore';
 import { contextApi } from '@/entities/context';
 import LoginView from '@/views/LoginView';
-import { AppProvider } from '@/context/AppProvider';
 import { TaskApp } from "@/features/task-app/components/task-app";
 import { useTaskContext } from "@/context/TaskContext";
 import { useReferenceContext } from "@/context/ReferenceContext";
@@ -139,9 +138,9 @@ export default function HomePage() {
   // Otherwise, render the App shell immediately.
   // If authLoading is true, MainContent will show skeletons.
   return (
-    <AppProvider>
+    <>
       {user && <UserSessionManager user={user} />}
       <MainContent authLoading={authLoading} />
-    </AppProvider>
+    </>
   );
 };

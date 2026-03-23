@@ -43,6 +43,7 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
       ref={itemRef}
       className={cn(
         "hover:bg-accent/70 flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all w-full",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         isSelected && "bg-accent/70",
         isInactive && "grayscale opacity-70"
       )}

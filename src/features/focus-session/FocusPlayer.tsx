@@ -62,6 +62,7 @@ export const FocusPlayer: React.FC = () => {
                 size="icon"
                 className="h-12 w-12 rounded-full"
                 onClick={actions.toggleTimer}
+                aria-label={state.isActive ? 'Pause focus session' : 'Resume focus session'}
               >
                 {state.isActive ? (
                   <Pause className="h-6 w-6 fill-current" />
@@ -80,6 +81,7 @@ export const FocusPlayer: React.FC = () => {
                 size="icon"
                 className="h-10 w-10 text-muted-foreground hover:text-primary transition-colors"
                 onClick={actions.completeSession}
+                aria-label="Complete task"
               >
                 <Check className="h-5 w-5" />
               </Button>
@@ -97,6 +99,7 @@ export const FocusPlayer: React.FC = () => {
                 size="icon"
                 className="h-10 w-10 text-muted-foreground"
                 onClick={toggleFocusExpansion}
+                aria-label="Expand focus details"
               >
                 <ChevronUp className="h-5 w-5" />
               </Button>

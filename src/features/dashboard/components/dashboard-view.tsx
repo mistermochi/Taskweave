@@ -10,7 +10,7 @@ import { useDashboardController } from '@/hooks/controllers/useDashboardControll
 import { ReadinessRing } from './readiness-ring';
 import { SmileyScale } from './smiley-scale';
 import { QuickActions } from './quick-actions';
-import { SectionHeader } from '@/shared/ui/ui/SectionHeader';
+import { SectionHeader } from '@/shared/ui/ui/section-header';
 import { Card } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/ui/sheet';

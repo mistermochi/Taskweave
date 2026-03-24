@@ -24,3 +24,8 @@
 **Clutter:** `AppProvider` was wrapping the application in both `src/app/layout.tsx` and `src/app/page.tsx`.
 **Learning:** Redundant context provider nesting in Next.js App Router can cause double-initialization of global data listeners (Firestore) and side effects. Global providers should be consolidated in the root layout to ensure a single state tree and consistent side-effect execution.
 **Action:** Removed the nested provider from `page.tsx` and verified structural integrity with a production build.
+
+## 2026-03-27 - Standardized UI Component Naming
+**Clutter:** `SectionHeader.tsx` was using PascalCase, deviating from the kebab-case convention used for all other shared UI components.
+**Learning:** Shared UI components in `src/shared/ui/ui/` follow a strict kebab-case naming convention. Inconsistent naming can lead to import errors in case-sensitive environments and increases mental overhead for developers.
+**Action:** Renamed `SectionHeader.tsx` to `section-header.tsx` and updated its primary usage in `dashboard-view.tsx`.

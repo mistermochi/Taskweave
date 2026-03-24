@@ -83,6 +83,12 @@ export const DashboardView: React.FC = () => {
     if (intention !== state.latestFocus) actions.saveFocus(intention);
   };
 
+  const handleIntentionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
   const createNewTask = () => {
     setSelectedTask(createDefaultTask());
   };
@@ -116,12 +122,13 @@ export const DashboardView: React.FC = () => {
                         <Star size={16} fill="currentColor" />
                     </div>
                     <input
-                        className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
+                        className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 rounded-sm transition-all text-sm font-medium"
                         placeholder="What is your main focus?"
                         aria-label="Main focus"
                         value={intention}
                         onChange={(e) => setIntention(e.target.value)}
                         onBlur={handleIntentionBlur}
+                        onKeyDown={handleIntentionKeyDown}
                     />
                 </div>
 

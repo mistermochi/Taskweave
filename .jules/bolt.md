@@ -25,3 +25,7 @@
 ## 2025-05-28 - [Reconciliation Optimization & Consolidated Mapping]
 **Learning:** Performing array searches (`findIndex`, `find`) inside loops when merging optimistic UI state with server data creates an $O(N \cdot M)$ bottleneck. Converting the source array to a `Map` allows for $O(N + M)$ reconciliation. Additionally, multiple `useMemo` hooks that iterate over the same array to create different lookup maps can be consolidated into a single $O(T)$ pass to reduce iteration overhead.
 **Action:** Use `Map`-based reconciliation for merging state and consolidate multiple lookup map iterations into a single pass.
+
+## 2025-05-31 - [Optimized Reconciliation & Multi-Pass Lookup Maps]
+**Learning:** Even when reconciliation is optimized to O(N+M) using Maps, subsequent O(N) searches (like .find or .some) in the same component re-introduce bottlenecks. Returning the Map directly from the reconciliation hook allows for O(1) lookups in the rest of the component. Additionally, consolidating secondary lookup maps (by ID, by Name) into the initial reconciliation pass eliminates redundant array traversals.
+**Action:** Always return lookup Maps alongside reconciled arrays when they are needed for ID-based lookups in the same or child components. Consolidate all necessary map-building into a single iteration pass.

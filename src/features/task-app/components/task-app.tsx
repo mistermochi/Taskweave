@@ -108,7 +108,7 @@ export function TaskApp({
     });
   }, [tagsMap, optimisticTags, clearOptimisticTag]);
 
-  const mergedTasks = React.useMemo(() => {
+  const { mergedTasks, mergedTasksMap } = React.useMemo(() => {
     // Bolt ⚡ Optimization: Use a Map for O(N + M) reconciliation instead of O(N * M) findIndex.
     const taskMap = new Map<string, Task>(tasks.map(t => [t.id, t]));
 
@@ -125,10 +125,13 @@ export function TaskApp({
       }
     });
 
-    return Array.from(taskMap.values());
+    return {
+      mergedTasks: Array.from(taskMap.values()),
+      mergedTasksMap: taskMap
+    };
   }, [tasks, optimisticTasks]);
 
-  const mergedTags = React.useMemo(() => {
+  const { mergedTags, mergedTagsMap, mergedTagsByName } = React.useMemo(() => {
     // Bolt ⚡ Optimization: Use a Map for O(N + M) reconciliation instead of O(N * M) findIndex.
     const tagMap = new Map<string, Tag>(tags.map(t => [t.id, t]));
 
@@ -145,21 +148,22 @@ export function TaskApp({
       }
     });
 
-    return Array.from(tagMap.values());
-  }, [tags, optimisticTags]);
-
-  // Bolt ⚡ Optimization: Consolidate tag lookup maps into a single pass O(T).
-  const { mergedTagsMap, mergedTagsByName } = React.useMemo(() => {
+    // Bolt ⚡ Optimization: Consolidate tag lookup maps into a single pass O(T).
     const idMap: Record<string, Tag> = {};
     const nameMap: Record<string, Tag> = {};
+    const tagsArray = Array.from(tagMap.values());
 
-    mergedTags.forEach(tag => {
+    tagsArray.forEach(tag => {
       idMap[tag.id] = tag;
       nameMap[tag.name.toLowerCase()] = tag;
     });
 
-    return { mergedTagsMap: idMap, mergedTagsByName: nameMap };
-  }, [mergedTags]);
+    return {
+      mergedTags: tagsArray,
+      mergedTagsMap: idMap,
+      mergedTagsByName: nameMap
+    };
+  }, [tags, optimisticTags]);
 
   useHashRouter(mergedTasks);
 
@@ -214,12 +218,13 @@ export function TaskApp({
 
   React.useEffect(() => {
     if (activeTaskId && mergedTasks.length > 0) {
-      const task = mergedTasks.find(t => t.id === activeTaskId);
+      // Bolt ⚡ Optimization: O(1) lookup using mergedTasksMap
+      const task = mergedTasksMap.get(activeTaskId);
       if (!task || task.status !== 'active') {
         clearFocusSession();
       }
     }
-  }, [activeTaskId, mergedTasks, clearFocusSession]);
+  }, [activeTaskId, mergedTasks, mergedTasksMap, clearFocusSession]);
 
   React.useEffect(() => {
     if (defaultCollapsed !== undefined) {
@@ -335,12 +340,12 @@ export function TaskApp({
       task={
         selectedTask?.id === "new"
           ? selectedTask
-          : mergedTasks.find((item) => item.id === selectedTask?.id) || null
+          : (selectedTask?.id ? mergedTasksMap.get(selectedTask.id) : null) || null
       }
       tags={mergedTags}
       allTasks={mergedTasks}
     />
-  ), [selectedTask, mergedTasks, mergedTags]);
+  ), [selectedTask, mergedTasks, mergedTasksMap, mergedTags]);
 
   const mainContent = (
     <div className="relative h-full flex flex-col w-full">
@@ -463,7 +468,10 @@ export function TaskApp({
     </div>
   );
 
-  const isFocusActive = !!activeTaskId && mergedTasks.some(t => t.id === activeTaskId && t.status === 'active');
+  const isFocusActive = !!activeTaskId && (() => {
+    const task = mergedTasksMap.get(activeTaskId);
+    return task?.status === 'active';
+  })();
 
   return (
     <TooltipProvider delayDuration={0}>

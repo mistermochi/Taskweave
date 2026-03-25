@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Task, TaskEntity } from '@/entities/task';
 import { Tag } from '@/entities/tag';
+import { vibrate } from '@/shared/lib/utils';
 import { useDashboardController } from '@/hooks/controllers/useDashboardController';
 import { ReadinessRing } from './readiness-ring';
 import { SmileyScale } from './smiley-scale';
@@ -80,7 +81,16 @@ export const DashboardView: React.FC = () => {
   useEffect(() => { setIntention(state.latestFocus); }, [state.latestFocus]);
 
   const handleIntentionBlur = () => {
-    if (intention !== state.latestFocus) actions.saveFocus(intention);
+    if (intention !== state.latestFocus) {
+      actions.saveFocus(intention);
+      vibrate('light');
+    }
+  };
+
+  const handleIntentionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      (e.target as HTMLInputElement).blur();
+    }
   };
 
   const createNewTask = () => {
@@ -116,12 +126,13 @@ export const DashboardView: React.FC = () => {
                         <Star size={16} fill="currentColor" />
                     </div>
                     <input
-                        className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
+                        className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all text-sm font-medium rounded-sm"
                         placeholder="What is your main focus?"
                         aria-label="Main focus"
                         value={intention}
                         onChange={(e) => setIntention(e.target.value)}
                         onBlur={handleIntentionBlur}
+                        onKeyDown={handleIntentionKeyDown}
                     />
                 </div>
 

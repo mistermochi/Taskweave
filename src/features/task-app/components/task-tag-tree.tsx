@@ -70,7 +70,7 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
   const tagCounts = React.useMemo(() => {
     const counts: Record<string, number> = {};
     tasks.forEach(task => {
-        if (task.status === 'active' && task.category) {
+        if (task.category) {
             counts[task.category] = (counts[task.category] || 0) + 1;
         }
     });

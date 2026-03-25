@@ -137,7 +137,7 @@ export function TaskList({ items, tags, loading = false }: TaskListProps) {
               <TaskListItem
                 key={item.id}
                 task={item}
-                tagsMap={tagsMap}
+                categoryTag={tagsMap[item.category]}
                 isSelected={selectedTaskId === item.id}
                 onClick={setSelectedTask}
               />

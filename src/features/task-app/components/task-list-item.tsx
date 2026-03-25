@@ -16,12 +16,12 @@ import { Badge } from "@/shared/ui/ui/badge";
 
 interface TaskListItemProps {
   task: Task;
-  tagsMap: Record<string, Tag>;
+  categoryTag?: Tag;
   isSelected?: boolean;
   onClick: (task: Task) => void;
 }
 
-export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: TaskListItemProps) => {
+export const TaskListItem = React.memo(({ task, categoryTag, isSelected, onClick }: TaskListItemProps) => {
   const itemRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
@@ -30,11 +30,11 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
     }
   }, [isSelected]);
 
-  const getTagInfo = (categoryId: string) => {
-    const tag = tagsMap[categoryId];
-    if (tag) return { name: tag.name, color: tag.color };
-    return { name: categoryId, color: undefined };
-  };
+  const tagInfo = React.useMemo(() => {
+    if (categoryTag) return { name: categoryTag.name, color: categoryTag.color };
+    if (task.category) return { name: task.category, color: undefined };
+    return null;
+  }, [categoryTag, task.category]);
 
   const isInactive = task.status === 'completed' || task.status === 'archived';
 
@@ -70,19 +70,16 @@ export const TaskListItem = React.memo(({ task, tagsMap, isSelected, onClick }: 
         </div>
       )}
       <div className="flex flex-wrap items-center gap-2 mt-1">
-        {task.category && (() => {
-          const info = getTagInfo(task.category);
-          return (
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1 text-[10px] px-1.5 py-0"
-              style={info.color ? { backgroundColor: `${info.color}33`, color: info.color, borderColor: `${info.color}66` } : {}}
-            >
-              <TagIcon className="h-3 w-3" aria-hidden="true" />
-              {info.name}
-            </Badge>
-          );
-        })()}
+        {tagInfo && (
+          <Badge
+            variant="secondary"
+            className="flex items-center gap-1 text-[10px] px-1.5 py-0"
+            style={tagInfo.color ? { backgroundColor: `${tagInfo.color}33`, color: tagInfo.color, borderColor: `${tagInfo.color}66` } : {}}
+          >
+            <TagIcon className="h-3 w-3" aria-hidden="true" />
+            {tagInfo.name}
+          </Badge>
+        )}
         {task.duration > 0 && (
           <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0">
             <Clock className="h-3 w-3" aria-hidden="true" />

@@ -20,7 +20,14 @@ export const ReadinessRing = ({ score, className }: { score: number; className?:
   else if (score < 70) colorClass = 'text-orange-500';
 
   return (
-    <div className={cn("relative w-12 h-12 flex items-center justify-center", className)}>
+    <div
+      className={cn("relative w-12 h-12 flex items-center justify-center", className)}
+      role="progressbar"
+      aria-valuenow={Math.round(score)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label="Readiness score"
+    >
         <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 44 44">
             <circle cx="22" cy="22" r={radius} className="text-muted/50" stroke="currentColor" strokeWidth="4" fill="transparent" />
             <circle

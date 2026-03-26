@@ -29,3 +29,7 @@
 ## 2025-05-29 - [Fine-Grained Memoization & Filter Hoisting]
 **Learning:** Passing large global lookup maps (e.g., `tagsMap`) to memoized list items (`TaskListItem`) breaks memoization whenever any unrelated entry in the map changes. Passing only the specific required object allows `React.memo` to work effectively. Additionally, hoisting status-based partitioning to the parent component avoids redundant $O(N)$ scans in multiple child navigation components.
 **Action:** Always pass specific objects rather than entire lookup maps to memoized components. Hoist and share pre-filtered arrays to reduce redundant collection traversals in nested component trees.
+
+## 2026-03-26 - [Hierarchical Tag Rendering Optimization]
+**Learning:** $O(T^2)$ complexity in hierarchical tree rendering (e.g., `TagPicker`) can be reduced to $O(T)$ by pre-calculating lookup maps (ID-to-Tag, Parent-to-Children) and a visibility set for search results (including all ancestors). Consolidating this logic into a shared utility enables both efficient rendering and robust benchmark testing without code duplication.
+**Action:** When rendering deep hierarchies, always use $O(1)$ map-based lookups for parent/child relationships. Extract core data processing logic into utilities to facilitate unit and performance testing.

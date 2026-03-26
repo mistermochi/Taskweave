@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Tag } from '@/entities/tag';
+import { processTagsForPicker } from '@/entities/tag/lib/tag-utils';
 import { Check, ChevronRight, ChevronDown, Hash, Search } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Input } from '@/shared/ui/ui/input';
@@ -29,19 +30,30 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
   const [searchQuery, setSearchQuery] = useState("");
 
   /**
+   * Performance Optimization (Bolt ⚡):
+   * Consolidate tag lookups, hierarchy grouping, and search visibility into a single O(T) pass.
+   * This replaces O(T^2) recursive filtering with O(1) map lookups.
+   */
+  const { tagsById, tagsByParent, visibleTags } = useMemo(() => {
+    return processTagsForPicker(tags, searchQuery);
+  }, [tags, searchQuery]);
+
+  /**
    * Auto-expand to show selected tag in the hierarchy.
    */
   useEffect(() => {
     if (selectedTagId) {
         const parentIds = new Set<string>();
-        let current = tags.find(t => t.id === selectedTagId);
+        let current = tagsById.get(selectedTagId);
         while (current && current.parentId) {
             parentIds.add(current.parentId);
-            current = tags.find(t => t.id === current.parentId);
+            current = tagsById.get(current.parentId);
         }
-        setExpandedTags(prev => new Set([...Array.from(prev), ...Array.from(parentIds)]));
+        if (parentIds.size > 0) {
+          setExpandedTags(prev => new Set([...Array.from(prev), ...Array.from(parentIds)]));
+        }
     }
-  }, [selectedTagId, tags]);
+  }, [selectedTagId, tagsById]);
 
   const toggleExpand = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -51,19 +63,19 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
     setExpandedTags(newSet);
   };
 
-  const filteredTags = searchQuery
-    ? tags.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : tags;
-
   /**
    * Recursive function to render the tag tree branches.
+   * Optimized to use pre-calculated maps and visibility sets.
    */
   const renderTree = (parentId: string | null, depth: number = 0) => {
-    const children = filteredTags.filter(t => t.parentId === parentId).sort((a, b) => a.order - b.order);
+    const children = tagsByParent.get(parentId) || [];
     if (children.length === 0) return null;
 
     return children.map(tag => {
-        const hasChildren = tags.some(t => t.parentId === tag.id);
+        // If searching, only render if this tag or any of its descendants are visible
+        if (searchQuery && !visibleTags.has(tag.id)) return null;
+
+        const hasChildren = tagsByParent.has(tag.id);
         const isExpanded = expandedTags.has(tag.id) || !!searchQuery;
         const isSelected = selectedTagId === tag.id;
 

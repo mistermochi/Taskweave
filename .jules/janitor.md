@@ -29,3 +29,8 @@
 **Clutter:** `SectionHeader.tsx` was using PascalCase, deviating from the kebab-case convention used for all other shared UI components.
 **Learning:** Shared UI components in `src/shared/ui/ui/` follow a strict kebab-case naming convention. Inconsistent naming can lead to import errors in case-sensitive environments and increases mental overhead for developers.
 **Action:** Renamed `SectionHeader.tsx` to `section-header.tsx` and updated its primary usage in `dashboard-view.tsx`.
+
+## 2026-03-28 - Removed Orphaned Scheduling and Learning Engines
+**Clutter:** Legacy services `LearningEngine.ts` and `LocalSchedulingEngine.ts` and their associated types.
+**Learning:** As a project evolves, early heuristic-based engines can be superseded by more advanced architectures (like `RecommendationEngine`). Maintaining these orphaned files increases cognitive load and can lead to confusion about the system's "source of truth" for logic.
+**Action:** Deleted the deprecated service files and cleaned up the `SuggestionContext` type to remove unused properties, ensuring the codebase reflects the current architectural state.

@@ -64,7 +64,6 @@ export const useDashboardController = () => {
           tags: tags, 
           completedTasks: completedTasks,
           backlogCount: activeTasks.length,
-          previousPatterns: [],
           userContext
         };
         const result = await engine.generateSuggestion(context);
@@ -246,7 +245,6 @@ export const useDashboardController = () => {
               tags: tags,
               completedTasks: completedTasks,
               backlogCount: activeTasks.length - 1,
-              previousPatterns: [],
               userContext: userContext,
           };
           await RecommendationEngine.getInstance().logOrganicSelection(task, completionContext);

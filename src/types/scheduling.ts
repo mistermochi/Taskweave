@@ -8,7 +8,6 @@
 import { TaskEntity, EnergyLevel } from '@/entities/task';
 import { Category, Tag } from '@/entities/tag';
 import { ContextSnapshot } from '@/entities/context';
-import { UserVital } from '@/entities/vital';
 
 // Re-export for convenience
 export type { TaskEntity, EnergyLevel } from '@/entities/task';
@@ -30,21 +29,7 @@ export interface SuggestionContext {
   tags: Tag[];
   completedTasks: TaskEntity[]; // Added for momentum tracking
   backlogCount: number;
-  previousPatterns: TaskPattern[];
   userContext?: ContextSnapshot; // Added optional context
-}
-
-/**
- * Historical record of a task interaction, used for pattern recognition
- * and machine learning.
- */
-export interface TaskPattern {
-  taskCategory: Category;
-  timeOfDay: number; // 0-23
-  dayOfWeek: number; // 0-6 (Sunday-Saturday)
-  energyLevel: number;
-  completed: boolean;
-  timestamp: number;
 }
 
 /**
@@ -63,19 +48,6 @@ export interface Suggestion {
   energyRequirement?: EnergyLevel;
   isUrgent?: boolean;
   confidence: number; // 0-100, how confident we are in this suggestion
-}
-
-/**
- * A non-task activity suggested to maintain user energy and focus.
- */
-export interface WellbeingActivity {
-  id: string;
-  title: string;
-  description: string;
-  duration: number; // minutes
-  category: 'Wellbeing';
-  energyRequirement: 'Low';
-  type: 'stretching' | 'breathing' | 'water' | 'walk' | 'meditation' | 'social';
 }
 
 export interface AIPredictionRequest {

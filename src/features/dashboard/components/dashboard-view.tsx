@@ -137,7 +137,7 @@ export const DashboardView: React.FC = () => {
                                 <TaskListItem
                                     key={task.id}
                                     task={task as unknown as Task}
-                                    tagsMap={tagsMap}
+                                    categoryTag={tagsMap[task.category]}
                                     isSelected={selectedTask?.id === task.id}
                                     onClick={setSelectedTask}
                                 />

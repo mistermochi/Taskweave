@@ -137,7 +137,7 @@ export function TaskNavigationContent({
             },
             {
               title: "Tasks",
-              label: tasks.filter(t => t.status === 'active').length.toString(),
+              label: tasks.length.toString(),
               icon: CheckCircle2,
               variant: "default",
               onClick: onNavItemClick

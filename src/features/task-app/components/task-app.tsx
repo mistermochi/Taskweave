@@ -108,8 +108,8 @@ export function TaskApp({
     });
   }, [tagsMap, optimisticTags, clearOptimisticTag]);
 
-  const mergedTasks = React.useMemo(() => {
-    // Bolt ⚡ Optimization: Use a Map for O(N + M) reconciliation instead of O(N * M) findIndex.
+  // Bolt ⚡ Optimization: Consolidate task merging, status partitioning, and lookup map generation into a single O(N) pass.
+  const { mergedTasks, mergedTasksMap, activeTasks, activeTasksCount } = React.useMemo(() => {
     const taskMap = new Map<string, Task>(tasks.map(t => [t.id, t]));
 
     Object.entries(optimisticTasks).forEach(([id, update]) => {
@@ -125,11 +125,20 @@ export function TaskApp({
       }
     });
 
-    return Array.from(taskMap.values());
+    const allMerged = Array.from(taskMap.values());
+    const active: Task[] = [];
+    allMerged.forEach(t => { if (t.status === 'active') active.push(t); });
+
+    return {
+      mergedTasks: allMerged,
+      mergedTasksMap: taskMap,
+      activeTasks: active,
+      activeTasksCount: active.length
+    };
   }, [tasks, optimisticTasks]);
 
-  const mergedTags = React.useMemo(() => {
-    // Bolt ⚡ Optimization: Use a Map for O(N + M) reconciliation instead of O(N * M) findIndex.
+  // Bolt ⚡ Optimization: Consolidate tag merging and lookup map generation into a single O(T) pass.
+  const { mergedTags, mergedTagsMap, mergedTagsByName } = React.useMemo(() => {
     const tagMap = new Map<string, Tag>(tags.map(t => [t.id, t]));
 
     Object.entries(optimisticTags).forEach(([id, update]) => {
@@ -145,21 +154,21 @@ export function TaskApp({
       }
     });
 
-    return Array.from(tagMap.values());
-  }, [tags, optimisticTags]);
-
-  // Bolt ⚡ Optimization: Consolidate tag lookup maps into a single pass O(T).
-  const { mergedTagsMap, mergedTagsByName } = React.useMemo(() => {
+    const allMerged = Array.from(tagMap.values());
     const idMap: Record<string, Tag> = {};
     const nameMap: Record<string, Tag> = {};
 
-    mergedTags.forEach(tag => {
+    allMerged.forEach(tag => {
       idMap[tag.id] = tag;
       nameMap[tag.name.toLowerCase()] = tag;
     });
 
-    return { mergedTagsMap: idMap, mergedTagsByName: nameMap };
-  }, [mergedTags]);
+    return {
+      mergedTags: allMerged,
+      mergedTagsMap: idMap,
+      mergedTagsByName: nameMap
+    };
+  }, [tags, optimisticTags]);
 
   useHashRouter(mergedTasks);
 
@@ -335,12 +344,12 @@ export function TaskApp({
       task={
         selectedTask?.id === "new"
           ? selectedTask
-          : mergedTasks.find((item) => item.id === selectedTask?.id) || null
+          : (selectedTask?.id ? mergedTasksMap.get(selectedTask.id) : null) || null
       }
       tags={mergedTags}
       allTasks={mergedTasks}
     />
-  ), [selectedTask, mergedTasks, mergedTags]);
+  ), [selectedTask, mergedTasks, mergedTasksMap, mergedTags]);
 
   const mainContent = (
     <div className="relative h-full flex flex-col w-full">
@@ -351,7 +360,7 @@ export function TaskApp({
       >
         <AppHeader
           title="Inbox"
-          nav={<TaskNavigation tags={mergedTags} tasks={mergedTasks} isCollapsed={false} />}
+          nav={<TaskNavigation tags={mergedTags} tasks={activeTasks} isCollapsed={false} />}
           actions={
             <TabsList className="ml-auto">
               <TabsTrigger
@@ -486,7 +495,7 @@ export function TaskApp({
             <TaskNavigation
               isCollapsed={isCollapsed}
               tags={mergedTags}
-              tasks={mergedTasks}
+              tasks={activeTasks}
               onToggleCollapsed={toggleCollapsed}
               hasPendingWrites={hasPendingWrites}
               tagsLoading={tagsLoading}
@@ -527,7 +536,7 @@ export function TaskApp({
             <TaskNavigation
               isCollapsed={false}
               tags={mergedTags}
-              tasks={mergedTasks}
+              tasks={activeTasks}
               hasPendingWrites={hasPendingWrites}
               tagsLoading={tagsLoading}
             />

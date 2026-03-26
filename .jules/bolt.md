@@ -25,3 +25,7 @@
 ## 2025-05-28 - [Reconciliation Optimization & Consolidated Mapping]
 **Learning:** Performing array searches (`findIndex`, `find`) inside loops when merging optimistic UI state with server data creates an $O(N \cdot M)$ bottleneck. Converting the source array to a `Map` allows for $O(N + M)$ reconciliation. Additionally, multiple `useMemo` hooks that iterate over the same array to create different lookup maps can be consolidated into a single $O(T)$ pass to reduce iteration overhead.
 **Action:** Use `Map`-based reconciliation for merging state and consolidate multiple lookup map iterations into a single pass.
+
+## 2025-05-29 - [Fine-Grained Memoization & Filter Hoisting]
+**Learning:** Passing large global lookup maps (e.g., `tagsMap`) to memoized list items (`TaskListItem`) breaks memoization whenever any unrelated entry in the map changes. Passing only the specific required object allows `React.memo` to work effectively. Additionally, hoisting status-based partitioning to the parent component avoids redundant $O(N)$ scans in multiple child navigation components.
+**Action:** Always pass specific objects rather than entire lookup maps to memoized components. Hoist and share pre-filtered arrays to reduce redundant collection traversals in nested component trees.

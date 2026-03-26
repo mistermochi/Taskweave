@@ -76,7 +76,6 @@ export class RecommendationEngine {
             tags: [], 
             completedTasks: mockCompleted, 
             backlogCount: tasks.length,
-            previousPatterns: [],
             userContext: undefined 
         };
 
@@ -152,7 +151,6 @@ export class RecommendationEngine {
         tags: [],
         completedTasks: previousCompletions,
         backlogCount: activeTasksAtTime.length,
-        previousPatterns: [],
         userContext: undefined, 
       };
       

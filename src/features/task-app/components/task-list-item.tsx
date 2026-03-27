@@ -43,10 +43,11 @@ export const TaskListItem = React.memo(({ task, categoryTag, isSelected, onClick
       ref={itemRef}
       className={cn(
         "hover:bg-accent/70 flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all w-full",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         isSelected && "bg-accent/70",
         isInactive && "grayscale opacity-70"
       )}
-      aria-label={`Task: ${task.title}${isInactive ? ` (${task.status})` : ""}`}
+      aria-label={`Task: ${task.title}${tagInfo ? `, Project: ${tagInfo.name}` : ""}${task.energy ? `, Energy: ${task.energy}` : ""}${isInactive ? ` (${task.status})` : ""}`}
       onClick={() => onClick(task)}>
       <div className="flex w-full flex-col gap-1">
         <div className="flex items-center">

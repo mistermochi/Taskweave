@@ -29,3 +29,7 @@
 ## 2025-05-29 - [Fine-Grained Memoization & Filter Hoisting]
 **Learning:** Passing large global lookup maps (e.g., `tagsMap`) to memoized list items (`TaskListItem`) breaks memoization whenever any unrelated entry in the map changes. Passing only the specific required object allows `React.memo` to work effectively. Additionally, hoisting status-based partitioning to the parent component avoids redundant $O(N)$ scans in multiple child navigation components.
 **Action:** Always pass specific objects rather than entire lookup maps to memoized components. Hoist and share pre-filtered arrays to reduce redundant collection traversals in nested component trees.
+
+## 2025-05-30 - [Consolidated Reconciliation and O(1) Task Resolution]
+**Learning:** Consolidating multiple O(N) passes (merging, partitioning, and focused-task detection) into a single iteration within `useMemo` reduces CPU overhead during data reconciliation. Replacing O(N) array searches (`.find()`, `.some()`) in effects and routing logic with O(1) Map lookups prevents UI jank. A critical edge case discovered was the need for a Map size guard (`tasksMap.size > 0`) in effects to prevent premature state clearing (e.g., focus sessions) before initial data has populated.
+**Action:** Consolidate data reconciliation passes and always provide a lookup map to hooks/components needing frequent by-ID access. Use Map size or array length guards in effects to distinguish between "empty" and "loading" states.

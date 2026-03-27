@@ -33,8 +33,6 @@ export const useFocusSessionController = (taskId: string | undefined) => {
     timeLeftRef.current = timeLeft;
   }, [timeLeft]);
 
-  const taskService = taskApi;
-
   /**
    * Auto-start logic: Automatically begins the focus session
    * the first time the view is mounted with a valid task ID.
@@ -44,11 +42,11 @@ export const useFocusSessionController = (taskId: string | undefined) => {
       // If the task is already marked as focused in the DB but not currently "running" (no lastStartedAt),
       // it means it's a restored paused session. We should NOT auto-start it.
       if (!isActive && !task.isFocused) {
-         taskService.startSession(task.id, metrics.remaining, tasks);
+         taskApi.startSession(task.id, metrics.remaining, tasks);
       }
       setHasAutoStarted(true);
     }
-  }, [task, uid, hasAutoStarted, isActive, metrics.remaining, taskService, tasks]);
+  }, [task, uid, hasAutoStarted, isActive, metrics.remaining, tasks]);
 
   /**
    * Local animation loop for the timer.
@@ -80,9 +78,9 @@ export const useFocusSessionController = (taskId: string | undefined) => {
     if (!task || !uid) return;
 
     if (isActive) {
-      taskService.pauseSession(task.id, timeLeftRef.current);
+      taskApi.pauseSession(task.id, timeLeftRef.current);
     } else {
-      taskService.startSession(task.id, timeLeftRef.current, tasks);
+      taskApi.startSession(task.id, timeLeftRef.current, tasks);
     }
   }, [task, uid, isActive, tasks]);
 
@@ -91,7 +89,7 @@ export const useFocusSessionController = (taskId: string | undefined) => {
    */
   const stopCurrentSession = useCallback(() => {
     if (!task || !uid) return;
-    taskService.stopSession(task.id, timeLeftRef.current);
+    taskApi.stopSession(task.id, timeLeftRef.current);
     clearFocusSession();
   }, [task, uid, clearFocusSession]);
 
@@ -100,7 +98,7 @@ export const useFocusSessionController = (taskId: string | undefined) => {
    */
   const handleBreathing = useCallback(() => {
     if (isActive && task) {
-       taskService.pauseSession(task.id, timeLeftRef.current);
+       taskApi.pauseSession(task.id, timeLeftRef.current);
     }
     startBreathing();
   }, [isActive, task, startBreathing]);
@@ -130,13 +128,13 @@ export const useFocusSessionController = (taskId: string | undefined) => {
 
         // 2. Immediately mark task as complete and adjust duration in Firestore
         // This ensures the task is saved even if the user closes the summary modal
-        await taskService.completeTask(task, actualSeconds, activeTasks);
+        await taskApi.completeTask(task, actualSeconds, activeTasks);
 
         // 3. Clear focus selection and move to done tab in background
         useTaskAppStore.getState().setSelectedTask(null);
         useTaskAppStore.getState().setTaskTab('done');
 
-        // 3. Trigger the summary modal for reflection
+        // 4. Trigger the summary modal for reflection
         completeFocusSession(task.id);
     } else {
         completeFocusSession(task?.id);

@@ -67,6 +67,7 @@ export function TaskDetailView({
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
+  const titleInputRef = useRef<HTMLTextAreaElement>(null);
 
   const [localCategory, setLocalCategory] = useState<string | undefined>();
   const [localEnergy, setLocalEnergy] = useState<EnergyLevel | undefined>();
@@ -117,6 +118,11 @@ export function TaskDetailView({
       setLocalRecurrence(undefined);
     }
     setLastParsedAttributes({});
+
+    // Auto-focus title if it's a new task
+    if (task?.id === "new") {
+      setTimeout(() => titleInputRef.current?.focus(), 0);
+    }
   }, [task]);
 
   const parsed = useMemo(() => {
@@ -599,6 +605,7 @@ export function TaskDetailView({
         <div className="flex flex-1 flex-col overflow-y-auto no-scrollbar">
           <div className="flex flex-col gap-4 p-4">
             <AutoResizeTextarea
+              ref={titleInputRef}
               className="resize-none border-none p-0 text-2xl font-bold focus-visible:ring-0 bg-transparent"
               value={title}
               onChange={(e) => setTitle(e.target.value.substring(0, 500))}

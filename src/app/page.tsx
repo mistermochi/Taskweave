@@ -130,6 +130,31 @@ export default function HomePage() {
     return () => unsubscribe();
   }, []);
 
+  // Handle PWA share target redirection
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      const shareTitle = url.searchParams.get('title');
+      const shareText = url.searchParams.get('text');
+      const shareUrl = url.searchParams.get('url');
+
+      if (shareTitle || shareText || shareUrl) {
+        const newHashParams = new URLSearchParams();
+        if (shareTitle) newHashParams.set('share_title', shareTitle);
+        if (shareText) newHashParams.set('share_text', shareText);
+        if (shareUrl) newHashParams.set('share_url', shareUrl);
+
+        // Redirect to the new task hash route with the share data
+        const newHash = `#/tasks/new?${newHashParams.toString()}`;
+        window.location.hash = newHash;
+
+        // Clean up the search params from the main URL to avoid re-triggering
+        // Ensure we preserve the new hash we just set
+        window.history.replaceState({}, '', window.location.pathname + newHash);
+      }
+    }
+  }, []);
+
   // If authentication is finished and no user is found, show login.
   if (!authLoading && !user) {
       return <LoginView />;

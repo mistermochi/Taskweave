@@ -109,7 +109,15 @@ export function TaskApp({
   }, [tagsMap, optimisticTags, clearOptimisticTag]);
 
   // Bolt ⚡ Optimization: Consolidate task merging, status partitioning, and lookup map generation into a single O(N) pass.
-  const { mergedTasks, mergedTasksMap, activeTasks, activeTasksCount, focusedTask } = React.useMemo(() => {
+  const {
+    mergedTasks,
+    mergedTasksMap,
+    activeTasks,
+    completedTasks,
+    archivedTasks,
+    activeTasksCount,
+    focusedTask
+  } = React.useMemo(() => {
     const taskMap = new Map<string, Task>();
     tasks.forEach(t => taskMap.set(t.id, t));
 
@@ -128,6 +136,8 @@ export function TaskApp({
 
     const allMerged: Task[] = [];
     const active: Task[] = [];
+    const completed: Task[] = [];
+    const archived: Task[] = [];
     let focused: Task | undefined;
 
     taskMap.forEach(task => {
@@ -137,6 +147,10 @@ export function TaskApp({
         if (task.isFocused && !focused) {
           focused = task;
         }
+      } else if (task.status === 'completed') {
+        completed.push(task);
+      } else if (task.status === 'archived') {
+        archived.push(task);
       }
     });
 
@@ -144,6 +158,8 @@ export function TaskApp({
       mergedTasks: allMerged,
       mergedTasksMap: taskMap,
       activeTasks: active,
+      completedTasks: completed,
+      archivedTasks: archived,
       activeTasksCount: active.length,
       focusedTask: focused
     };
@@ -312,12 +328,20 @@ export function TaskApp({
       ? mergedTagsByName[lowerTagKeyword] // Bolt ⚡: O(1) lookup from specialized map
       : null;
 
-    return mergedTasks.filter((task) => {
-      // Bolt ⚡ Optimization: Fast status check first to skip expensive
-      // search/matching logic for thousands of non-visible tasks.
-      if (taskTab === "active" && task.status !== "active") return false;
-      if (taskTab === "done" && task.status !== "completed") return false;
-      if (taskTab === "archived" && task.status !== "archived") return false;
+    const sourceTasks =
+      taskTab === 'active' ? activeTasks :
+      taskTab === 'done' ? completedTasks :
+      taskTab === 'archived' ? archivedTasks :
+      mergedTasks;
+
+    return sourceTasks.filter((task) => {
+      // Bolt ⚡: For robustness, if we fell back to mergedTasks,
+      // we must still apply status filtering.
+      if (sourceTasks === mergedTasks) {
+        if (taskTab === "active" && task.status !== "active") return false;
+        if (taskTab === "done" && task.status !== "completed") return false;
+        if (taskTab === "archived" && task.status !== "archived") return false;
+      }
 
       // Search filter
       if (searchQuery) {
@@ -348,7 +372,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [mergedTasks, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery]);
+  }, [activeTasks, completedTasks, archivedTasks, mergedTasks, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

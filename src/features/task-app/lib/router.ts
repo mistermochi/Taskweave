@@ -5,6 +5,9 @@ export interface AppState {
   taskTab: TaskTab;
   selectedTaskId: string | null;
   searchQuery: string;
+  shareTitle?: string;
+  shareText?: string;
+  shareUrl?: string;
 }
 
 export function parseHash(hash: string): AppState {
@@ -24,10 +27,13 @@ export function parseHash(hash: string): AppState {
   const [routePath, queryString] = path.split('?');
   const params = new URLSearchParams(queryString || '');
   const searchQuery = params.get('q') || '';
+  const shareTitle = params.get('share_title') || undefined;
+  const shareText = params.get('share_text') || undefined;
+  const shareUrl = params.get('share_url') || undefined;
 
   const segments = routePath.split('/').filter(Boolean);
 
-  const state = { ...defaultState, searchQuery };
+  const state: AppState = { ...defaultState, searchQuery, shareTitle, shareText, shareUrl };
 
   if (segments[0] === 'dashboard') {
     state.activeView = 'dashboard';

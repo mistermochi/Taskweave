@@ -47,9 +47,37 @@ export function useHashRouter(tasksMap: Map<string, Task>) {
       }
 
       const currentSelectedTask = useTaskAppStore.getState().selectedTask;
-      if (state.selectedTaskId !== currentSelectedTask?.id) {
+      const isNewTaskTransition = state.selectedTaskId === 'new' && (
+        currentSelectedTask?.id !== 'new' ||
+        state.shareTitle || state.shareText || state.shareUrl
+      );
+
+      if (state.selectedTaskId !== currentSelectedTask?.id || isNewTaskTransition) {
         if (state.selectedTaskId === 'new') {
-            setSelectedTask(createDefaultTask());
+          const newTask = createDefaultTask();
+          if (state.shareTitle) newTask.title = state.shareTitle;
+
+          let notes = state.shareText || '';
+          if (state.shareUrl) {
+            notes = notes ? `${notes}\n\n${state.shareUrl}` : state.shareUrl;
+          }
+          if (notes) newTask.notes = notes;
+
+          setSelectedTask(newTask);
+
+          // Clear share parameters from the URL hash once consumed
+          // This prevents re-initialization on subsequent re-renders or state changes.
+          const currentState = {
+            activeView: state.activeView,
+            taskTab: state.taskTab,
+            selectedTaskId: 'new',
+            searchQuery: state.searchQuery,
+          };
+          const cleanHash = stringifyAppState(currentState);
+          if (window.location.hash !== cleanHash) {
+            isInternalUpdate.current = true;
+            window.location.hash = cleanHash;
+          }
         } else if (state.selectedTaskId) {
           const task = tasksMap.get(state.selectedTaskId);
           if (task) {

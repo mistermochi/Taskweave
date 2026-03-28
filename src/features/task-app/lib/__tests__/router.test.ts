@@ -62,6 +62,21 @@ describe('Router Utility', () => {
         taskTab: 'active',
         selectedTaskId: '123',
         searchQuery: 'test',
+        shareTitle: undefined,
+        shareText: undefined,
+        shareUrl: undefined,
+      });
+    });
+
+    it('should parse share parameters', () => {
+      expect(parseHash('#/tasks/new?share_title=My+Title&share_text=Some+notes&share_url=https://example.com')).toEqual({
+        activeView: 'tasks',
+        taskTab: 'active',
+        selectedTaskId: 'new',
+        searchQuery: '',
+        shareTitle: 'My Title',
+        shareText: 'Some notes',
+        shareUrl: 'https://example.com',
       });
     });
   });

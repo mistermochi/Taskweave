@@ -6,6 +6,7 @@ import { calculateTaskTime, formatTimer } from '@/shared/lib/timeUtils';
 import { useNavigation } from '@/context/NavigationContext';
 import { TaskEntity } from '@/entities/task';
 import { useTaskAppStore } from '@/features/task-app/use-task-app';
+import { vibrate } from '@/shared/lib/utils';
 
 /**
  * View Controller for an active Focus Session.
@@ -82,6 +83,7 @@ export const useFocusSessionController = (taskId: string | undefined) => {
     } else {
       taskApi.startSession(task.id, timeLeftRef.current, tasks);
     }
+    vibrate('light');
   }, [task, uid, isActive, tasks]);
 
   /**
@@ -91,6 +93,7 @@ export const useFocusSessionController = (taskId: string | undefined) => {
     if (!task || !uid) return;
     taskApi.stopSession(task.id, timeLeftRef.current);
     clearFocusSession();
+    vibrate('light');
   }, [task, uid, clearFocusSession]);
 
   /**
@@ -101,6 +104,7 @@ export const useFocusSessionController = (taskId: string | undefined) => {
        taskApi.pauseSession(task.id, timeLeftRef.current);
     }
     startBreathing();
+    vibrate('light');
   }, [isActive, task, startBreathing]);
 
   /**
@@ -136,6 +140,7 @@ export const useFocusSessionController = (taskId: string | undefined) => {
 
         // 4. Trigger the summary modal for reflection
         completeFocusSession(task.id);
+        vibrate('success');
     } else {
         completeFocusSession(task?.id);
     }

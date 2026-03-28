@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { addDays, addHours, format, nextSaturday } from "date-fns";
-import { cn } from "@/shared/lib/utils";
+import { cn, vibrate } from "@/shared/lib/utils";
 import {
   Archive,
   ArchiveX,
@@ -185,6 +185,7 @@ export function TaskDetailView({
         useTaskAppStore.getState().setOptimisticTask(task.id, { status: "active", completedAt: null, updatedAt: Date.now() });
         taskApi.uncompleteTask(task.id, onError);
         useTaskAppStore.getState().showToast(isOffline ? "Task reactivated locally" : "Task reactivated");
+        vibrate('light');
       } else {
         // Optimistically update status and navigate
         const completedAt = Date.now();
@@ -202,6 +203,7 @@ export function TaskDetailView({
           useTaskAppStore.getState().setOptimisticTask(task.id, { status: "active", completedAt: null, updatedAt: Date.now() });
           taskApi.uncompleteTask(task.id, onError);
         });
+        vibrate('success');
       }
     } catch (e) {
       console.error("Failed to toggle task completion", e);
@@ -256,6 +258,7 @@ export function TaskDetailView({
           taskApi.unarchiveTask(task.id);
         });
       }
+      vibrate('light');
     } catch (e) {
       console.error("Failed to toggle archive", e);
       useTaskAppStore.getState().showToast("Action failed");
@@ -268,6 +271,7 @@ export function TaskDetailView({
     if (!showDeleteConfirm) {
       setShowDeleteConfirm(true);
       useTaskAppStore.getState().showToast("Click again to permanently delete this task");
+      vibrate('medium');
       return;
     }
 
@@ -282,6 +286,7 @@ export function TaskDetailView({
       useTaskAppStore.getState().setSelectedTask(null);
       onClose?.();
       useTaskAppStore.getState().showToast("Task deleted");
+      vibrate('success');
     } catch (e) {
       console.error("Failed to delete task", e);
       useTaskAppStore.getState().showToast("Action failed");
@@ -291,12 +296,14 @@ export function TaskDetailView({
   const handleStartFocus = () => {
     if (!task || task.id === "new") return;
     navigation.focusOnTask(task.id);
+    vibrate('medium');
   };
 
   const handlePlanToday = () => {
     const today = new Date();
     today.setHours(12, 0, 0, 0);
     setLocalAssignedDate(today.getTime());
+    vibrate('light');
   };
 
   const handleShare = () => {
@@ -305,6 +312,7 @@ export function TaskDetailView({
     const text = `Task: ${title}\nProject: ${tagInfo?.name || "None"}\nEnergy: ${localEnergy || "None"}\nNotes: ${notes}`;
     navigator.clipboard.writeText(text).then(() => {
       useTaskAppStore.getState().showToast("Copied to clipboard");
+      vibrate('light');
     });
   };
 
@@ -430,6 +438,7 @@ export function TaskDetailView({
 
         useTaskAppStore.getState().showToast(isOffline ? "Changes saved locally" : "Changes saved");
       }
+      vibrate('success');
     } catch (e) {
       console.error("Failed to save task", e);
       useTaskAppStore.getState().showToast("Failed to save. Check connection.");

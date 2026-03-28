@@ -83,6 +83,12 @@ export const DashboardView: React.FC = () => {
     if (intention !== state.latestFocus) actions.saveFocus(intention);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
   const createNewTask = () => {
     setSelectedTask(createDefaultTask());
   };
@@ -122,6 +128,7 @@ export const DashboardView: React.FC = () => {
                         value={intention}
                         onChange={(e) => setIntention(e.target.value)}
                         onBlur={handleIntentionBlur}
+                        onKeyDown={handleKeyDown}
                     />
                 </div>
 

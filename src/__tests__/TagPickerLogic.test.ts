@@ -36,7 +36,6 @@ describe('TagPicker Logic Performance', () => {
 
     // Performance check
     // O(T) should be very fast. 50ms is very generous.
-    console.log(`TagPicker processTagsForPicker duration for 1000 tags: ${duration.toFixed(2)}ms`);
     expect(duration).toBeLessThan(50);
   });
 });

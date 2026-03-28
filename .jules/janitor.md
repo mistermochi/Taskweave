@@ -39,3 +39,8 @@
 **Clutter:** Orphaned AI scheduling methods (`generateSuggestions`, `getUsageStats`, `resetUsageStats`) and their associated types (`AIPredictionRequest`, `AIPredictionResponse`). Redundant `taskService` alias in `useFocusSessionController.ts`.
 **Learning:** Placeholder methods and unused types increase structural entropy and cognitive load. Direct use of service singletons in hooks is preferred over local aliasing to simplify dependency management and satisfy ESLint rules.
 **Action:** Deleted orphaned methods and types. Refactored `useFocusSessionController.ts` to use `taskApi` directly, resolving linting warnings and improving readability.
+
+## 2026-04-01 - Removed Unused Imports and Shadowed Constant in TaskDetailView
+**Clutter:** Multiple unused imports (`date-fns`, Radix UI, Lucide) and a shadowed `today` constant in `TaskDetailView.tsx`, plus a leftover `console.log` in `TagPickerLogic.test.ts`.
+**Learning:** Components undergoing rapid iteration often accumulate "import drift" where utilities and icons are added but not removed when logic or UI structure changes. Shadowed variables (like `today`) can lead to subtle logic confusion and increase cognitive load during maintenance.
+**Action:** Regularly run `pnpm lint` and perform surgical cleanups of unused symbols and shadowed variables to maintain component readability and prevent structural entropy.

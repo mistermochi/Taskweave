@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { addDays, addHours, format, nextSaturday } from "date-fns";
 import { cn, vibrate } from "@/shared/lib/utils";
 import {
   Archive,
@@ -10,7 +9,6 @@ import {
   Clock,
   Layers,
   Loader2,
-  MoreVertical,
   MousePointerClick,
   Plus,
   Repeat,
@@ -23,17 +21,8 @@ import {
   X,
 } from "lucide-react";
 
-import {
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/shared/ui/ui/dropdown-menu";
 import { Badge } from "@/shared/ui/ui/badge";
 import { Button } from "@/shared/ui/ui/button";
-import { Calendar } from "@/shared/ui/ui/calendar";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-} from "@/shared/ui/ui/dropdown-menu";
 import {
   Popover,
   PopoverContent,
@@ -73,7 +62,6 @@ export function TaskDetailView({
   onClose,
 }: TaskDetailViewProps) {
   const isMac = typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-  const today = new Date();
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);

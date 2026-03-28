@@ -34,3 +34,8 @@
 **Clutter:** Legacy services `LearningEngine.ts` and `LocalSchedulingEngine.ts` and their associated types.
 **Learning:** As a project evolves, early heuristic-based engines can be superseded by more advanced architectures (like `RecommendationEngine`). Maintaining these orphaned files increases cognitive load and can lead to confusion about the system's "source of truth" for logic.
 **Action:** Deleted the deprecated service files and cleaned up the `SuggestionContext` type to remove unused properties, ensuring the codebase reflects the current architectural state.
+
+## 2026-03-30 - Removed Orphaned AI Placeholders and Redundant Service Aliases
+**Clutter:** Orphaned AI scheduling methods (`generateSuggestions`, `getUsageStats`, `resetUsageStats`) and their associated types (`AIPredictionRequest`, `AIPredictionResponse`). Redundant `taskService` alias in `useFocusSessionController.ts`.
+**Learning:** Placeholder methods and unused types increase structural entropy and cognitive load. Direct use of service singletons in hooks is preferred over local aliasing to simplify dependency management and satisfy ESLint rules.
+**Action:** Deleted orphaned methods and types. Refactored `useFocusSessionController.ts` to use `taskApi` directly, resolving linting warnings and improving readability.

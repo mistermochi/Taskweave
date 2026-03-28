@@ -50,31 +50,3 @@ export interface Suggestion {
   confidence: number; // 0-100, how confident we are in this suggestion
 }
 
-export interface AIPredictionRequest {
-  userEnergy: number;
-  availableMinutes: number;
-  urgentTaskCount: number;
-  backlogCount: number;
-  context: ContextSnapshot; // Added context to AI request
-  recentPatterns: {
-    preferredCategories: Category[];
-    peakProductivityHours: number[];
-    averageTaskDuration: number;
-    completionRate: number;
-  };
-  topTasks: {
-    title: string;
-    category: Category;
-    duration: number;
-    energy: EnergyLevel;
-    isUrgent: boolean;
-  }[];
-}
-
-export interface AIPredictionResponse {
-  suggestions: {
-    task: string;
-    reason: string;
-    confidence: number;
-  }[];
-}

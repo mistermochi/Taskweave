@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AIPredictionRequest, AIPredictionResponse, TaskEntity } from '@/types/scheduling';
+import { TaskEntity } from '@/types/scheduling';
 import { AIPromptBuilder } from './AIPromptBuilder';
 import { ARM_NAMES } from "./LinUCBService";
 
@@ -89,14 +89,6 @@ export class AIService {
     }
 
     /**
-     * High-level scheduling suggestion logic (Placeholder).
-     */
-    async generateSuggestions(request: AIPredictionRequest): Promise<{ suggestions: AIPredictionResponse['suggestions']; confidence: number }> {
-        // Placeholder for future scheduling implementation
-        return { suggestions: [], confidence: 0 };
-    }
-
-    /**
      * Generates synthetic training data using the AI model.
      * This data is used to "warm-start" the machine learning model (LinUCB)
      * based on expert productivity heuristics.
@@ -142,20 +134,4 @@ export class AIService {
             return [];
         }
     }
-
-    /**
-     * Retrieves usage statistics for the AI service.
-     */
-    getUsageStats() {
-        return {
-            requests: 0,
-            totalTokens: 0,
-            estimatedCost: 0
-        };
-    }
-
-    /**
-     * Resets usage statistics.
-     */
-    resetUsageStats() {}
 }

@@ -6,7 +6,7 @@ import { parseHash, stringifyAppState, AppState } from './router';
 import { Task } from '@/entities/task';
 import { createDefaultTask } from './constants';
 
-export function useHashRouter(tasks: Task[]) {
+export function useHashRouter(tasksMap: Map<string, Task>) {
   const {
     activeView,
     setActiveView,
@@ -51,21 +51,21 @@ export function useHashRouter(tasks: Task[]) {
         if (state.selectedTaskId === 'new') {
             setSelectedTask(createDefaultTask());
         } else if (state.selectedTaskId) {
-          const task = tasks.find(t => t.id === state.selectedTaskId);
+          const task = tasksMap.get(state.selectedTaskId);
           if (task) {
             setSelectedTask(task);
-          } else if (tasks.length > 0) {
+          } else if (tasksMap.size > 0) {
             // Tasks are loaded but this ID isn't found
             setSelectedTask(null);
           }
-          // If tasks.length === 0, we're still loading, so we don't clear selectedTask yet
+          // If tasksMap.size === 0, we're still loading, so we don't clear selectedTask yet
         } else {
           setSelectedTask(null);
         }
       }
 
       // We're ready once we've processed the hash at least once AND tasks are loaded (if a task ID was present)
-      const shouldWaitTasks = state.selectedTaskId && state.selectedTaskId !== 'new' && tasks.length === 0;
+      const shouldWaitTasks = state.selectedTaskId && state.selectedTaskId !== 'new' && tasksMap.size === 0;
       if (!shouldWaitTasks) {
         setIsReady(true);
       }
@@ -75,7 +75,7 @@ export function useHashRouter(tasks: Task[]) {
     handleHashChange();
 
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [tasks, setActiveView, setTaskTab, setSelectedTask, setSelectedTagId, setSearchQuery]);
+  }, [tasksMap, setActiveView, setTaskTab, setSelectedTask, setSelectedTagId, setSearchQuery]);
 
   // Sync from Store to Hash
   useEffect(() => {

@@ -109,8 +109,9 @@ export function TaskApp({
   }, [tagsMap, optimisticTags, clearOptimisticTag]);
 
   // Bolt ⚡ Optimization: Consolidate task merging, status partitioning, and lookup map generation into a single O(N) pass.
-  const { mergedTasks, mergedTasksMap, activeTasks, activeTasksCount } = React.useMemo(() => {
-    const taskMap = new Map<string, Task>(tasks.map(t => [t.id, t]));
+  const { mergedTasks, mergedTasksMap, activeTasks, activeTasksCount, focusedTask } = React.useMemo(() => {
+    const taskMap = new Map<string, Task>();
+    tasks.forEach(t => taskMap.set(t.id, t));
 
     Object.entries(optimisticTasks).forEach(([id, update]) => {
       if (update === null) {
@@ -118,22 +119,33 @@ export function TaskApp({
       } else {
         const existing = taskMap.get(id);
         if (existing) {
-          taskMap.set(id, { ...existing, ...update });
+          taskMap.set(id, { ...existing, ...update } as Task);
         } else {
           taskMap.set(id, update as Task);
         }
       }
     });
 
-    const allMerged = Array.from(taskMap.values());
+    const allMerged: Task[] = [];
     const active: Task[] = [];
-    allMerged.forEach(t => { if (t.status === 'active') active.push(t); });
+    let focused: Task | undefined;
+
+    taskMap.forEach(task => {
+      allMerged.push(task);
+      if (task.status === 'active') {
+        active.push(task);
+        if (task.isFocused && !focused) {
+          focused = task;
+        }
+      }
+    });
 
     return {
       mergedTasks: allMerged,
       mergedTasksMap: taskMap,
       activeTasks: active,
-      activeTasksCount: active.length
+      activeTasksCount: active.length,
+      focusedTask: focused
     };
   }, [tasks, optimisticTasks]);
 
@@ -170,7 +182,7 @@ export function TaskApp({
     };
   }, [tags, optimisticTags]);
 
-  useHashRouter(mergedTasks);
+  useHashRouter(mergedTasksMap);
 
   React.useEffect(() => {
     if (
@@ -213,22 +225,21 @@ export function TaskApp({
   }, []);
 
   React.useEffect(() => {
-    if (!activeTaskId && mergedTasks.length > 0) {
-      const focusedTask = mergedTasks.find(t => t.isFocused && t.status === 'active');
-      if (focusedTask) {
-        focusOnTask(focusedTask.id);
-      }
+    if (!activeTaskId && focusedTask) {
+      focusOnTask(focusedTask.id);
     }
-  }, [mergedTasks, activeTaskId, focusOnTask]);
+  }, [focusedTask, activeTaskId, focusOnTask]);
 
   React.useEffect(() => {
-    if (activeTaskId && mergedTasks.length > 0) {
-      const task = mergedTasks.find(t => t.id === activeTaskId);
+    // Bolt ⚡ Optimization: Use O(1) map lookup.
+    // Guard with size > 0 to avoid clearing session during initial data load.
+    if (activeTaskId && mergedTasksMap.size > 0) {
+      const task = mergedTasksMap.get(activeTaskId);
       if (!task || task.status !== 'active') {
         clearFocusSession();
       }
     }
-  }, [activeTaskId, mergedTasks, clearFocusSession]);
+  }, [activeTaskId, mergedTasksMap, clearFocusSession]);
 
   React.useEffect(() => {
     if (defaultCollapsed !== undefined) {
@@ -472,7 +483,7 @@ export function TaskApp({
     </div>
   );
 
-  const isFocusActive = !!activeTaskId && mergedTasks.some(t => t.id === activeTaskId && t.status === 'active');
+  const isFocusActive = !!activeTaskId && mergedTasksMap.get(activeTaskId)?.status === 'active';
 
   return (
     <TooltipProvider delayDuration={0}>

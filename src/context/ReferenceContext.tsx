@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useMemo, useEffect, PropsWithChildren } from 'react';
+import React, { createContext, useContext, useMemo, useEffect, useRef, PropsWithChildren } from 'react';
 import { useFirestoreCollection } from '@/hooks/useFirestore';
 import { Tag, tagApi } from '@/entities/tag';
 
@@ -33,11 +33,39 @@ const ReferenceContext = createContext<ReferenceContextType>({
 export const ReferenceProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const { data: tags, loading, hasPendingWrites } = useFirestoreCollection<Tag>('tags');
 
-  const tagsMap = useMemo(() => {
-    return tags.reduce((acc, tag) => {
-      acc[tag.id] = tag;
-      return acc;
-    }, {} as Record<string, Tag>);
+  const prevTagsRef = useRef<Tag[]>([]);
+  const prevTagsMapRef = useRef<Record<string, Tag>>({});
+
+  const { stabilizedTags: tagsFinal, tagsMap } = useMemo(() => {
+    const newMap: Record<string, Tag> = {};
+    const newList: Tag[] = [];
+    const prevMap = prevTagsMapRef.current;
+    const prevTags = prevTagsRef.current;
+
+    let hasChanges = tags.length !== prevTags.length;
+
+    tags.forEach((tag, i) => {
+      const prev = prevMap[tag.id];
+      // Tags don't have updatedAt currently, so we compare fields
+      if (prev && prev.name === tag.name && prev.parentId === tag.parentId && prev.color === tag.color && prev.order === tag.order) {
+        newMap[tag.id] = prev;
+      } else {
+        newMap[tag.id] = tag;
+        hasChanges = true;
+      }
+      newList.push(newMap[tag.id]);
+      if (!hasChanges && prevTags[i]?.id !== tag.id) {
+        hasChanges = true;
+      }
+    });
+
+    if (!hasChanges) {
+      return { stabilizedTags: prevTags, tagsMap: prevMap };
+    }
+
+    prevTagsRef.current = newList;
+    prevTagsMapRef.current = newMap;
+    return { stabilizedTags: newList, tagsMap: newMap };
   }, [tags]);
 
   /**
@@ -45,17 +73,17 @@ export const ReferenceProvider: React.FC<PropsWithChildren> = ({ children }) => 
    * (Work, Personal, etc) for a better initial experience.
    */
   useEffect(() => {
-    if (!loading && tags.length === 0) {
+    if (!loading && tagsFinal.length === 0) {
         tagApi.initializeDefaultsIfEmpty();
     }
-  }, [loading, tags.length]);
+  }, [loading, tagsFinal.length]);
 
   const value = useMemo(() => ({
-    tags,
+    tags: tagsFinal,
     tagsMap,
     loading,
     hasPendingWrites
-  }), [tags, tagsMap, loading, hasPendingWrites]);
+  }), [tagsFinal, tagsMap, loading, hasPendingWrites]);
 
   return <ReferenceContext.Provider value={value}>{children}</ReferenceContext.Provider>;
 };

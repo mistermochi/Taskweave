@@ -44,23 +44,36 @@ export const TaskProvider: React.FC<PropsWithChildren> = ({ children }) => {
    * Local cache for stabilization.
    */
   const prevMapRef = useRef<Record<string, TaskEntity>>({});
+  const prevTasksRef = useRef<TaskEntity[]>([]);
 
   const { tasks, tasksMap } = useMemo(() => {
     const newMap: Record<string, TaskEntity> = {};
     const newList: TaskEntity[] = [];
     const prevMap = prevMapRef.current;
+    const prevTasks = prevTasksRef.current;
 
-    allTasks.forEach(t => {
+    let hasChanges = allTasks.length !== prevTasks.length;
+
+    allTasks.forEach((t, i) => {
       const prev = prevMap[t.id];
       if (prev && prev.updatedAt === t.updatedAt) {
         newMap[t.id] = prev;
       } else {
         newMap[t.id] = t;
+        hasChanges = true;
       }
       newList.push(newMap[t.id]);
+      if (!hasChanges && prevTasks[i]?.id !== t.id) {
+        hasChanges = true;
+      }
     });
 
+    if (!hasChanges) {
+      return { tasks: prevTasks, tasksMap: prevMap };
+    }
+
     prevMapRef.current = newMap;
+    prevTasksRef.current = newList;
     return { tasks: newList, tasksMap: newMap };
   }, [allTasks]);
 

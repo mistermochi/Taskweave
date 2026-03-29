@@ -108,7 +108,13 @@ export function TaskApp({
     });
   }, [tagsMap, optimisticTags, clearOptimisticTag]);
 
+  const prevMergedTasksRef = React.useRef<Task[]>([]);
+  const prevActiveTasksRef = React.useRef<Task[]>([]);
+  const prevCompletedTasksRef = React.useRef<Task[]>([]);
+  const prevArchivedTasksRef = React.useRef<Task[]>([]);
+
   // Bolt ⚡ Optimization: Consolidate task merging, status partitioning, and lookup map generation into a single O(N) pass.
+  // Additionally, stabilize sub-arrays to prevent redundant downstream filtering.
   const {
     mergedTasks,
     mergedTasksMap,
@@ -154,13 +160,32 @@ export function TaskApp({
       }
     });
 
+    // Stabilization: Reuse previous array references if content (by ID/ref) hasn't changed.
+    const stabilize = (next: Task[], prev: Task[]) => {
+      if (next.length !== prev.length) return next;
+      for (let i = 0; i < next.length; i++) {
+        if (next[i] !== prev[i]) return next;
+      }
+      return prev;
+    };
+
+    const stabilizedMerged = stabilize(allMerged, prevMergedTasksRef.current);
+    const stabilizedActive = stabilize(active, prevActiveTasksRef.current);
+    const stabilizedCompleted = stabilize(completed, prevCompletedTasksRef.current);
+    const stabilizedArchived = stabilize(archived, prevArchivedTasksRef.current);
+
+    prevMergedTasksRef.current = stabilizedMerged;
+    prevActiveTasksRef.current = stabilizedActive;
+    prevCompletedTasksRef.current = stabilizedCompleted;
+    prevArchivedTasksRef.current = stabilizedArchived;
+
     return {
-      mergedTasks: allMerged,
+      mergedTasks: stabilizedMerged,
       mergedTasksMap: taskMap,
-      activeTasks: active,
-      completedTasks: completed,
-      archivedTasks: archived,
-      activeTasksCount: active.length,
+      activeTasks: stabilizedActive,
+      completedTasks: stabilizedCompleted,
+      archivedTasks: stabilizedArchived,
+      activeTasksCount: stabilizedActive.length,
       focusedTask: focused
     };
   }, [tasks, optimisticTasks]);
@@ -313,6 +338,21 @@ export function TaskApp({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [createNewTask, setSearchQuery]);
 
+  // Bolt ⚡ Optimization: Decouple source selection from filtering to prevent redundant re-runs.
+  const sourceTasks = React.useMemo(() => {
+    switch (taskTab) {
+      case 'active': return activeTasks;
+      case 'done': return completedTasks;
+      case 'archived': return archivedTasks;
+      default: return mergedTasks;
+    }
+  }, [taskTab, activeTasks, completedTasks, archivedTasks, mergedTasks]);
+
+  // Bolt ⚡ Optimization: Narrow dependencies by only watching the specific selected tag object.
+  const currentSelectedTag = React.useMemo(() =>
+    selectedTagId ? mergedTagsMap[selectedTagId] : null
+  , [selectedTagId, mergedTagsMap]);
+
   const filteredTasks = React.useMemo(() => {
     // Bolt ⚡: Hoist search parsing and only execute if query exists
     const parsedSearch = searchQuery ? parseTaskInput(searchQuery) : null;
@@ -320,19 +360,9 @@ export function TaskApp({
     const searchTitle = parsedSearch?.cleanTitle.toLowerCase();
     const lowerTagKeyword = tagKeyword?.toLowerCase();
 
-    const selectedTag = selectedTagId
-      ? mergedTagsMap[selectedTagId]
-      : null;
-
     const matchedTag = lowerTagKeyword
       ? mergedTagsByName[lowerTagKeyword] // Bolt ⚡: O(1) lookup from specialized map
       : null;
-
-    const sourceTasks =
-      taskTab === 'active' ? activeTasks :
-      taskTab === 'done' ? completedTasks :
-      taskTab === 'archived' ? archivedTasks :
-      mergedTasks;
 
     return sourceTasks.filter((task) => {
       // Bolt ⚡: For robustness, if we fell back to mergedTasks,
@@ -362,17 +392,17 @@ export function TaskApp({
 
       // Legacy Tag filter (still used by some parts of the app possibly)
       if (selectedTagId && !tagKeyword) {
-        if (!selectedTag) return false;
+        if (!currentSelectedTag) return false;
         if (
-          task.category !== selectedTag.id &&
-          task.category !== selectedTag.name
+          task.category !== currentSelectedTag.id &&
+          task.category !== currentSelectedTag.name
         )
           return false;
       }
 
       return true;
     });
-  }, [activeTasks, completedTasks, archivedTasks, mergedTasks, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery]);
+  }, [sourceTasks, taskTab, mergedTasks, searchQuery, selectedTagId, currentSelectedTag, mergedTagsByName]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

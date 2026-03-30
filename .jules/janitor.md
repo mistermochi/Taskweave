@@ -44,3 +44,8 @@
 **Clutter:** Multiple unused imports (`date-fns`, Radix UI, Lucide) and a shadowed `today` constant in `TaskDetailView.tsx`, plus a leftover `console.log` in `TagPickerLogic.test.ts`.
 **Learning:** Components undergoing rapid iteration often accumulate "import drift" where utilities and icons are added but not removed when logic or UI structure changes. Shadowed variables (like `today`) can lead to subtle logic confusion and increase cognitive load during maintenance.
 **Action:** Regularly run `pnpm lint` and perform surgical cleanups of unused symbols and shadowed variables to maintain component readability and prevent structural entropy.
+
+## 2026-04-03 - Removed Unused Accordion Component and Dependency
+**Clutter:** The `Accordion` UI component (`src/shared/ui/ui/accordion.tsx`) and its corresponding Radix dependency were unreferenced.
+**Learning:** Even standard UI components can become "dead" if the application's design evolves towards other patterns (like tabs or lists). Regular audits of the `src/shared/ui/ui` directory against the rest of the `src` folder help identify these orphaned components.
+**Action:** Deleted the component file and removed `@radix-ui/react-accordion` from `package.json` and lockfiles.

@@ -180,10 +180,11 @@ export function TaskApp({
     if (taskMap.size !== prevMergedTasksMapRef.current.size) {
         finalMap = taskMap;
     } else {
-        // Deep check if same size
+        // Deep check if same size. Standard for loop on allMerged to avoid iteration issues in ES5.
         let changed = false;
-        for (const [id, task] of taskMap) {
-            if (prevMergedTasksMapRef.current.get(id) !== task) {
+        for (let i = 0; i < allMerged.length; i++) {
+            const task = allMerged[i];
+            if (prevMergedTasksMapRef.current.get(task.id) !== task) {
                 changed = true;
                 break;
             }
@@ -370,7 +371,7 @@ export function TaskApp({
     if (taskTab === 'done') return completedSource!;
     if (taskTab === 'archived') return archivedSource!;
     return mergedSource!;
-  }, [taskTab, activeSource, completedSource, archivedSource, mergedSource]);
+  }, [taskTab, activeSource, completedSource, archivedSource, mergedSource, activeTasks, completedTasks, archivedTasks, mergedTasks]);
 
   const filteredTasks = React.useMemo(() => {
     // Bolt ⚡: Hoist search parsing and only execute if query exists
@@ -425,7 +426,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery]);
+  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery, mergedTasks]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

@@ -49,3 +49,8 @@
 **Clutter:** The `Accordion` UI component (`src/shared/ui/ui/accordion.tsx`) and its corresponding Radix dependency were unreferenced.
 **Learning:** Even standard UI components can become "dead" if the application's design evolves towards other patterns (like tabs or lists). Regular audits of the `src/shared/ui/ui` directory against the rest of the `src` folder help identify these orphaned components.
 **Action:** Deleted the component file and removed `@radix-ui/react-accordion` from `package.json` and lockfiles.
+
+## 2026-04-05 - Removed Orphaned Types and Redundant Props
+**Clutter:** Unused legacy interfaces (`ActivityLog`, `Habit`, `DailyPlan`, `ChatMessage`, `UserStats`, `ShiftType`, `NavigationHandler`) and the `NEW_TASK` enum member in `src/types.ts`. Redundant `onNavigate` prop in `InsightsView.tsx`.
+**Learning:** Rapid architectural shifts often leave behind "ghost types" from abandoned features (like the early scheduling or chat experiments). Regular grep-based audits are necessary because standard linters often miss unused TypeScript interfaces if they are exported.
+**Action:** Deleted the orphaned types/interfaces and removed the redundant prop from the Insights component and its call sites.

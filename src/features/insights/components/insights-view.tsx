@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { cn } from '@/shared/lib/utils';
-import { ViewName, NavigationHandler } from '@/types';
+import { ViewName } from '@/types';
 import { Category } from '@/entities/tag';
 import { UserVital } from '@/entities/vital';
 import { Zap, Clock, Target, Activity, Layers, Wind, Smile, AlignLeft, MapPin, Battery, Wifi, X, BatteryWarning, BarChart3 } from 'lucide-react';
@@ -21,13 +21,6 @@ import { TaskNavigation } from '@/features/task-app/components/task-navigation';
 import { useTaskContext } from '@/context/TaskContext';
 import { useReferenceContext } from '@/context/ReferenceContext';
 
-/**
- * Interface for InsightsView props.
- */
-interface InsightsViewProps {
-  /** Callback for handling navigation to other views. */
-  onNavigate: NavigationHandler;
-}
 
 /**
  * Internal component for rendering a single entry in the Vital Log list.
@@ -233,7 +226,7 @@ const VitalContextModal = ({ vital, onClose }: { vital: UserVital | null, onClos
  *
  * @component
  */
-export const InsightsView: React.FC<InsightsViewProps> = ({ onNavigate }) => {
+export const InsightsView: React.FC = () => {
   const { state } = useInsightsController();
   const [selectedVital, setSelectedVital] = useState<UserVital | null>(null);
   const [timeRange, setTimeRange] = useState("7d");

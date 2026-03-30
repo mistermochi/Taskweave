@@ -553,7 +553,7 @@ export function TaskApp({
               )}>
                 {activeView === 'settings' && <SettingsView />}
                 {activeView === 'dashboard' && <DashboardView />}
-                {activeView === 'insights' && <InsightsView onNavigate={() => {}} />}
+                {activeView === 'insights' && <InsightsView />}
               </main>
               {activeView === 'dashboard' && <aside className="flex h-full flex-1 flex-col min-w-0">{taskDetail}</aside>}
             </>
@@ -565,7 +565,7 @@ export function TaskApp({
           {activeView === 'settings' && <SettingsView />}
           {activeView === 'tasks' && mainContent}
           {activeView === 'dashboard' && <DashboardView />}
-          {activeView === 'insights' && <InsightsView onNavigate={() => {}} />}
+          {activeView === 'insights' && <InsightsView />}
           {taskDetail}
           <div className="md:hidden">
             <TaskNavigation

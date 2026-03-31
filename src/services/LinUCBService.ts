@@ -54,6 +54,8 @@ interface ArmParams {
   A: number[][];
   /** d-dimensional vector. */
   b: number[];
+  /** Cached inverse of A. Nullified when A is updated. */
+  A_inv?: number[][];
 }
 
 /**
@@ -142,12 +144,18 @@ export class LinUCBService {
     let maxUCB = -Infinity;
 
     for (const armIdx of validArms) {
-      if (!this.arms[armIdx]) continue;
+      const arm = this.arms[armIdx];
+      if (!arm) continue;
 
       try {
-          const { A, b } = this.arms[armIdx];
+          const { A, b } = arm;
           
-          const A_inv = Matrix.invert(A);
+          // Bolt ⚡ Optimization: Use cached inverse if available to avoid O(d^3) inversion
+          if (!arm.A_inv) {
+              arm.A_inv = Matrix.invert(A);
+          }
+          const A_inv = arm.A_inv;
+
           const theta = Matrix.dot(A_inv, b);
           const p = Matrix.vectorDot(theta, x);
           const variance = Matrix.vectorDot(x, Matrix.dot(A_inv, x));
@@ -196,6 +204,9 @@ export class LinUCBService {
     const weightedX = Matrix.scale(x, reward);
     this.arms[armIdx].b = Matrix.vecAdd(b, weightedX);
 
+    // Bolt ⚡ Optimization: Invalidate cached inverse when matrix A is updated
+    this.arms[armIdx].A_inv = undefined;
+
     await this.saveModel();
   }
 
@@ -217,6 +228,9 @@ export class LinUCBService {
         this.arms[arm].A = Matrix.add(A, outer);
         const weightedX = Matrix.scale(x, reward);
         this.arms[arm].b = Matrix.vecAdd(b, weightedX);
+
+        // Bolt ⚡ Optimization: Invalidate cached inverse
+        this.arms[arm].A_inv = undefined;
     }
 
     await this.saveModel();

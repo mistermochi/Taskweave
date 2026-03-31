@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { Tag } from '@/entities/tag';
 import { processTagsForPicker } from '@/entities/tag/lib/tag-utils';
@@ -55,8 +56,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
     }
   }, [selectedTagId, tagsById]);
 
-  const toggleExpand = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
+  const toggleExpand = (id: string) => {
     const newSet = new Set(expandedTags);
     if (newSet.has(id)) newSet.delete(id);
     else newSet.add(id);
@@ -83,40 +83,55 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
             <div key={tag.id}>
                 <div
                     className={cn(
-                        "flex items-center w-full hover:bg-accent rounded-sm transition-colors group/row select-none cursor-pointer px-2 py-1.5",
-                        isSelected && "bg-accent"
+                        "flex items-center w-full rounded-sm transition-colors group/row select-none px-2 py-1",
+                        isSelected ? "bg-accent" : "hover:bg-accent/50"
                     )}
-                    onClick={() => onSelect(tag.id)}
                 >
                     <div 
-                        className="flex-1 flex items-center gap-2 min-w-0"
+                        className="flex-1 flex items-center gap-1.5 min-w-0"
                         style={{ paddingLeft: `${depth * 12}px` }}
                     >
-                        <div
+                        {hasChildren ? (
+                            <button
+                                type="button"
+                                className={cn(
+                                    "w-4 h-4 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-sm hover:bg-muted transition-colors",
+                                    "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                )}
+                                onClick={() => toggleExpand(tag.id)}
+                                aria-label={isExpanded ? `Collapse ${tag.name}` : `Expand ${tag.name}`}
+                                aria-expanded={isExpanded}
+                            >
+                                {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                            </button>
+                        ) : (
+                            <div className="w-4 h-4 opacity-0 pointer-events-none" aria-hidden="true" />
+                        )}
+
+                        <button
+                            type="button"
                             className={cn(
-                                "w-4 h-4 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-sm hover:bg-muted transition-colors",
-                                !hasChildren && "opacity-0 pointer-events-none"
+                                "flex-1 flex items-center gap-2 min-w-0 text-left rounded-sm transition-colors py-0.5",
+                                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             )}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                toggleExpand(e, tag.id);
-                            }}
+                            onClick={() => onSelect(tag.id)}
+                            aria-label={`Select ${tag.name}`}
+                            aria-pressed={isSelected}
                         >
-                            {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                        </div>
-                        <div className={cn(
-                            "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                            isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
-                        )}>
-                            <Check className="h-3 w-3" />
-                        </div>
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tag.color }}></span>
-                        <span className={cn(
-                            "text-xs font-medium truncate",
-                            isSelected ? "text-foreground" : "text-muted-foreground"
-                        )}>
-                            {tag.name}
-                        </span>
+                            <div className={cn(
+                                "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-primary",
+                                isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
+                            )}>
+                                <Check className="h-3 w-3" />
+                            </div>
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tag.color }}></span>
+                            <span className={cn(
+                                "text-xs font-medium truncate",
+                                isSelected ? "text-foreground" : "text-muted-foreground"
+                            )}>
+                                {tag.name}
+                            </span>
+                        </button>
                     </div>
                 </div>
                 {hasChildren && isExpanded && (
@@ -148,12 +163,16 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
 
         <div className="max-h-64 overflow-y-auto no-scrollbar p-1">
             {!searchQuery && (
-                <div
+                <button
+                    type="button"
                     className={cn(
-                        "flex items-center w-full hover:bg-accent rounded-sm transition-colors group/row select-none cursor-pointer px-2 py-1.5 mb-1",
-                        selectedTagId === '' && "bg-accent"
+                        "flex items-center w-full rounded-sm transition-colors group/row select-none px-2 py-1.5 mb-1 text-left",
+                        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                        selectedTagId === '' ? "bg-accent" : "hover:bg-accent"
                     )}
                     onClick={() => onSelect('')}
+                    aria-label="Select Inbox"
+                    aria-pressed={selectedTagId === ''}
                 >
                     <div className="flex-1 flex items-center gap-2">
                         <div className={cn(
@@ -170,7 +189,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
                             Inbox
                         </span>
                     </div>
-                </div>
+                </button>
             )}
 
             {tags.length > 0 ? renderTree(null) : (
@@ -183,11 +202,9 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
                 <Separator />
                 <div className="p-1">
                     <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onSelect('');
-                        }}
-                        className="flex items-center justify-center w-full px-2 py-1.5 text-xs hover:bg-accent rounded-sm transition-colors"
+                        type="button"
+                        onClick={() => onSelect('')}
+                        className="flex items-center justify-center w-full px-2 py-1.5 text-xs hover:bg-accent rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     >
                         Clear selection
                     </button>

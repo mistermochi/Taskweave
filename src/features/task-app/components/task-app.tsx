@@ -371,7 +371,7 @@ export function TaskApp({
     if (taskTab === 'done') return completedSource!;
     if (taskTab === 'archived') return archivedSource!;
     return mergedSource!;
-  }, [taskTab, activeSource, completedSource, archivedSource, mergedSource, activeTasks, completedTasks, archivedTasks, mergedTasks]);
+  }, [taskTab, activeSource, completedSource, archivedSource, mergedSource]);
 
   const filteredTasks = React.useMemo(() => {
     // Bolt ⚡: Hoist search parsing and only execute if query exists
@@ -426,7 +426,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery, mergedTasks]);
+  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

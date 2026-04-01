@@ -374,6 +374,12 @@ export function TaskApp({
   }, [taskTab, activeSource, completedSource, archivedSource, mergedSource]);
 
   const filteredTasks = React.useMemo(() => {
+    // Bolt ⚡ Optimization: Return sourceTasks reference directly if no filters are active
+    // and no status fallback is required. This avoids redundant O(N) traversals
+    // and preserves reference stability for child components like TaskList.
+    const isUnfiltered = !searchQuery && !selectedTagId && sourceTasks !== mergedSource;
+    if (isUnfiltered) return sourceTasks;
+
     // Bolt ⚡: Hoist search parsing and only execute if query exists
     const parsedSearch = searchQuery ? parseTaskInput(searchQuery) : null;
     const tagKeyword = parsedSearch?.attributes.tagKeyword;

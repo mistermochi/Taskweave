@@ -44,3 +44,7 @@
 ## 2026-03-31 - [LinUCB Matrix Inversion Caching]
 **Learning:** The LinUCB recommendation engine performs O(d³) matrix inversions for each available strategy arm on every prediction call. For a d=11 model with 13 arms, this amounts to ~17,000 floating point operations per prediction. Caching the inverse matrix (A⁻¹) and only recomputing it when the model parameters (A) are updated reduces prediction latency from ~1.8ms to ~0.08ms (~22x speedup).
 **Action:** When implementing bandit algorithms or any Ridge Regression-based models, always cache the inverse of the covariance matrix and invalidate it only during model updates.
+
+## 2026-04-01 - [Shortcutting Identity Filtering for Reference Stability]
+**Learning:** Even with efficient $O(N)$ filtering, redundant traversals of large collections on every render (e.g., search input changes or tab switches) create unnecessary GC pressure and break downstream memoization. Identifying the "unfiltered" state where the current subset already matches the target status allows for an $O(1)$ reference return.
+**Action:** In complex data flows where collections are pre-partitioned, always implement an identity check in the final filtering memo to preserve original references when no secondary filters (search, tags) are active.

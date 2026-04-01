@@ -22,93 +22,111 @@ export function useHashRouter(tasksMap: Map<string, Task>) {
 
   const isInternalUpdate = useRef(false);
   const [isReady, setIsReady] = useState(false);
+  const lastProcessedHash = useRef<string | null>(null);
+  const isReadyRef = useRef(isReady);
 
-  // Sync from Hash to Store (Initial load & hash changes)
   useEffect(() => {
-    const handleHashChange = () => {
+    isReadyRef.current = isReady;
+  }, [isReady]);
+
+  const selectedTagIdRef = useRef(selectedTagId);
+  useEffect(() => {
+    selectedTagIdRef.current = selectedTagId;
+  }, [selectedTagId]);
+
+  // Bolt ⚡ Optimization: Use refs for the event listener to avoid frequent re-binding
+  // and race conditions during rapid state/task updates.
+  const tasksMapRef = useRef(tasksMap);
+  useEffect(() => {
+    tasksMapRef.current = tasksMap;
+  }, [tasksMap]);
+
+  // Sync from Hash to Store
+  useEffect(() => {
+    const syncHashToStore = (hash: string, isFromEvent: boolean) => {
       if (isInternalUpdate.current) {
         isInternalUpdate.current = false;
+        lastProcessedHash.current = hash;
         return;
       }
 
-      const state = parseHash(window.location.hash);
-
-      // Atomic updates if possible, but Zustand setters are already fine
-      if (state.activeView !== useTaskAppStore.getState().activeView) {
-        setActiveView(state.activeView);
+      if (lastProcessedHash.current === hash && isFromEvent) {
+        return;
       }
 
-      if (state.taskTab !== useTaskAppStore.getState().taskTab) {
-        setTaskTab(state.taskTab);
-      }
+      const state = parseHash(hash);
+      const store = useTaskAppStore.getState();
+      lastProcessedHash.current = hash;
 
-      if (state.searchQuery !== useTaskAppStore.getState().searchQuery) {
-        setSearchQuery(state.searchQuery);
-      }
+      // Update basic view state
+      if (state.activeView !== store.activeView) setActiveView(state.activeView);
+      if (state.taskTab !== store.taskTab) setTaskTab(state.taskTab);
+      if (state.searchQuery !== store.searchQuery) setSearchQuery(state.searchQuery);
 
-      const currentSelectedTask = useTaskAppStore.getState().selectedTask;
-      const isNewTaskTransition = state.selectedTaskId === 'new' && (
-        currentSelectedTask?.id !== 'new' ||
-        state.shareTitle || state.shareText || state.shareUrl
-      );
+      const currentSelectedTask = store.selectedTask;
+      const targetId = state.selectedTaskId;
+      const currentId = currentSelectedTask?.id || null;
 
-      if (state.selectedTaskId !== currentSelectedTask?.id || isNewTaskTransition) {
-        if (state.selectedTaskId === 'new') {
+      // Handle Task selection sync
+      if (targetId === 'new') {
+        const isNewTaskTransition = (currentId !== 'new' && (isFromEvent || !isReadyRef.current)) || state.shareTitle || state.shareText || state.shareUrl;
+        if (isNewTaskTransition) {
           const newTask = createDefaultTask();
           if (state.shareTitle) newTask.title = state.shareTitle;
-
           let notes = state.shareText || '';
-          if (state.shareUrl) {
-            notes = notes ? `${notes}\n\n${state.shareUrl}` : state.shareUrl;
-          }
+          if (state.shareUrl) notes = notes ? `${notes}\n\n${state.shareUrl}` : state.shareUrl;
           if (notes) newTask.notes = notes;
 
           setSelectedTask(newTask);
 
-          // Clear share parameters from the URL hash once consumed
-          // This prevents re-initialization on subsequent re-renders or state changes.
-          const currentState = {
-            activeView: state.activeView,
-            taskTab: state.taskTab,
-            selectedTaskId: 'new',
-            searchQuery: state.searchQuery,
-          };
-          const cleanHash = stringifyAppState(currentState);
+          // Strip share params from URL
+          const cleanHash = stringifyAppState({ ...state, shareTitle: undefined, shareText: undefined, shareUrl: undefined });
           if (window.location.hash !== cleanHash) {
             isInternalUpdate.current = true;
             window.location.hash = cleanHash;
+            lastProcessedHash.current = cleanHash;
           }
-        } else if (state.selectedTaskId) {
-          const task = tasksMap.get(state.selectedTaskId);
+        }
+      } else if (targetId) {
+        if (targetId !== currentId) {
+          const task = tasksMapRef.current.get(targetId);
           if (task) {
             setSelectedTask(task);
-          } else if (tasksMap.size > 0) {
-            // Tasks are loaded but this ID isn't found
-            setSelectedTask(null);
+          } else {
+            // Janitor: Check if the targetId matches an optimistic task
+            // that hasn't made it to the main tasksMap yet.
+            const store = useTaskAppStore.getState();
+            const optimisticTask = store.optimisticTasks[targetId];
+
+            if (optimisticTask) {
+              setSelectedTask(optimisticTask as Task);
+            } else if (tasksMapRef.current.size > 0) {
+              setSelectedTask(null);
+            }
           }
-          // If tasksMap.size === 0, we're still loading, so we don't clear selectedTask yet
-        } else {
-          setSelectedTask(null);
         }
+      } else if (currentId) {
+        setSelectedTask(null);
       }
 
-      // We're ready once we've processed the hash at least once AND tasks are loaded (if a task ID was present)
-      const shouldWaitTasks = state.selectedTaskId && state.selectedTaskId !== 'new' && tasksMap.size === 0;
-      if (!shouldWaitTasks) {
+      // Mark as ready once we've processed the hash at least once
+      const isWaitingForTask = targetId && targetId !== 'new' && !tasksMapRef.current.has(targetId) && tasksMapRef.current.size === 0;
+      if (!isWaitingForTask) {
         setIsReady(true);
       }
     };
 
+    const handleHashChange = () => syncHashToStore(window.location.hash, true);
     window.addEventListener('hashchange', handleHashChange);
-    handleHashChange();
+
+    // Initial sync
+    syncHashToStore(window.location.hash, false);
 
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [tasksMap, setActiveView, setTaskTab, setSelectedTask, setSelectedTagId, setSearchQuery]);
+  }, [setActiveView, setTaskTab, setSelectedTask, setSearchQuery]);
 
   // Sync from Store to Hash
   useEffect(() => {
-    // DO NOT sync back to hash until we have successfully restored the state from hash on initial load
-    // This prevents overwriting the URL with default state while tasks are still loading.
     if (!isReady) return;
 
     const currentState: AppState = {
@@ -122,6 +140,7 @@ export function useHashRouter(tasksMap: Map<string, Task>) {
     if (window.location.hash !== newHash) {
       isInternalUpdate.current = true;
       window.location.hash = newHash;
+      lastProcessedHash.current = newHash;
     }
-  }, [isReady, activeView, taskTab, selectedTask, selectedTagId, searchQuery]);
+  }, [isReady, activeView, taskTab, selectedTask, searchQuery, selectedTagId]);
 }

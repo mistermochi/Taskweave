@@ -324,7 +324,7 @@ export function TaskApp({
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const createNewTask = React.useCallback(() => {
-    useTaskAppStore.getState().setSelectedTask(createDefaultTask());
+    window.location.hash = '#/tasks/new';
   }, []);
 
   React.useEffect(() => {

@@ -54,3 +54,8 @@
 **Clutter:** Unused legacy interfaces (`ActivityLog`, `Habit`, `DailyPlan`, `ChatMessage`, `UserStats`, `ShiftType`, `NavigationHandler`) and the `NEW_TASK` enum member in `src/types.ts`. Redundant `onNavigate` prop in `InsightsView.tsx`.
 **Learning:** As an application transitions from early prototypes to a more stable architecture, legacy types and placeholder navigation props often remain in core files. These "broken windows" increase cognitive load and can mislead developers about the current capabilities of the system. Surgical removal of these orphans, including cleaning up empty interfaces and unused imports, is essential for maintaining a high-signal codebase.
 **Action:** Performed a sweep of `src/types.ts` and simplified component props in `InsightsView.tsx`, verifying structural integrity with a full production build.
+
+## 2026-04-05 - Removed Redundant Service Alias and Fixed Unnecessary Memo Dependencies
+**Clutter:** Redundant local alias `const taskService = taskApi` in `useDashboardController.ts`. Unnecessary task array dependencies in `useMemo` hooks within `TaskApp.tsx`.
+**Learning:** Service singletons should be used directly in hooks to simplify dependency arrays and adhere to the project's "direct access" pattern. Including large raw data arrays in `useMemo` dependency lists when derived "source" variables are already present creates redundant reactivity and triggers ESLint `exhaustive-deps` warnings.
+**Action:** Deleted the `taskService` alias and updated callers. Surgical removal of redundant `useMemo` dependencies to align with React best practices and eliminate lint warnings.

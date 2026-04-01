@@ -38,7 +38,6 @@ export const useDashboardController = () => {
   const { vitals } = useVitalsContext();
   const { tags } = useReferenceContext();
   const energyModel = useEnergyModel();
-  const taskService = taskApi;
 
   /** Current AI task recommendation with its reasoning. */
   const [recommendation, setRecommendation] = useState<{ taskId: string; reason: string; } | null>(null);
@@ -230,8 +229,8 @@ export const useDashboardController = () => {
       const delta = calculateSessionImpact(durationSeconds, durationSeconds, 'Neutral');
       const newEnergy = Math.max(0, Math.min(100, energyModel.currentEnergy + delta));
       
-      const nextDate = await taskService.completeTask(task, durationSeconds, activeTasks);
-      await taskService.logSessionCompletion(task, 'Neutral', 'Quick Complete', newEnergy);
+      const nextDate = await taskApi.completeTask(task, durationSeconds, activeTasks);
+      await taskApi.logSessionCompletion(task, 'Neutral', 'Quick Complete', newEnergy);
 
       try {
            // contextService consolidated
@@ -271,8 +270,8 @@ export const useDashboardController = () => {
       saveMood,
       saveFocus,
       completeTask,
-      updateTask: (taskId: string, updates: Partial<TaskEntity>) => taskService.updateTask(taskId, updates),
-      createTask: (title: string, overrides?: Partial<TaskEntity>) => taskService.addTask(
+      updateTask: (taskId: string, updates: Partial<TaskEntity>) => taskApi.updateTask(taskId, updates),
+      createTask: (title: string, overrides?: Partial<TaskEntity>) => taskApi.addTask(
           title,
           overrides?.category || '',
           overrides?.duration || 30,
@@ -282,7 +281,7 @@ export const useDashboardController = () => {
           overrides?.assignedDate,
           overrides?.recurrence
       ),
-      deleteTask: (taskId: string) => taskService.deleteTask(taskId),
+      deleteTask: (taskId: string) => taskApi.deleteTask(taskId),
       isTaskInActiveSession: (id: string) => activeTasks.find(t => t.id === id)?.isFocused || false
     }
   };

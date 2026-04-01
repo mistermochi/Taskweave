@@ -394,11 +394,12 @@ export function TaskDetailView({
         // Optimistic UI update in store
         const store = useTaskAppStore.getState();
         store.setOptimisticTask(newTaskId, newTask);
-        store.setActiveView('tasks');
-        store.setTaskTab('active');
-        store.setSearchQuery("");
-        store.setSelectedTask(newTask);
-        onClose?.();
+
+        // UX 🎨: Transition to the new task's URL path.
+        // The useHashRouter will pick this up and sync the UI state.
+        const newHash = `#/tasks/${newTaskId}`;
+        window.location.hash = newHash;
+
         useTaskAppStore.getState().showToast(isOffline ? "Task saved locally" : "Task created");
       } else {
         // Handle tag creation for existing task updates

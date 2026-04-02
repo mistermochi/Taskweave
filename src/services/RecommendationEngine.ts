@@ -100,6 +100,12 @@ export class RecommendationEngine {
    * @param allTasks - All tasks (active and completed).
    * @param allVitals - User wellness data (mood/energy logs).
    * @returns A promise resolving to the number of historical events processed.
+   *
+   * @logic
+   * Bolt ⚡ Optimization:
+   * 1. Collects all training samples in a single pass to perform ONE Firestore write.
+   * 2. Reuses pre-sorted arrays and pointers for O(1) amortized lookup.
+   * 3. Avoids O(N) array scans inside the history loop.
    */
   async recalibrateFromHistory(allTasks: TaskEntity[], allVitals: UserVital[]): Promise<number> {
     const bandit = LinUCBService.getInstance();
@@ -115,6 +121,7 @@ export class RecommendationEngine {
 
     let processedCount = 0;
     let vitalPointer = 0;
+    const allSamples: { x: number[], arm: number, reward: number }[] = [];
     
     for (let i = 0; i < completedTasks.length; i++) {
       const task = completedTasks[i];
@@ -134,6 +141,7 @@ export class RecommendationEngine {
 
       // Bolt ⚡ Optimization: Efficient slice instead of O(N) filter in loop
       const previousCompletions = completedTasks.slice(0, i);
+      const lastTask = i > 0 ? completedTasks[i - 1] : undefined;
       
       const activeTasksAtTime = allTasks.filter(t => {
         if (t.id === task.id) return false;
@@ -154,8 +162,13 @@ export class RecommendationEngine {
         userContext: undefined, 
       };
       
-      await this.logOrganicSelection(task, context);
+      const samples = this.getOrganicSamples(task, context, lastTask);
+      allSamples.push(...samples);
       processedCount++;
+    }
+
+    if (allSamples.length > 0) {
+        await bandit.batchTrain(allSamples);
     }
     
     return processedCount;
@@ -199,6 +212,7 @@ export class RecommendationEngine {
    * This vector is the input for the LinUCB machine learning model.
    *
    * @param ctx - The suggestion context.
+   * @param lastTask - Optional pre-identified last completed task to avoid O(N) search.
    * @returns A number array representing the context features.
    *
    * @features
@@ -211,7 +225,7 @@ export class RecommendationEngine {
    * 7. Duration of last task (normalized)
    * 8-11. Category of last task (One-hot encoded: Work, Wellbeing, Personal, Hobbies)
    */
-  public buildContextVector(ctx: SuggestionContext): number[] {
+  public buildContextVector(ctx: SuggestionContext, lastTask?: TaskEntity): number[] {
     const bias = 1.0;
     const hour = ctx.currentTime.getHours() / 24;
     const energy = ctx.energy / 100;
@@ -224,9 +238,9 @@ export class RecommendationEngine {
     let lastDuration = 0;
     let lastCats = [0, 0, 0, 0];
 
-    if (ctx.completedTasks.length > 0) {
-      // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
-      const last = this.getLatestCompletedTask(ctx.completedTasks)!;
+    const last = lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
+
+    if (last) {
       const msSince = Date.now() - (last.completedAt || 0);
       const hoursSince = msSince / (1000 * 60 * 60);
       timeSinceLast = Math.max(0, 1.0 - (hoursSince / 4));
@@ -252,8 +266,11 @@ export class RecommendationEngine {
   /**
    * Filters the available strategic arms based on the current context.
    * Ensures that a strategy is only suggested if there are tasks that match its criteria.
+   *
+   * @param ctx - The suggestion context.
+   * @param lastTask - Optional pre-identified last completed task to avoid O(N) search.
    */
-  private getValidStrategies(ctx: SuggestionContext): number[] {
+  private getValidStrategies(ctx: SuggestionContext, lastTask?: TaskEntity): number[] {
     const allActiveTasks = ctx.tasks;
     // Bolt ⚡: O(1) lookup for active task IDs to avoid O(N^2) in isBlocked
     const activeTaskIds = new Set(allActiveTasks.map(t => t.id));
@@ -266,7 +283,7 @@ export class RecommendationEngine {
 
     const indices: number[] = [];
     // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
-    const last = this.getLatestCompletedTask(ctx.completedTasks);
+    const last = lastTask || this.getLatestCompletedTask(ctx.completedTasks);
     const hour = ctx.currentTime.getHours();
 
     if (t.some(x => x.energy === 'High' && x.duration > 30)) indices.push(StrategyArm.DEEP_FLOW);
@@ -464,41 +481,14 @@ export class RecommendationEngine {
   }
 
   /**
-   * Feedback entry point for when a suggested strategy leads to a successful completion.
+   * Internal helper to identify which strategies match an organic selection.
+   * Returns a list of training samples (x, arm, reward).
    */
-  async logCompletion(ctx: SuggestionContext, strategyName: string, success: boolean) {
-    const armIdx = ARM_NAMES.indexOf(strategyName);
-    if (armIdx === -1) return;
-
-    const x = this.buildContextVector(ctx);
-    const reward = success ? 1.0 : -0.2;
-    
-    await LinUCBService.getInstance().update(x, armIdx, reward);
-  }
-
-  /**
-   * Feedback entry point for when a suggestion is explicitly rejected or ignored by the user.
-   */
-  async logRejection(ctx: SuggestionContext, strategyName: string) {
-    const armIdx = ARM_NAMES.indexOf(strategyName);
-    if (armIdx === -1) return;
-
-    const x = this.buildContextVector(ctx);
-    const reward = -0.5; 
-    
-    await LinUCBService.getInstance().update(x, armIdx, reward);
-  }
-
-  /**
-   * Implementation of "Inverse Strategy Learning".
-   * When a user manually selects a task, this function identifies all strategies
-   * that *could* have suggested it and provides them with a positive reward.
-   */
-  async logOrganicSelection(task: TaskEntity, context: SuggestionContext) {
-    const validArms = this.getValidStrategies(context);
-    const x = this.buildContextVector(context);
-    // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
-    const last = this.getLatestCompletedTask(context.completedTasks);
+  private getOrganicSamples(task: TaskEntity, context: SuggestionContext, lastTask?: TaskEntity): { x: number[], arm: number, reward: number }[] {
+    const last = lastTask || this.getLatestCompletedTask(context.completedTasks);
+    const validArms = this.getValidStrategies(context, last);
+    const x = this.buildContextVector(context, last);
+    const samples: { x: number[], arm: number, reward: number }[] = [];
 
     for (const arm of validArms) {
       let matches = false;
@@ -538,8 +528,47 @@ export class RecommendationEngine {
       }
 
       if (matches) {
-         await LinUCBService.getInstance().update(x, arm, 1.0);
+        samples.push({ x, arm, reward: 1.0 });
       }
+    }
+    return samples;
+  }
+
+  /**
+   * Feedback entry point for when a suggested strategy leads to a successful completion.
+   */
+  async logCompletion(ctx: SuggestionContext, strategyName: string, success: boolean) {
+    const armIdx = ARM_NAMES.indexOf(strategyName);
+    if (armIdx === -1) return;
+
+    const x = this.buildContextVector(ctx);
+    const reward = success ? 1.0 : -0.2;
+
+    await LinUCBService.getInstance().update(x, armIdx, reward);
+  }
+
+  /**
+   * Feedback entry point for when a suggestion is explicitly rejected or ignored by the user.
+   */
+  async logRejection(ctx: SuggestionContext, strategyName: string) {
+    const armIdx = ARM_NAMES.indexOf(strategyName);
+    if (armIdx === -1) return;
+
+    const x = this.buildContextVector(ctx);
+    const reward = -0.5;
+
+    await LinUCBService.getInstance().update(x, armIdx, reward);
+  }
+
+  /**
+   * Implementation of "Inverse Strategy Learning".
+   * When a user manually selects a task, this function identifies all strategies
+   * that *could* have suggested it and provides them with a positive reward.
+   */
+  async logOrganicSelection(task: TaskEntity, context: SuggestionContext) {
+    const samples = this.getOrganicSamples(task, context);
+    if (samples.length > 0) {
+      await LinUCBService.getInstance().batchTrain(samples);
     }
   }
 

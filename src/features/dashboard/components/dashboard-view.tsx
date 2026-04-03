@@ -15,13 +15,22 @@ import { Card } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/ui/sheet';
 import { useTaskAppStore } from '@/features/task-app/use-task-app';
+import { useReferenceContext } from '@/context/ReferenceContext';
 import { AppHeader } from '@/shared/ui/ui/app-header';
 import { TaskNavigation } from '@/features/task-app/components/task-navigation';
 import { TaskListItem } from '@/features/task-app/components/task-list-item';
 import { createDefaultTask } from '@/features/task-app/lib/constants';
 
-const DashboardTopMetrics = () => {
-    const { state, actions } = useDashboardController();
+/**
+ * Bolt ⚡ Optimization: Accepts state and actions as props to avoid redundant
+ * useDashboardController() execution (and its internal AI recommendation effect).
+ */
+interface DashboardTopMetricsProps {
+  state: ReturnType<typeof useDashboardController>['state'];
+  actions: ReturnType<typeof useDashboardController>['actions'];
+}
+
+const DashboardTopMetrics = ({ state, actions }: DashboardTopMetricsProps) => {
     const [moodLevel, setMoodLevel] = useState(state.latestMood); 
 
     useEffect(() => { setMoodLevel(state.latestMood); }, [state.latestMood]);
@@ -64,16 +73,20 @@ const DashboardTopMetrics = () => {
 
 export const DashboardView: React.FC = () => {
   const { state, actions } = useDashboardController();
-  const { selectedTask, setSelectedTask, showToast } = useTaskAppStore();
-  const tasks = state.activeTasks as unknown as TaskEntity[];
-  const tags = state.tags as unknown as Tag[];
 
-  const tagsMap = React.useMemo(() => {
-    return tags.reduce((acc, tag) => {
-      acc[tag.id] = tag;
-      return acc;
-    }, {} as Record<string, Tag>);
-  }, [tags]);
+  /**
+   * Bolt ⚡ Optimization: Use fine-grained Zustand selectors to prevent
+   * re-renders when unrelated store fields change.
+   */
+  const selectedTask = useTaskAppStore((s) => s.selectedTask);
+  const setSelectedTask = useTaskAppStore((s) => s.setSelectedTask);
+
+  /**
+   * Bolt ⚡ Optimization: Reuse the global tagsMap from ReferenceContext
+   * to avoid O(T) recalculation on every render.
+   */
+  const { tagsMap } = useReferenceContext();
+  const tasks = state.activeTasks as unknown as TaskEntity[];
   
   const [intention, setIntention] = useState(state.latestFocus);
 
@@ -101,7 +114,7 @@ export const DashboardView: React.FC = () => {
         <AppHeader
             title="Today"
             subtitle={dateStr}
-            nav={<TaskNavigation tags={tags} tasks={tasks} isCollapsed={false} />}
+            nav={<TaskNavigation tags={state.tags as unknown as Tag[]} tasks={tasks} isCollapsed={false} />}
             actions={
                 <Button
                     variant="outline"
@@ -133,7 +146,7 @@ export const DashboardView: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">
-                    <DashboardTopMetrics />
+                    <DashboardTopMetrics state={state} actions={actions} />
                 </div>
 
                 <section>

@@ -30,7 +30,6 @@ import { useHashRouter } from "../lib/use-hash-router";
 import { useNavigation } from "@/context/NavigationContext";
 import { useTaskContext } from "@/context/TaskContext";
 import { useReferenceContext } from "@/context/ReferenceContext";
-import { createDefaultTask } from "../lib/constants";
 import { parseTaskInput } from "@/shared/lib/textParserUtils";
 
 interface TaskAppProps {

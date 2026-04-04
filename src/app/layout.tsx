@@ -15,9 +15,13 @@ const inter = Inter({ subsets: ["latin"] });
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 export const metadata: Metadata = {
-  title: "Focus Flow",
+  title: "Taskweave",
   description: "Biometric-aware productivity system",
   manifest: `${basePath}/manifest.json`,
+  icons: {
+    icon: `${basePath}/favicon.svg`,
+    apple: `${basePath}/icons/apple-icon-180.png`,
+  },
   other: {
     "content-security-policy":
       "default-src 'self'; " +
@@ -32,7 +36,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Focus Flow",
+    title: "Taskweave",
   },
 };
 

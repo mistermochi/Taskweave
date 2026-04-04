@@ -45,7 +45,12 @@
       "short_name": "Add Task",
       "description": "Quickly add a new task",
       "url": "./#/tasks/new",
-      "icons": [{ "src": "icons/manifest-icon-192.maskable.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "icons/manifest-icon-192.maskable.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "share_target": {

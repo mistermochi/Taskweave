@@ -183,11 +183,14 @@ export class RecommendationEngine {
   async generateSuggestion(context: SuggestionContext): Promise<{ suggestion: Suggestion | null; strategy: string }> {
     const bandit = LinUCBService.getInstance();
     
+    // Bolt ⚡ Optimization: Pre-calculate lastTask once for all sub-operations.
+    const lastTask = this.getLatestCompletedTask(context.completedTasks) || undefined;
+
     // 1. Feature Engineering (Context Vector x)
-    const x = this.buildContextVector(context);
+    const x = this.buildContextVector(context, lastTask);
 
     // 2. Identify Valid Arms (Masking)
-    const validArms = this.getValidStrategies(context);
+    const validArms = this.getValidStrategies(context, lastTask);
 
     if (validArms.length === 0) {
       return { suggestion: null, strategy: "None" };
@@ -199,7 +202,7 @@ export class RecommendationEngine {
     if (arm === -1) return { suggestion: null, strategy: "Fallback" };
 
     // 4. Resolve Strategy to Task
-    const suggestion = this.resolveStrategy(arm, context);
+    const suggestion = this.resolveStrategy(arm, context, lastTask);
 
     return {
       suggestion,
@@ -229,9 +232,21 @@ export class RecommendationEngine {
     const bias = 1.0;
     const hour = ctx.currentTime.getHours() / 24;
     const energy = ctx.energy / 100;
-    const totalDuration = ctx.tasks.reduce((sum, t) => sum + t.duration, 0);
+
+    // Bolt ⚡ Optimization: Single O(N) pass to aggregate task metrics.
+    let totalDuration = 0;
+    let urgentCount = 0;
+    const now = ctx.currentTime.getTime();
+    const oneDayFromNow = now + 86400000;
+
+    for (const task of ctx.tasks) {
+      totalDuration += task.duration;
+      if (task.dueDate && task.dueDate < oneDayFromNow) {
+        urgentCount++;
+      }
+    }
+
     const queuePressure = Math.min(1.0, totalDuration / 480);
-    const urgentCount = ctx.tasks.filter(t => t.dueDate && t.dueDate < Date.now() + 86400000).length;
     const urgencyRatio = ctx.tasks.length > 0 ? urgentCount / ctx.tasks.length : 0;
 
     let timeSinceLast = 1.0;
@@ -241,7 +256,7 @@ export class RecommendationEngine {
     const last = lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
 
     if (last) {
-      const msSince = Date.now() - (last.completedAt || 0);
+      const msSince = now - (last.completedAt || 0);
       const hoursSince = msSince / (1000 * 60 * 60);
       timeSinceLast = Math.max(0, 1.0 - (hoursSince / 4));
       lastDuration = Math.min(1.0, (last.actualDuration || last.duration * 60) / 3600);
@@ -272,48 +287,77 @@ export class RecommendationEngine {
    */
   private getValidStrategies(ctx: SuggestionContext, lastTask?: TaskEntity): number[] {
     const allActiveTasks = ctx.tasks;
-    // Bolt ⚡: O(1) lookup for active task IDs to avoid O(N^2) in isBlocked
     const activeTaskIds = new Set(allActiveTasks.map(t => t.id));
-
-    const isBlocked = (task: TaskEntity): boolean => {
-        if (!task.blockedBy || task.blockedBy.length === 0) return false;
-        return task.blockedBy.some(blockerId => activeTaskIds.has(blockerId));
-    };
-    const t = allActiveTasks.filter(t => !isBlocked(t));
-
-    const indices: number[] = [];
-    // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
     const last = lastTask || this.getLatestCompletedTask(ctx.completedTasks);
+
+    const now = ctx.currentTime.getTime();
+    const oneDayFromNow = now + 86400000;
+    const fourteenDaysAgo = now - (14 * 24 * 60 * 60 * 1000);
     const hour = ctx.currentTime.getHours();
 
-    if (t.some(x => x.energy === 'High' && x.duration > 30)) indices.push(StrategyArm.DEEP_FLOW);
-    if (t.some(x => x.energy === 'High' && x.duration <= 20)) indices.push(StrategyArm.QUICK_SPARK);
-    if (last && t.some(x => x.category === last.category)) indices.push(StrategyArm.MOMENTUM);
-    if (last && t.some(x => x.category !== last.category)) indices.push(StrategyArm.PALETTE_CLEANSER);
-    if (t.some(x => x.dueDate && x.dueDate < Date.now() + 86400000)) indices.push(StrategyArm.THE_CRUSHER);
-    if (t.some(x => x.energy === 'Low')) indices.push(StrategyArm.LOW_GEAR);
+    // Strategy flags
+    let hasDeepFlow = false;
+    let hasQuickSpark = false;
+    let hasMomentum = false;
+    let hasPaletteCleanser = false;
+    let hasCrusher = false;
+    let hasLowGear = false;
+    let hasArchaeologist = false;
+    let hasSnowball = false;
+    let hasTwilightRitual = false;
+    let totalDuration = 0;
+
+    // Bolt ⚡ Optimization: Single O(N) pass to identify all valid strategies and aggregate metrics.
+    for (const task of allActiveTasks) {
+        totalDuration += task.duration;
+
+        // Check if blocked
+        let isBlocked = false;
+        if (task.blockedBy && task.blockedBy.length > 0) {
+            for (const blockerId of task.blockedBy) {
+                if (activeTaskIds.has(blockerId)) {
+                    isBlocked = true;
+                    break;
+                }
+            }
+        }
+        if (isBlocked) continue;
+
+        // Strategy checks
+        if (!hasDeepFlow && task.energy === 'High' && task.duration > 30) hasDeepFlow = true;
+        if (!hasQuickSpark && task.energy === 'High' && task.duration <= 20) hasQuickSpark = true;
+        if (last) {
+            if (!hasMomentum && task.category === last.category) hasMomentum = true;
+            if (!hasPaletteCleanser && task.category !== last.category) hasPaletteCleanser = true;
+            if (!hasSnowball && last.duration <= 15 && task.duration <= 15) hasSnowball = true;
+        }
+        if (!hasCrusher && task.dueDate && task.dueDate < oneDayFromNow) hasCrusher = true;
+        if (!hasLowGear && task.energy === 'Low') {
+            hasLowGear = true;
+            if (hour >= 17 && hour < 22) hasTwilightRitual = true;
+        }
+        if (!hasArchaeologist && task.createdAt < fourteenDaysAgo && !task.dueDate) hasArchaeologist = true;
+    }
+
+    const indices: number[] = [];
+    if (hasDeepFlow) indices.push(StrategyArm.DEEP_FLOW);
+    if (hasQuickSpark) indices.push(StrategyArm.QUICK_SPARK);
+    if (hasMomentum) indices.push(StrategyArm.MOMENTUM);
+    if (hasPaletteCleanser) indices.push(StrategyArm.PALETTE_CLEANSER);
+    if (hasCrusher) indices.push(StrategyArm.THE_CRUSHER);
+    if (hasLowGear) indices.push(StrategyArm.LOW_GEAR);
 
     indices.push(StrategyArm.SOMATIC_RESET);
     indices.push(StrategyArm.COGNITIVE_RESET);
     indices.push(StrategyArm.NO_OP);
 
-    const totalDuration = ctx.tasks.reduce((sum, task) => sum + task.duration, 0);
     if (totalDuration > 180 || ctx.energy < 40) {
         indices.push(StrategyArm.PULL_BACK);
     }
 
-    const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
-    if (t.some(x => x.createdAt < fourteenDaysAgo && !x.dueDate)) {
-        indices.push(StrategyArm.ARCHAEOLOGIST);
-    }
-
-    if (last && last.duration <= 15 && t.some(x => x.duration <= 15)) {
-        indices.push(StrategyArm.SNOWBALL);
-    }
-
-    if (hour >= 17 && hour < 22 && t.some(x => x.energy === 'Low')) {
-        indices.push(StrategyArm.TWILIGHT_RITUAL);
-    }
+    if (hasArchaeologist) indices.push(StrategyArm.ARCHAEOLOGIST);
+    if (hasSnowball) indices.push(StrategyArm.SNOWBALL);
+    if (hasTwilightRitual) indices.push(StrategyArm.TWILIGHT_RITUAL);
 
     return indices;
   }
@@ -321,11 +365,16 @@ export class RecommendationEngine {
   /**
    * Resolves a chosen strategic arm to a specific `Suggestion` object.
    * Filters tasks that meet the arm's criteria and picks the "best" one.
+   *
+   * @param arm - The index of the strategy arm.
+   * @param ctx - The suggestion context.
+   * @param lastTask - Optional pre-identified last completed task.
    */
-  private resolveStrategy(arm: number, ctx: SuggestionContext): Suggestion | null {
+  private resolveStrategy(arm: number, ctx: SuggestionContext, lastTask?: TaskEntity): Suggestion | null {
     const allActiveTasks = ctx.tasks;
-    // Bolt ⚡: O(1) lookup for active task IDs to avoid O(N^2) in isBlocked
     const activeTaskIds = new Set(allActiveTasks.map(t => t.id));
+    const now = ctx.currentTime.getTime();
+    const oneDayFromNow = now + 86400000;
 
     const isBlocked = (task: TaskEntity): boolean => {
         if (!task.blockedBy || task.blockedBy.length === 0) return false;
@@ -333,7 +382,7 @@ export class RecommendationEngine {
     };
     let tasks = allActiveTasks.filter(t => !isBlocked(t));
     
-    const last = ctx.completedTasks.length > 0 ? ctx.completedTasks[0] : null;
+    const last = lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
     let chosenTask: TaskEntity | null = null;
     let type: 'task' | 'wellbeing' = 'task';
     let reason = "";
@@ -365,7 +414,7 @@ export class RecommendationEngine {
         break;
 
       case StrategyArm.THE_CRUSHER:
-        tasks = tasks.filter(t => t.dueDate && t.dueDate < Date.now() + 86400000);
+        tasks = tasks.filter(t => t.dueDate && t.dueDate < oneDayFromNow);
         // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
         chosenTask = tasks.length > 0 ? tasks.reduce((prev, curr) => (curr.dueDate || 0) < (prev.dueDate || 0) ? curr : prev) : null;
         reason = "The Crusher: Clear urgent items.";
@@ -396,7 +445,7 @@ export class RecommendationEngine {
         break;
 
       case StrategyArm.ARCHAEOLOGIST:
-        const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
+        const fourteenDaysAgo = now - (14 * 24 * 60 * 60 * 1000);
         tasks = tasks.filter(t => t.createdAt < fourteenDaysAgo && !t.dueDate);
         // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
         chosenTask = tasks.length > 0 ? tasks.reduce((prev, curr) => curr.createdAt < prev.createdAt ? curr : prev) : null;
@@ -489,6 +538,9 @@ export class RecommendationEngine {
     const validArms = this.getValidStrategies(context, last);
     const x = this.buildContextVector(context, last);
     const samples: { x: number[], arm: number, reward: number }[] = [];
+    const now = context.currentTime.getTime();
+    const oneDayFromNow = now + 86400000;
+    const fourteenDaysAgo = now - (14 * 24 * 60 * 60 * 1000);
 
     for (const arm of validArms) {
       let matches = false;
@@ -507,13 +559,12 @@ export class RecommendationEngine {
           matches = !!last && task.category !== last.category;
           break;
         case StrategyArm.THE_CRUSHER:
-          matches = !!(task.dueDate && task.dueDate < Date.now() + 86400000);
+          matches = !!(task.dueDate && task.dueDate < oneDayFromNow);
           break;
         case StrategyArm.LOW_GEAR:
           matches = task.energy === 'Low';
           break;
         case StrategyArm.ARCHAEOLOGIST:
-          const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
           matches = task.createdAt < fourteenDaysAgo && !task.dueDate;
           break;
         case StrategyArm.SNOWBALL:

@@ -69,6 +69,7 @@ describe('RecommendationEngine Performance', () => {
     const end = performance.now();
 
     const duration = end - start;
+    console.log(`RecommendationEngine history recalibration for 1000 tasks: ${duration.toFixed(2)}ms`);
 
     // O(N log N + N*A) should easily complete in under 500ms on a typical machine.
     expect(duration).toBeLessThan(500);

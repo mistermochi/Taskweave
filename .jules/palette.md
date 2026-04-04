@@ -6,6 +6,10 @@
 **Learning:** Visual information scent (like energy levels and scheduled dates) must be consistent across different views (list, row, detail) to reduce cognitive load. High-energy tasks should use a warm color (Orange) consistently for both indicators and badges.
 **Action:** Use `orange-500` for High energy, `yellow-500` for Medium, and `emerald-500` for Low. Use the `CalendarClock` icon specifically for scheduled/assigned dates to distinguish them from generic time or due dates.
 
+## 2026-03-31 - Accessible Tree Navigation
+**Learning:** Hierarchical tree components (like `TagPicker`) must use semantic `button` elements and appropriate ARIA attributes (`aria-expanded`, `aria-pressed`) to be usable by screen readers and keyboard users. Sibling buttons for "expand" and "select" actions prevent invalid nesting while maintaining distinct interactive targets.
+**Action:** Convert `div`-based tree nodes to sibling `button` elements. Use `focus-visible:ring-2` for clear keyboard indicators and `aria-label` for descriptive context beyond just the tag name. Ensure the `'use client';` directive is present for components using React hooks in the App Router.
+
 ## 2026-03-21 - Enhanced Dashboard Interactivity
 **Learning:** Icon-only buttons or those with very brief labels (like Dashboard Quick Actions) benefit significantly from adding a `description` field that maps to both `aria-label` and `title`. This ensures screen reader clarity and hover discoverability without cluttering the visual UI. Pairing these actions with light haptic feedback (`vibrate('light')`) on mobile provides a more "native" and tactile feel.
 **Action:** Always include a descriptive `title` and `aria-label` for dashboard action buttons. Implement `focus-visible:ring-2` to ensure keyboard focus is unmistakable, and use `vibrate('light')` for immediate tactile confirmation of the interaction.

@@ -30,7 +30,6 @@ import { useHashRouter } from "../lib/use-hash-router";
 import { useNavigation } from "@/context/NavigationContext";
 import { useTaskContext } from "@/context/TaskContext";
 import { useReferenceContext } from "@/context/ReferenceContext";
-import { createDefaultTask } from "../lib/constants";
 import { parseTaskInput } from "@/shared/lib/textParserUtils";
 
 interface TaskAppProps {
@@ -79,6 +78,20 @@ export function TaskApp({
   const { tasksMap } = useTaskContext();
   const { tagsMap } = useReferenceContext();
 
+  const prevMergedTasksRef = React.useRef<Task[]>([]);
+  const prevActiveTasksRef = React.useRef<Task[]>([]);
+  const prevCompletedTasksRef = React.useRef<Task[]>([]);
+  const prevArchivedTasksRef = React.useRef<Task[]>([]);
+  const prevMergedTasksMapRef = React.useRef<Map<string, Task>>(new Map());
+
+  const shallowEqualArray = React.useCallback((a: Task[], b: Task[]) => {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }, []);
+
   // Reconciliation: Clear optimistic state when Firestore data catches up
   React.useEffect(() => {
     Object.entries(optimisticTasks).forEach(([id, optimistic]) => {
@@ -109,6 +122,7 @@ export function TaskApp({
   }, [tagsMap, optimisticTags, clearOptimisticTag]);
 
   // Bolt ⚡ Optimization: Consolidate task merging, status partitioning, and lookup map generation into a single O(N) pass.
+  // Implements a "Stabilization" pattern using refs to reuse previous array/map references if contents are unchanged.
   const {
     mergedTasks,
     mergedTasksMap,
@@ -154,16 +168,45 @@ export function TaskApp({
       }
     });
 
+    // Stabilization: Reuse previous references if data is identical
+    const finalMerged = shallowEqualArray(allMerged, prevMergedTasksRef.current) ? prevMergedTasksRef.current : allMerged;
+    const finalActive = shallowEqualArray(active, prevActiveTasksRef.current) ? prevActiveTasksRef.current : active;
+    const finalCompleted = shallowEqualArray(completed, prevCompletedTasksRef.current) ? prevCompletedTasksRef.current : completed;
+    const finalArchived = shallowEqualArray(archived, prevArchivedTasksRef.current) ? prevArchivedTasksRef.current : archived;
+
+    // Map stabilization (size check is a quick heuristic before deeper comparison if needed)
+    let finalMap = prevMergedTasksMapRef.current;
+    if (taskMap.size !== prevMergedTasksMapRef.current.size) {
+        finalMap = taskMap;
+    } else {
+        // Deep check if same size. Standard for loop on allMerged to avoid iteration issues in ES5.
+        let changed = false;
+        for (let i = 0; i < allMerged.length; i++) {
+            const task = allMerged[i];
+            if (prevMergedTasksMapRef.current.get(task.id) !== task) {
+                changed = true;
+                break;
+            }
+        }
+        if (changed) finalMap = taskMap;
+    }
+
+    prevMergedTasksRef.current = finalMerged;
+    prevActiveTasksRef.current = finalActive;
+    prevCompletedTasksRef.current = finalCompleted;
+    prevArchivedTasksRef.current = finalArchived;
+    prevMergedTasksMapRef.current = finalMap;
+
     return {
-      mergedTasks: allMerged,
-      mergedTasksMap: taskMap,
-      activeTasks: active,
-      completedTasks: completed,
-      archivedTasks: archived,
-      activeTasksCount: active.length,
+      mergedTasks: finalMerged,
+      mergedTasksMap: finalMap,
+      activeTasks: finalActive,
+      completedTasks: finalCompleted,
+      archivedTasks: finalArchived,
+      activeTasksCount: finalActive.length,
       focusedTask: focused
     };
-  }, [tasks, optimisticTasks]);
+  }, [tasks, optimisticTasks, shallowEqualArray]);
 
   // Bolt ⚡ Optimization: Consolidate tag merging and lookup map generation into a single O(T) pass.
   const { mergedTags, mergedTagsMap, mergedTagsByName } = React.useMemo(() => {
@@ -280,7 +323,7 @@ export function TaskApp({
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const createNewTask = React.useCallback(() => {
-    useTaskAppStore.getState().setSelectedTask(createDefaultTask());
+    window.location.hash = '#/tasks/new';
   }, []);
 
   React.useEffect(() => {
@@ -313,7 +356,29 @@ export function TaskApp({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [createNewTask, setSearchQuery]);
 
+  // Bolt ⚡ Optimization: Narrow dependencies for task filtering.
+  // By isolating the source array selection into its own memo with conditional dependencies,
+  // we ensure that updates to unrelated task subsets (e.g. archiving a task) don't
+  // trigger a re-filter of the currently active view.
+  const activeSource = taskTab === 'active' ? activeTasks : null;
+  const completedSource = taskTab === 'done' ? completedTasks : null;
+  const archivedSource = taskTab === 'archived' ? archivedTasks : null;
+  const mergedSource = (taskTab !== 'active' && taskTab !== 'done' && taskTab !== 'archived') ? mergedTasks : null;
+
+  const sourceTasks = React.useMemo(() => {
+    if (taskTab === 'active') return activeSource!;
+    if (taskTab === 'done') return completedSource!;
+    if (taskTab === 'archived') return archivedSource!;
+    return mergedSource!;
+  }, [taskTab, activeSource, completedSource, archivedSource, mergedSource]);
+
   const filteredTasks = React.useMemo(() => {
+    // Bolt ⚡ Optimization: Return sourceTasks reference directly if no filters are active
+    // and no status fallback is required. This avoids redundant O(N) traversals
+    // and preserves reference stability for child components like TaskList.
+    const isUnfiltered = !searchQuery && !selectedTagId && sourceTasks !== mergedSource;
+    if (isUnfiltered) return sourceTasks;
+
     // Bolt ⚡: Hoist search parsing and only execute if query exists
     const parsedSearch = searchQuery ? parseTaskInput(searchQuery) : null;
     const tagKeyword = parsedSearch?.attributes.tagKeyword;
@@ -328,16 +393,10 @@ export function TaskApp({
       ? mergedTagsByName[lowerTagKeyword] // Bolt ⚡: O(1) lookup from specialized map
       : null;
 
-    const sourceTasks =
-      taskTab === 'active' ? activeTasks :
-      taskTab === 'done' ? completedTasks :
-      taskTab === 'archived' ? archivedTasks :
-      mergedTasks;
-
     return sourceTasks.filter((task) => {
-      // Bolt ⚡: For robustness, if we fell back to mergedTasks,
+      // Bolt ⚡: For robustness, if we fell back to mergedTasks (mergedSource),
       // we must still apply status filtering.
-      if (sourceTasks === mergedTasks) {
+      if (sourceTasks === mergedSource) {
         if (taskTab === "active" && task.status !== "active") return false;
         if (taskTab === "done" && task.status !== "completed") return false;
         if (taskTab === "archived" && task.status !== "archived") return false;
@@ -372,7 +431,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [activeTasks, completedTasks, archivedTasks, mergedTasks, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery]);
+  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail
@@ -384,7 +443,7 @@ export function TaskApp({
       tags={mergedTags}
       allTasks={mergedTasks}
     />
-  ), [selectedTask, mergedTasks, mergedTasksMap, mergedTags]);
+  ), [selectedTask, mergedTags, mergedTasksMap, mergedTasks]);
 
   const mainContent = (
     <div className="relative h-full flex flex-col w-full">
@@ -553,7 +612,7 @@ export function TaskApp({
               )}>
                 {activeView === 'settings' && <SettingsView />}
                 {activeView === 'dashboard' && <DashboardView />}
-                {activeView === 'insights' && <InsightsView onNavigate={() => {}} />}
+                {activeView === 'insights' && <InsightsView />}
               </main>
               {activeView === 'dashboard' && <aside className="flex h-full flex-1 flex-col min-w-0">{taskDetail}</aside>}
             </>
@@ -565,7 +624,7 @@ export function TaskApp({
           {activeView === 'settings' && <SettingsView />}
           {activeView === 'tasks' && mainContent}
           {activeView === 'dashboard' && <DashboardView />}
-          {activeView === 'insights' && <InsightsView onNavigate={() => {}} />}
+          {activeView === 'insights' && <InsightsView />}
           {taskDetail}
           <div className="md:hidden">
             <TaskNavigation

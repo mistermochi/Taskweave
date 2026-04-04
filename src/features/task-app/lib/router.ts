@@ -54,7 +54,9 @@ export function parseHash(hash: string): AppState {
       }
     } else {
       state.taskTab = 'active';
-      if (segments[1]) {
+      if (segments[1] === 'active') {
+        state.selectedTaskId = segments[2] || null;
+      } else if (segments[1]) {
         state.selectedTaskId = segments[1];
       }
     }

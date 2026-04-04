@@ -40,3 +40,15 @@
 ## 2026-03-27 - [Status-Based Subset Filtering]
 **Learning:** In applications with large historical datasets (completed/archived tasks), filtering the entire $O(N_{total})$ collection for every UI interaction (search, tab switch) is a major source of UI jank. Pre-partitioning tasks by status during the initial merge pass allows the UI to operate on $O(N_{subset})$, which is often significantly smaller. However, robustness is key: a ternary-based selection of the source array should include a fallback to the full collection and original filtering logic to prevent crashes or incorrect states in unexpected view modes.
 **Action:** Always pre-partition large collections by primary status filters during data reconciliation. Implement "fast-path" filtering on subsets while maintaining a robust fallback for unrecognized states.
+
+## 2026-03-31 - [LinUCB Matrix Inversion Caching]
+**Learning:** The LinUCB recommendation engine performs O(d³) matrix inversions for each available strategy arm on every prediction call. For a d=11 model with 13 arms, this amounts to ~17,000 floating point operations per prediction. Caching the inverse matrix (A⁻¹) and only recomputing it when the model parameters (A) are updated reduces prediction latency from ~1.8ms to ~0.08ms (~22x speedup).
+**Action:** When implementing bandit algorithms or any Ridge Regression-based models, always cache the inverse of the covariance matrix and invalidate it only during model updates.
+
+## 2026-04-01 - [Shortcutting Identity Filtering for Reference Stability]
+**Learning:** Even with efficient $O(N)$ filtering, redundant traversals of large collections on every render (e.g., search input changes or tab switches) create unnecessary GC pressure and break downstream memoization. Identifying the "unfiltered" state where the current subset already matches the target status allows for an $O(1)$ reference return.
+**Action:** In complex data flows where collections are pre-partitioned, always implement an identity check in the final filtering memo to preserve original references when no secondary filters (search, tags) are active.
+
+## 2026-04-03 - [Consolidated Recommendation Batching and O(1) History Replay]
+**Learning:** Performing sequential Firestore writes in a tight history replay loop (e.g., `recalibrateFromHistory`) creates a massive network-bound bottleneck. Transitioning to `batchTrain` for consolidated persistence reduces writes from O(N) to O(1). Additionally, passing the pre-identified `lastTask` between iterations in a sorted loop eliminates redundant O(N) array scans for the most recent completion.
+**Action:** Always collect training samples into a single list for batch processing when replaying historical data. When iterating over sorted chronological data, use index-based lookups for related items (like the previous task) to maintain O(1) complexity per iteration.

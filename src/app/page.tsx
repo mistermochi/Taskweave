@@ -101,7 +101,6 @@ function MainContent({
         tagsLoading={authLoading || tagsLoading}
         defaultLayout={defaultLayout}
         defaultCollapsed={defaultCollapsed}
-        navCollapsedSize={4}
         hasPendingWrites={tasksPending || tagsPending}
       />
     </div>

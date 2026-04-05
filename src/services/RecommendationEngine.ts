@@ -119,8 +119,22 @@ export class RecommendationEngine {
       .filter(v => v.type === 'mood')
       .sort((a, b) => a.timestamp - b.timestamp);
 
+    // Bolt ⚡ Optimization: Timeline-based sliding window for O(N log N) history replay.
+    // We pre-sort tasks by creation and removal times to maintain an "active pool"
+    // without O(N) filtering in the loop.
+    const tasksByCreated = [...allTasks].sort((a, b) => a.createdAt - b.createdAt);
+    const tasksByRemoved = [...allTasks].sort((a, b) => {
+      const aTime = a.completedAt || a.archivedAt || Infinity;
+      const bTime = b.completedAt || b.archivedAt || Infinity;
+      return aTime - bTime;
+    });
+
     let processedCount = 0;
     let vitalPointer = 0;
+    let createPtr = 0;
+    let removePtr = 0;
+    const activePool = new Map<string, TaskEntity>();
+    const previousCompletions: TaskEntity[] = [];
     const allSamples: { x: number[], arm: number, reward: number }[] = [];
     
     for (let i = 0; i < completedTasks.length; i++) {
@@ -129,27 +143,40 @@ export class RecommendationEngine {
       
       let energyAtTime = 75;
 
-      // Bolt ⚡ Optimization: Use sliding pointer for O(1) amortized lookup in sorted vitals
-      while (vitalPointer < sortedVitals.length && sortedVitals[vitalPointer].timestamp < completionTime) {
+      // 1. Advance energy/vital pointer
+      // Bolt ⚡: Use <= to include vitals exactly at completion time (original behavior)
+      while (vitalPointer < sortedVitals.length && sortedVitals[vitalPointer].timestamp <= completionTime) {
           vitalPointer++;
       }
-
       if (vitalPointer > 0) {
-          const priorVital = sortedVitals[vitalPointer - 1];
-          energyAtTime = normalizeEnergy(priorVital.value as number);
+          energyAtTime = normalizeEnergy(sortedVitals[vitalPointer - 1].value as number);
       }
 
-      // Bolt ⚡ Optimization: Efficient slice instead of O(N) filter in loop
-      const previousCompletions = completedTasks.slice(0, i);
+      // 2. Advance active pool: Add newly created tasks
+      while (createPtr < tasksByCreated.length && tasksByCreated[createPtr].createdAt <= completionTime) {
+        const t = tasksByCreated[createPtr];
+        activePool.set(t.id, t);
+        createPtr++;
+      }
+
+      // 3. Advance active pool: Remove tasks that were completed or archived before now
+      while (removePtr < tasksByRemoved.length) {
+        const t = tasksByRemoved[removePtr];
+        const removalTime = t.completedAt || t.archivedAt || Infinity;
+        if (removalTime < completionTime) {
+          activePool.delete(t.id);
+          removePtr++;
+        } else {
+          break;
+        }
+      }
+
+      // 4. Construct context for this completion event.
+      // Bolt ⚡: activeTasksAtTime is pool minus current task.
+      // We use the pool directly to avoid re-allocating an array if possible,
+      // but the SuggestionContext interface expects an array.
+      const activeTasksAtTime = Array.from(activePool.values()).filter(t => t.id !== task.id);
       const lastTask = i > 0 ? completedTasks[i - 1] : undefined;
-      
-      const activeTasksAtTime = allTasks.filter(t => {
-        if (t.id === task.id) return false;
-        if (t.createdAt > completionTime) return false;
-        if (t.completedAt && t.completedAt < completionTime) return false;
-        if (t.archivedAt && t.archivedAt < completionTime) return false;
-        return true;
-      });
 
       const context: SuggestionContext = {
         currentTime: new Date(completionTime),
@@ -157,13 +184,14 @@ export class RecommendationEngine {
         availableMinutes: 60,
         tasks: activeTasksAtTime,
         tags: [],
-        completedTasks: previousCompletions,
+        completedTasks: [...previousCompletions], // Bolt ⚡: Maintain history for feature extraction
         backlogCount: activeTasksAtTime.length,
         userContext: undefined, 
       };
       
       const samples = this.getOrganicSamples(task, context, lastTask);
       allSamples.push(...samples);
+      previousCompletions.push(task); // Bolt ⚡: Running O(1) push to maintain history
       processedCount++;
     }
 

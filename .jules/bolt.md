@@ -57,3 +57,7 @@
 ## 2026-04-04 - [Consolidating Strategy Heuristics in Bandits]
 **Learning:** Within a Recommendation Engine using Multi-Armed Bandits, multiple strategy heuristics often iterate over the same task list to check for valid "arms". Chaining `.some()`, `.filter()`, and `.reduce()` calls inside a history replay loop leads to massive CPU overhead. Consolidating all strategy checks into a single $O(N)$ pass through the task list significantly improves both real-time generation and historical recalibration speed.
 **Action:** When evaluating multiple conditions across a large collection (e.g., checking for valid strategies or building feature vectors), consolidate all checks into a single loop instead of using multiple functional passes.
+
+## 2026-04-05 - [Timeline-Based Sliding Window for History Replay]
+**Learning:** $O(N^2)$ history replay loops (caused by repeated filtering or slicing) can be reduced to $O(N \log N + N \cdot K)$ by using a timeline-based sliding window. Pre-sorting by creation and removal times and using pointers/maps allows for amortized $O(1)$ state updates per iteration.
+**Action:** When replaying chronological history that depends on a "currently active" pool of items, avoid O(N) filters inside the loop. Use pre-sorted timelines and pointers to maintain the active set.

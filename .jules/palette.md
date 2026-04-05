@@ -13,3 +13,7 @@
 ## 2026-03-21 - Enhanced Dashboard Interactivity
 **Learning:** Icon-only buttons or those with very brief labels (like Dashboard Quick Actions) benefit significantly from adding a `description` field that maps to both `aria-label` and `title`. This ensures screen reader clarity and hover discoverability without cluttering the visual UI. Pairing these actions with light haptic feedback (`vibrate('light')`) on mobile provides a more "native" and tactile feel.
 **Action:** Always include a descriptive `title` and `aria-label` for dashboard action buttons. Implement `focus-visible:ring-2` to ensure keyboard focus is unmistakable, and use `vibrate('light')` for immediate tactile confirmation of the interaction.
+
+## 2026-04-05 - Heatmap Data Density UX
+**Learning:** Dense data visualizations (like heatmaps) require a careful balance of information scent and interaction design. Using opacity-based scaling of the primary color ensures the heatmap feels native to the brand while effectively communicating intensity (duration). Axis labels for every 5 days (X) and starting hours (Y) provide enough context without overwhelming the layout.
+**Action:** Use fixed thresholds (<1h, 1-2h, 2-3h, 3-4h, 4h+) for heatmap color mapping to provide stable visual benchmarks. Wrap dense grid components in a single `TooltipProvider` to minimize provider nesting overhead. Implement mobile-specific truncations (e.g., 14 days instead of 30) to maintain legibility on narrow viewports.

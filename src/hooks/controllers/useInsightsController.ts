@@ -51,6 +51,27 @@ export const useInsightsController = () => {
       'Hobbies': { count: 0, seconds: 0 }
     };
 
+    // Heatmap data initialization (last 30 days)
+    const now = new Date();
+    const getDateKey = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const heatmap = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateKey = getDateKey(d);
+      heatmap.push({
+        date: dateKey,
+        slots: new Array(6).fill(0) // 0-4, 4-8, 8-12, 12-16, 16-20, 20-24
+      });
+    }
+    const dateToHeatmapIndex = new Map(heatmap.map((item, index) => [item.date, index]));
+
     allCompletedTasks.forEach(t => {
       const seconds = (t.actualDuration ? t.actualDuration : t.duration * 60);
       totalSeconds += seconds;
@@ -60,8 +81,19 @@ export const useInsightsController = () => {
         categoryMetrics[t.category].seconds += seconds;
       }
 
-      const date = new Date(t.completedAt || t.createdAt);
+      const compAt = t.completedAt || t.createdAt;
+      const date = new Date(compAt);
       hourCounts[date.getHours()]++;
+
+      // Heatmap logic: use local time as requested
+      const dateKey = getDateKey(date);
+      if (dateToHeatmapIndex.has(dateKey)) {
+        const dayIndex = dateToHeatmapIndex.get(dateKey)!;
+        const hour = date.getHours();
+        const slotIndex = Math.floor(hour / 4);
+        const heatmapSeconds = t.actualDuration || 900; // 15m fallback
+        heatmap[dayIndex].slots[slotIndex] += heatmapSeconds;
+      }
     });
 
     const totalHours = Math.floor(totalSeconds / 3600);
@@ -101,7 +133,8 @@ export const useInsightsController = () => {
       topCategory,
       peakTimeLabel,
       avgDurationMinutes,
-      isEmpty: totalTasks === 0
+      isEmpty: totalTasks === 0,
+      heatmapData: heatmap
     };
   }, [allCompletedTasks]);
 

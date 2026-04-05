@@ -39,7 +39,6 @@ interface TaskAppProps {
   tagsLoading?: boolean;
   defaultLayout: number[] | undefined;
   defaultCollapsed?: boolean;
-  navCollapsedSize: number;
   hasPendingWrites?: boolean;
 }
 
@@ -50,7 +49,6 @@ export function TaskApp({
   tagsLoading = false,
   defaultLayout = [20, 32, 48],
   defaultCollapsed = false,
-  navCollapsedSize,
   hasPendingWrites = false,
 }: TaskAppProps) {
   const {

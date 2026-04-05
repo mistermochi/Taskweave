@@ -13,3 +13,7 @@
 ## 2026-03-21 - Enhanced Dashboard Interactivity
 **Learning:** Icon-only buttons or those with very brief labels (like Dashboard Quick Actions) benefit significantly from adding a `description` field that maps to both `aria-label` and `title`. This ensures screen reader clarity and hover discoverability without cluttering the visual UI. Pairing these actions with light haptic feedback (`vibrate('light')`) on mobile provides a more "native" and tactile feel.
 **Action:** Always include a descriptive `title` and `aria-label` for dashboard action buttons. Implement `focus-visible:ring-2` to ensure keyboard focus is unmistakable, and use `vibrate('light')` for immediate tactile confirmation of the interaction.
+
+## 2026-04-05 - Accessible Progress Indicators
+**Learning:** Custom visual indicators like progress rings or score circles must explicitly use `role="progressbar"` and associated ARIA attributes (`aria-valuenow`, `aria-valuemin`, `aria-valuemax`, `aria-label`) to be perceivable by screen reader users. Internal decorative elements (SVG paths, labels already conveyed by ARIA) should be marked with `aria-hidden="true"` to prevent redundant announcements.
+**Action:** Always wrap custom progress/score components in a container with `role="progressbar"` and ensure all state-reflecting ARIA attributes are kept in sync with the component's value.

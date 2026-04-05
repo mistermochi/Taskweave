@@ -19,6 +19,7 @@ import { AppHeader } from '@/shared/ui/ui/app-header';
 import { TaskNavigation } from '@/features/task-app/components/task-navigation';
 import { useTaskContext } from '@/context/TaskContext';
 import { useReferenceContext } from '@/context/ReferenceContext';
+import { TaskCompletionHeatmap } from './task-completion-heatmap';
 
 /**
  * Internal component for rendering a single entry in the Vital Log list.
@@ -411,11 +412,41 @@ export const InsightsView: React.FC = () => {
                </section>
             </TabsContent>
 
-            <TabsContent value="trends" className="m-0">
-                <div className="flex flex-col items-center justify-center py-20 text-zinc-400">
-                    <BarChart3 size={48} className="mb-4 opacity-20" />
-                    <p className="text-sm font-medium">Trend visualizations coming soon.</p>
-                </div>
+            <TabsContent value="trends" className="m-0 pt-6">
+                <section className="space-y-6">
+                  <div className="space-y-1.5 px-1">
+                    <h2 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Activity Distribution</h2>
+                    <p className="text-xs text-zinc-400 font-medium">Historical task completion density over the past 30 days.</p>
+                  </div>
+
+                  <Card className="shadow-none border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 p-6">
+                    {state.heatmapData && state.heatmapData.length > 0 ? (
+                      <TaskCompletionHeatmap data={state.heatmapData} />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-12 text-zinc-400">
+                        <BarChart3 size={48} className="mb-4 opacity-20" />
+                        <p className="text-sm font-medium">No activity data available for the period.</p>
+                      </div>
+                    )}
+                  </Card>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card className="shadow-none border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 p-4">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Insight</div>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                        Your peak performance usually occurs around <span className="text-primary font-bold">{state.peakTimeLabel}</span>.
+                        Try to schedule your most demanding tasks during this window to maximize efficiency.
+                      </p>
+                    </Card>
+                    <Card className="shadow-none border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 p-4">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Tip</div>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                        Consistency is key. Heatmap density correlates with momentum. Aim for at least one &quot;deep work&quot; slot
+                        daily to maintain progress on your long-term goals.
+                      </p>
+                    </Card>
+                  </div>
+                </section>
             </TabsContent>
           </div>
         </Tabs>

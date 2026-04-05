@@ -7,15 +7,15 @@
 **Action:** Before calling `useFirestoreCollection` in a view, check if a global context (like `TaskContext` or `ReferenceContext`) already provides that data. Consolidate to a single source of truth to reduce CPU and network overhead.
 
 ## 2025-05-24 - [Lookup Map Collisions & Filter Reordering]
-**Learning:** Mixing IDs and human-readable names in a single lookup map (e.g., `mergedTagsMap`) for "O(1) convenience" introduces a critical risk of collisions if a name matches an ID. Furthermore, in high-volume list filtering, reordering the filter callback to perform fast, highly-selective status checks before expensive string parsing or search matching significantly reduces CPU overhead for users with large histories.
-**Action:** Use separate specialized maps for different key types (IDs vs names) to ensure safety. Always place the most selective and computationally cheapest filters at the top of iteration logic.
+**Learning:** Mixing IDs and human-readable names in a single lookup map (e.g., `mergedTagsMap`) for "O(1) convenience" introduces a risk of collisions. In high-volume list filtering, reordering the filter callback to perform fast, highly-selective status checks before expensive string parsing or search matching significantly reduces CPU overhead.
+**Action:** Use separate specialized maps for different key types (IDs vs names). Always place the most selective and computationally cheapest filters at the top of iteration logic.
 
 ## 2025-05-25 - [Hot-Path Date Logic & Redundant Sorting]
-**Learning:** Performing `new Date()` or complex `date-fns` calls (like `isToday`) inside large iteration loops (e.g., `TaskList` grouping) is a common source of CPU overhead and GC pressure. Pre-calculating DST-safe boundaries once outside the loop allows for fast numeric timestamp comparisons. Additionally, blindly sorting filtered arrays (e.g., `vitals`) is often redundant if the source context already provides sorted data via database constraints.
+**Learning:** Performing `new Date()` or complex `date-fns` calls (like `isToday`) inside large iteration loops is a common source of CPU overhead and GC pressure. Pre-calculating DST-safe boundaries once outside the loop allows for fast numeric timestamp comparisons. Additionally, blindly sorting filtered arrays is often redundant if the source context already provides sorted data via database constraints.
 **Action:** Always pre-calculate date boundaries outside loops. Check upstream data providers for existing sort order before applying manual `.sort()`.
 
 ## 2025-05-26 - [Single-Pass Data Aggregation]
-**Learning:** Chaining multiple higher-order functions (`filter`, `map`, `reduce`) over large arrays in data-heavy controllers (like `useInsightsController`) leads to redundant iterations and increased CPU overhead. Consolidating these operations into a single $O(N)$ `forEach` pass significantly improves performance as the dataset (e.g., user history) grows.
+**Learning:** Chaining multiple higher-order functions (`filter`, `map`, `reduce`) over large arrays leads to redundant iterations and increased CPU overhead. Consolidating these operations into a single $O(N)$ pass significantly improves performance as the dataset grows.
 **Action:** When calculating multiple metrics from the same array, prioritize a single-pass aggregation loop over multiple specialized iterations.
 
 ## 2025-05-27 - [Algorithmic Optimization of Recommendation Engine]
@@ -23,32 +23,37 @@
 **Action:** Always prefer single-pass linear searches (`reduce`) or sliding pointers over sorting when identifying a single "best" element or processing chronological event streams. Use array slicing or index tracking instead of repeated filtering within loops.
 
 ## 2025-05-28 - [Reconciliation Optimization & Consolidated Mapping]
-**Learning:** Performing array searches (`findIndex`, `find`) inside loops when merging optimistic UI state with server data creates an $O(N \cdot M)$ bottleneck. Converting the source array to a `Map` allows for $O(N + M)$ reconciliation. Additionally, multiple `useMemo` hooks that iterate over the same array to create different lookup maps can be consolidated into a single $O(T)$ pass to reduce iteration overhead.
+**Learning:** Performing array searches (`findIndex`, `find`) inside loops when merging optimistic UI state with server data creates an $O(N \cdot M)$ bottleneck. Converting the source array to a `Map` allows for $O(N + M)$ reconciliation. Additionally, multiple `useMemo` hooks that iterate over the same array can be consolidated into a single $O(T)$ pass.
 **Action:** Use `Map`-based reconciliation for merging state and consolidate multiple lookup map iterations into a single pass.
 
 ## 2025-05-29 - [Fine-Grained Memoization & Filter Hoisting]
-**Learning:** Passing large global lookup maps (e.g., `tagsMap`) to memoized list items (`TaskListItem`) breaks memoization whenever any unrelated entry in the map changes. Passing only the specific required object allows `React.memo` to work effectively. Additionally, hoisting status-based partitioning to the parent component avoids redundant $O(N)$ scans in multiple child navigation components.
+**Learning:** Passing large global lookup maps to memoized list items breaks memoization whenever any unrelated entry in the map changes. Passing only the specific required object allows `React.memo` to work effectively. Additionally, hoisting status-based partitioning to the parent component avoids redundant $O(N)$ scans in multiple child navigation components.
 **Action:** Always pass specific objects rather than entire lookup maps to memoized components. Hoist and share pre-filtered arrays to reduce redundant collection traversals in nested component trees.
 
 ## 2026-03-26 - [Hierarchical Tag Rendering Optimization]
-**Learning:** $O(T^2)$ complexity in hierarchical tree rendering (e.g., `TagPicker`) can be reduced to $O(T)$ by pre-calculating lookup maps (ID-to-Tag, Parent-to-Children) and a visibility set for search results (including all ancestors). Consolidating this logic into a shared utility enables both efficient rendering and robust benchmark testing without code duplication.
+**Learning:** $O(T^2)$ complexity in hierarchical tree rendering can be reduced to $O(T)$ by pre-calculating lookup maps (ID-to-Tag, Parent-to-Children) and a visibility set for search results. Consolidating this logic into a shared utility enables both efficient rendering and robust benchmark testing.
 **Action:** When rendering deep hierarchies, always use $O(1)$ map-based lookups for parent/child relationships. Extract core data processing logic into utilities to facilitate unit and performance testing.
+
 ## 2025-05-30 - [Consolidated Reconciliation and O(1) Task Resolution]
-**Learning:** Consolidating multiple O(N) passes (merging, partitioning, and focused-task detection) into a single iteration within `useMemo` reduces CPU overhead during data reconciliation. Replacing O(N) array searches (`.find()`, `.some()`) in effects and routing logic with O(1) Map lookups prevents UI jank. A critical edge case discovered was the need for a Map size guard (`tasksMap.size > 0`) in effects to prevent premature state clearing (e.g., focus sessions) before initial data has populated.
+**Learning:** Consolidating multiple O(N) passes into a single iteration within `useMemo` reduces CPU overhead during data reconciliation. Replacing O(N) array searches with O(1) Map lookups prevents UI jank. A critical edge case discovered was the need for a Map size guard in effects to prevent premature state clearing before initial data has populated.
 **Action:** Consolidate data reconciliation passes and always provide a lookup map to hooks/components needing frequent by-ID access. Use Map size or array length guards in effects to distinguish between "empty" and "loading" states.
 
 ## 2026-03-27 - [Status-Based Subset Filtering]
-**Learning:** In applications with large historical datasets (completed/archived tasks), filtering the entire $O(N_{total})$ collection for every UI interaction (search, tab switch) is a major source of UI jank. Pre-partitioning tasks by status during the initial merge pass allows the UI to operate on $O(N_{subset})$, which is often significantly smaller. However, robustness is key: a ternary-based selection of the source array should include a fallback to the full collection and original filtering logic to prevent crashes or incorrect states in unexpected view modes.
+**Learning:** In applications with large historical datasets, filtering the entire collection for every UI interaction is a major source of UI jank. Pre-partitioning tasks by status during the initial merge pass allows the UI to operate on $O(N_{subset})$. Robustness is key: include a fallback to the full collection and original filtering logic for unrecognized states.
 **Action:** Always pre-partition large collections by primary status filters during data reconciliation. Implement "fast-path" filtering on subsets while maintaining a robust fallback for unrecognized states.
 
 ## 2026-03-31 - [LinUCB Matrix Inversion Caching]
-**Learning:** The LinUCB recommendation engine performs O(d³) matrix inversions for each available strategy arm on every prediction call. For a d=11 model with 13 arms, this amounts to ~17,000 floating point operations per prediction. Caching the inverse matrix (A⁻¹) and only recomputing it when the model parameters (A) are updated reduces prediction latency from ~1.8ms to ~0.08ms (~22x speedup).
-**Action:** When implementing bandit algorithms or any Ridge Regression-based models, always cache the inverse of the covariance matrix and invalidate it only during model updates.
+**Learning:** The LinUCB recommendation engine performs O(d³) matrix inversions for each available strategy arm on every prediction call. Caching the inverse matrix (A⁻¹) and only recomputing it when the model parameters (A) are updated reduces prediction latency significantly (~22x speedup).
+**Action:** When implementing bandit algorithms or Ridge Regression-based models, always cache the inverse of the covariance matrix and invalidate it only during model updates.
 
 ## 2026-04-01 - [Shortcutting Identity Filtering for Reference Stability]
-**Learning:** Even with efficient $O(N)$ filtering, redundant traversals of large collections on every render (e.g., search input changes or tab switches) create unnecessary GC pressure and break downstream memoization. Identifying the "unfiltered" state where the current subset already matches the target status allows for an $O(1)$ reference return.
-**Action:** In complex data flows where collections are pre-partitioned, always implement an identity check in the final filtering memo to preserve original references when no secondary filters (search, tags) are active.
+**Learning:**Redundant traversals of large collections on every render create unnecessary GC pressure and break downstream memoization. Identifying the "unfiltered" state where the current subset already matches the target status allows for an $O(1)$ reference return.
+**Action:** In complex data flows where collections are pre-partitioned, always implement an identity check in the final filtering memo to preserve original references when no secondary filters are active.
 
 ## 2026-04-03 - [Consolidated Recommendation Batching and O(1) History Replay]
-**Learning:** Performing sequential Firestore writes in a tight history replay loop (e.g., `recalibrateFromHistory`) creates a massive network-bound bottleneck. Transitioning to `batchTrain` for consolidated persistence reduces writes from O(N) to O(1). Additionally, passing the pre-identified `lastTask` between iterations in a sorted loop eliminates redundant O(N) array scans for the most recent completion.
-**Action:** Always collect training samples into a single list for batch processing when replaying historical data. When iterating over sorted chronological data, use index-based lookups for related items (like the previous task) to maintain O(1) complexity per iteration.
+**Learning:** Sequential Firestore writes in a tight history replay loop create a network-bound bottleneck. Transitioning to `batchTrain` for consolidated persistence reduces writes from O(N) to O(1). Passing the pre-identified `lastTask` between iterations in a sorted loop eliminates redundant O(N) array scans.
+**Action:** Always collect training samples into a single list for batch processing when replaying historical data. When iterating over sorted chronological data, use index-based lookups for related items.
+
+## 2026-04-04 - [Consolidating Strategy Heuristics in Bandits]
+**Learning:** Within a Recommendation Engine using Multi-Armed Bandits, multiple strategy heuristics often iterate over the same task list to check for valid "arms". Chaining `.some()`, `.filter()`, and `.reduce()` calls inside a history replay loop leads to massive CPU overhead. Consolidating all strategy checks into a single $O(N)$ pass through the task list significantly improves both real-time generation and historical recalibration speed.
+**Action:** When evaluating multiple conditions across a large collection (e.g., checking for valid strategies or building feature vectors), consolidate all checks into a single loop instead of using multiple functional passes.

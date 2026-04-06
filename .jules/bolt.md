@@ -61,3 +61,7 @@
 ## 2026-04-05 - [Timeline-Based Sliding Window for History Replay]
 **Learning:** $O(N^2)$ history replay loops (caused by repeated filtering or slicing) can be reduced to $O(N \log N + N \cdot K)$ by using a timeline-based sliding window. Pre-sorting by creation and removal times and using pointers/maps allows for amortized $O(1)$ state updates per iteration.
 **Action:** When replaying chronological history that depends on a "currently active" pool of items, avoid O(N) filters inside the loop. Use pre-sorted timelines and pointers to maintain the active set.
+
+## 2026-04-06 - [Cross-Service Context Optimization]
+**Learning:** Downstream services (like the `RecommendationEngine`) often perform redundant $O(N)$ searches for "hot" data (like the latest completed task or active ID sets) that were already identified by the calling controller during its initial data partitioning. Expanding the shared context object (`SuggestionContext`) to carry these pre-calculated values allows for $O(1)$ resolution in the engine without additional overhead in the controller.
+**Action:** When passing large collections between services, identify "hot" items or lookup sets that are used for frequent checks (e.g., blocking tasks) and hoist their calculation to the primary data-partitioning pass.

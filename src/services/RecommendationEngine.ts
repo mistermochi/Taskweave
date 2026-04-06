@@ -185,11 +185,13 @@ export class RecommendationEngine {
         tasks: activeTasksAtTime,
         tags: [],
         completedTasks: [...previousCompletions], // Bolt ⚡: Maintain history for feature extraction
+        lastTask, // Bolt ⚡: Pass pre-identified last task
+        activeTaskIds: activePool, // Bolt ⚡: Pass existing active pool Map for O(1) blocking check without allocation
         backlogCount: activeTasksAtTime.length,
         userContext: undefined, 
       };
       
-      const samples = this.getOrganicSamples(task, context, lastTask);
+      const samples = this.getOrganicSamples(task, context);
       allSamples.push(...samples);
       previousCompletions.push(task); // Bolt ⚡: Running O(1) push to maintain history
       processedCount++;
@@ -211,8 +213,8 @@ export class RecommendationEngine {
   async generateSuggestion(context: SuggestionContext): Promise<{ suggestion: Suggestion | null; strategy: string }> {
     const bandit = LinUCBService.getInstance();
     
-    // Bolt ⚡ Optimization: Pre-calculate lastTask once for all sub-operations.
-    const lastTask = this.getLatestCompletedTask(context.completedTasks) || undefined;
+    // Bolt ⚡ Optimization: Use provided lastTask or calculate once for all sub-operations.
+    const lastTask = context.lastTask || this.getLatestCompletedTask(context.completedTasks) || undefined;
 
     // 1. Feature Engineering (Context Vector x)
     const x = this.buildContextVector(context, lastTask);
@@ -256,7 +258,7 @@ export class RecommendationEngine {
    * 7. Duration of last task (normalized)
    * 8-11. Category of last task (One-hot encoded: Work, Wellbeing, Personal, Hobbies)
    */
-  public buildContextVector(ctx: SuggestionContext, lastTask?: TaskEntity): number[] {
+  public buildContextVector(ctx: SuggestionContext, providedLastTask?: TaskEntity): number[] {
     const bias = 1.0;
     const hour = ctx.currentTime.getHours() / 24;
     const energy = ctx.energy / 100;
@@ -281,7 +283,7 @@ export class RecommendationEngine {
     let lastDuration = 0;
     let lastCats = [0, 0, 0, 0];
 
-    const last = lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
+    const last = providedLastTask || ctx.lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
 
     if (last) {
       const msSince = now - (last.completedAt || 0);
@@ -313,10 +315,10 @@ export class RecommendationEngine {
    * @param ctx - The suggestion context.
    * @param lastTask - Optional pre-identified last completed task to avoid O(N) search.
    */
-  private getValidStrategies(ctx: SuggestionContext, lastTask?: TaskEntity): number[] {
+  private getValidStrategies(ctx: SuggestionContext, providedLastTask?: TaskEntity): number[] {
     const allActiveTasks = ctx.tasks;
-    const activeTaskIds = new Set(allActiveTasks.map(t => t.id));
-    const last = lastTask || this.getLatestCompletedTask(ctx.completedTasks);
+    const activeTaskIds = ctx.activeTaskIds || new Set(allActiveTasks.map(t => t.id));
+    const last = providedLastTask || ctx.lastTask || this.getLatestCompletedTask(ctx.completedTasks);
 
     const now = ctx.currentTime.getTime();
     const oneDayFromNow = now + 86400000;
@@ -398,9 +400,9 @@ export class RecommendationEngine {
    * @param ctx - The suggestion context.
    * @param lastTask - Optional pre-identified last completed task.
    */
-  private resolveStrategy(arm: number, ctx: SuggestionContext, lastTask?: TaskEntity): Suggestion | null {
+  private resolveStrategy(arm: number, ctx: SuggestionContext, providedLastTask?: TaskEntity): Suggestion | null {
     const allActiveTasks = ctx.tasks;
-    const activeTaskIds = new Set(allActiveTasks.map(t => t.id));
+    const activeTaskIds = ctx.activeTaskIds || new Set(allActiveTasks.map(t => t.id));
     const now = ctx.currentTime.getTime();
     const oneDayFromNow = now + 86400000;
 
@@ -410,7 +412,7 @@ export class RecommendationEngine {
     };
     let tasks = allActiveTasks.filter(t => !isBlocked(t));
     
-    const last = lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
+    const last = providedLastTask || ctx.lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
     let chosenTask: TaskEntity | null = null;
     let type: 'task' | 'wellbeing' = 'task';
     let reason = "";
@@ -561,8 +563,8 @@ export class RecommendationEngine {
    * Internal helper to identify which strategies match an organic selection.
    * Returns a list of training samples (x, arm, reward).
    */
-  private getOrganicSamples(task: TaskEntity, context: SuggestionContext, lastTask?: TaskEntity): { x: number[], arm: number, reward: number }[] {
-    const last = lastTask || this.getLatestCompletedTask(context.completedTasks);
+  private getOrganicSamples(task: TaskEntity, context: SuggestionContext, providedLastTask?: TaskEntity): { x: number[], arm: number, reward: number }[] {
+    const last = providedLastTask || context.lastTask || this.getLatestCompletedTask(context.completedTasks);
     const validArms = this.getValidStrategies(context, last);
     const x = this.buildContextVector(context, last);
     const samples: { x: number[], arm: number, reward: number }[] = [];

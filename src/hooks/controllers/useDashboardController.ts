@@ -25,14 +25,23 @@ export const useDashboardController = () => {
   const { tasks: allTasks } = useTaskContext();
 
   // Bolt ⚡ Optimization: Single-pass partitioning of active and completed tasks
-  const { activeTasks, completedTasks } = useMemo(() => {
+  // Plus identification of latest completed task for recommendation context.
+  const { activeTasks, completedTasks, latestCompletedTask } = useMemo(() => {
     const active: TaskEntity[] = [];
     const completed: TaskEntity[] = [];
+    let latest: TaskEntity | undefined;
+
     allTasks.forEach(t => {
-      if (t.status === 'active') active.push(t);
-      else if (t.status === 'completed') completed.push(t);
+      if (t.status === 'active') {
+        active.push(t);
+      } else if (t.status === 'completed') {
+        completed.push(t);
+        if (!latest || (t.completedAt || 0) > (latest.completedAt || 0)) {
+          latest = t;
+        }
+      }
     });
-    return { activeTasks: active, completedTasks: completed };
+    return { activeTasks: active, completedTasks: completed, latestCompletedTask: latest };
   }, [allTasks]);
 
   const { vitals } = useVitalsContext();
@@ -62,6 +71,8 @@ export const useDashboardController = () => {
           tasks: activeTasks,
           tags: tags, 
           completedTasks: completedTasks,
+          lastTask: latestCompletedTask, // Bolt ⚡: O(1) resolution in RecommendationEngine
+          activeTaskIds: new Set(activeTasks.map(t => t.id)), // Bolt ⚡: O(1) blocking check
           backlogCount: activeTasks.length,
           userContext
         };
@@ -76,7 +87,7 @@ export const useDashboardController = () => {
       }
     };
     calculateRecommendation();
-  }, [activeTasks, completedTasks, energyModel.currentEnergy, tags]);
+  }, [activeTasks, completedTasks, energyModel.currentEnergy, tags, latestCompletedTask]);
   
   /**
    * Complex calculation for the "Today's Plan" section.
@@ -236,14 +247,17 @@ export const useDashboardController = () => {
            // contextService consolidated
           const userContext = await contextApi.getSnapshot();
 
+          const remainingTasks = activeTasks.filter(t => t.id !== task.id);
           const completionContext: SuggestionContext = {
               currentTime: new Date(),
               energy: energyModel.currentEnergy,
               availableMinutes: 60,
-              tasks: activeTasks.filter(t => t.id !== task.id), 
+              tasks: remainingTasks,
               tags: tags,
               completedTasks: completedTasks,
-              backlogCount: activeTasks.length - 1,
+              lastTask: task, // The task just completed is the last task
+              activeTaskIds: new Set(remainingTasks.map(t => t.id)),
+              backlogCount: remainingTasks.length,
               userContext: userContext,
           };
           await RecommendationEngine.getInstance().logOrganicSelection(task, completionContext);

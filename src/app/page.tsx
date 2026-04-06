@@ -66,7 +66,7 @@ function UserSessionManager({ user }: { user: User }) {
           await setDoc(settingsRef, updates, { merge: true });
         }
       } catch (e) {
-        console.error("Background tasks failed:", e);
+        // Fallback: Silent fail for background maintenance tasks
       }
     };
 

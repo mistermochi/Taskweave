@@ -17,3 +17,7 @@
 ## 2026-04-05 - Heatmap Data Density UX
 **Learning:** Dense data visualizations (like heatmaps) require a careful balance of information scent and interaction design. Using opacity-based scaling of the primary color ensures the heatmap feels native to the brand while effectively communicating intensity (duration). Axis labels for every 5 days (X) and starting hours (Y) provide enough context without overwhelming the layout.
 **Action:** Use fixed thresholds (<1h, 1-2h, 2-3h, 3-4h, 4h+) for heatmap color mapping to provide stable visual benchmarks. Wrap dense grid components in a single `TooltipProvider` to minimize provider nesting overhead. Implement mobile-specific truncations (e.g., 14 days instead of 30) to maintain legibility on narrow viewports.
+
+## 2026-05-14 - Tactile Qualitative Selection
+**Learning:** For high-intent qualitative selection (e.g., mood pickers, energy levels), incorporate mobile haptic feedback via `vibrate('light')`, semantic accessibility attributes (`type="button"`, `aria-pressed`), and tactile visual feedback using `active:scale-95` with `transition-all` for smooth response. This combination significantly improves the "feel" and usability of the interface, especially on touch devices.
+**Action:** Always include haptics, `aria-pressed`, and subtle scale transitions for qualitative choice components.

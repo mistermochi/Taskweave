@@ -4,6 +4,7 @@ import React from 'react';
 import { Check, Zap, BatteryWarning, Meh, X } from 'lucide-react';
 import { useSessionSummaryController } from '@/hooks/controllers/useSessionSummaryController';
 import { Modal } from '@/shared/ui/ui/dialog';
+import { vibrate } from '@/shared/lib/utils';
 
 /**
  * Interface for SessionSummaryModal props.
@@ -63,9 +64,14 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({ taskId, onClo
                 ].map(option => (
                     <button
                         key={option.id}
-                        onClick={() => actions.setMood(option.id as 'Energized' | 'Neutral' | 'Drained')}
+                        type="button"
+                        aria-pressed={state.mood === option.id}
+                        onClick={() => {
+                            vibrate('light');
+                            actions.setMood(option.id as 'Energized' | 'Neutral' | 'Drained');
+                        }}
                         className={`
-                            flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all
+                            flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-primary
                             ${state.mood === option.id
                                 ? `${option.bg} border-current ${option.color}`
                                 : 'border-border bg-foreground/5 text-secondary hover:border-secondary/30'

@@ -5,7 +5,6 @@ import { Search, Plus, X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 import { Input } from "@/shared/ui/ui/input";
-import { Separator } from "@/shared/ui/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/shared/ui/ui/tooltip";
 import { Button } from "@/shared/ui/ui/button";
@@ -273,7 +272,7 @@ export function TaskApp({
             });
           }
         } catch (error) {
-          console.error("Service worker update detection failed:", error);
+          // Fallback: Silent fail for service worker update detection
         }
       };
 

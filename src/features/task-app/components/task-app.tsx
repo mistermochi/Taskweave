@@ -126,7 +126,6 @@ export function TaskApp({
     activeTasks,
     completedTasks,
     archivedTasks,
-    activeTasksCount,
     focusedTask
   } = React.useMemo(() => {
     const taskMap = new Map<string, Task>();
@@ -200,7 +199,6 @@ export function TaskApp({
       activeTasks: finalActive,
       completedTasks: finalCompleted,
       archivedTasks: finalArchived,
-      activeTasksCount: finalActive.length,
       focusedTask: focused
     };
   }, [tasks, optimisticTasks, shallowEqualArray]);

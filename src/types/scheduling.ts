@@ -53,4 +53,3 @@ export interface Suggestion {
   isUrgent?: boolean;
   confidence: number; // 0-100, how confident we are in this suggestion
 }
-

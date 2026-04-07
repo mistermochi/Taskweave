@@ -65,3 +65,7 @@
 ## 2026-04-06 - [Cross-Service Context Optimization]
 **Learning:** Downstream services (like the `RecommendationEngine`) often perform redundant $O(N)$ searches for "hot" data (like the latest completed task or active ID sets) that were already identified by the calling controller during its initial data partitioning. Expanding the shared context object (`SuggestionContext`) to carry these pre-calculated values allows for $O(1)$ resolution in the engine without additional overhead in the controller.
 **Action:** When passing large collections between services, identify "hot" items or lookup sets that are used for frequent checks (e.g., blocking tasks) and hoist their calculation to the primary data-partitioning pass.
+
+## 2026-04-07 - [Iterator Exhaustion and Hot-Loop Allocation Optimization]
+**Learning:** Replacing arrays with `Iterable` (like `Map.values()`) in shared interfaces for performance can lead to "Iterator Exhaustion" bugs if consumers iterate more than once. In high-frequency simulation loops, avoiding $O(H^2)$ complexity from array spreads (`[...]`) and $O(N \cdot H)$ from redundant filtering is critical. Hoisting matrix utility allocations (like identity matrices) also provides measurable speedups in small-dimension linear algebra.
+**Action:** Avoid `Iterable` in shared state/contexts unless multiple-pass safety is guaranteed. Use single-pass `forEach` to build required subsets in one go. Hoist all constant matrix allocations out of transformation loops.

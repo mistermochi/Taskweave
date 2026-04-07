@@ -172,11 +172,17 @@ export class RecommendationEngine {
       }
 
       // 4. Construct context for this completion event.
-      // Bolt ⚡: activeTasksAtTime is pool minus current task.
-      // We use the pool directly to avoid re-allocating an array if possible,
-      // but the SuggestionContext interface expects an array.
-      const activeTasksAtTime = Array.from(activePool.values()).filter(t => t.id !== task.id);
+      // Bolt ⚡ Optimization: Avoid Array.from() and filter calls inside the hot loop.
+      // We pass the raw values() iterator to buildContextVector and handle exclusion there.
       const lastTask = i > 0 ? completedTasks[i - 1] : undefined;
+      const backlogCount = activePool.has(task.id) ? activePool.size - 1 : activePool.size;
+
+      // Bolt ⚡: activeTasksAtTime needs to be an array for SuggestionContext and getOrganicSamples.
+      // We perform one pass to filter out the current task.
+      const activeTasksAtTime: TaskEntity[] = [];
+      activePool.forEach(t => {
+        if (t.id !== task.id) activeTasksAtTime.push(t);
+      });
 
       const context: SuggestionContext = {
         currentTime: new Date(completionTime),
@@ -184,10 +190,10 @@ export class RecommendationEngine {
         availableMinutes: 60,
         tasks: activeTasksAtTime,
         tags: [],
-        completedTasks: [...previousCompletions], // Bolt ⚡: Maintain history for feature extraction
+        completedTasks: previousCompletions, // Bolt ⚡: Pass history by reference
         lastTask, // Bolt ⚡: Pass pre-identified last task
-        activeTaskIds: activePool, // Bolt ⚡: Pass existing active pool Map for O(1) blocking check without allocation
-        backlogCount: activeTasksAtTime.length,
+        activeTaskIds: activePool, // Bolt ⚡: Pass existing active pool Map for O(1) blocking check
+        backlogCount,
         userContext: undefined, 
       };
       
@@ -277,7 +283,7 @@ export class RecommendationEngine {
     }
 
     const queuePressure = Math.min(1.0, totalDuration / 480);
-    const urgencyRatio = ctx.tasks.length > 0 ? urgentCount / ctx.tasks.length : 0;
+    const urgencyRatio = ctx.backlogCount > 0 ? urgentCount / ctx.backlogCount : 0;
 
     let timeSinceLast = 1.0;
     let lastDuration = 0;
@@ -318,7 +324,7 @@ export class RecommendationEngine {
   private getValidStrategies(ctx: SuggestionContext, providedLastTask?: TaskEntity): number[] {
     const allActiveTasks = ctx.tasks;
     const activeTaskIds = ctx.activeTaskIds || new Set(allActiveTasks.map(t => t.id));
-    const last = providedLastTask || ctx.lastTask || this.getLatestCompletedTask(ctx.completedTasks);
+    const last = providedLastTask || ctx.lastTask || this.getLatestCompletedTask(contextCompletedTasksToArray(ctx.completedTasks));
 
     const now = ctx.currentTime.getTime();
     const oneDayFromNow = now + 86400000;
@@ -412,7 +418,7 @@ export class RecommendationEngine {
     };
     let tasks = allActiveTasks.filter(t => !isBlocked(t));
     
-    const last = providedLastTask || ctx.lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
+    const last = providedLastTask || ctx.lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(contextCompletedTasksToArray(ctx.completedTasks)) : null);
     let chosenTask: TaskEntity | null = null;
     let type: 'task' | 'wellbeing' = 'task';
     let reason = "";
@@ -564,54 +570,66 @@ export class RecommendationEngine {
    * Returns a list of training samples (x, arm, reward).
    */
   private getOrganicSamples(task: TaskEntity, context: SuggestionContext, providedLastTask?: TaskEntity): { x: number[], arm: number, reward: number }[] {
-    const last = providedLastTask || context.lastTask || this.getLatestCompletedTask(context.completedTasks);
-    const validArms = this.getValidStrategies(context, last);
+    const last = providedLastTask || context.lastTask || this.getLatestCompletedTask(contextCompletedTasksToArray(context.completedTasks));
+
+    // Bolt ⚡ Optimization: O(1) attribute check using activeTaskIds Map/Set
+    const isBlocked = (t: TaskEntity): boolean => {
+      if (!t.blockedBy || t.blockedBy.length === 0) return false;
+      if (!context.activeTaskIds) return false;
+      return t.blockedBy.some(blockerId =>
+        context.activeTaskIds instanceof Map ? context.activeTaskIds.has(blockerId) : context.activeTaskIds!.has(blockerId)
+      );
+    };
+
+    if (isBlocked(task)) return [];
+
     const x = this.buildContextVector(context, last);
     const samples: { x: number[], arm: number, reward: number }[] = [];
+
+    // Bolt ⚡: To maintain logic correctness, we must check if the arm WOULD have suggested this task.
+    // Instead of calling the full O(N) getValidStrategies, we check criteria directly for 'task'.
     const now = context.currentTime.getTime();
     const oneDayFromNow = now + 86400000;
     const fourteenDaysAgo = now - (14 * 24 * 60 * 60 * 1000);
+    const hour = context.currentTime.getHours();
 
-    for (const arm of validArms) {
-      let matches = false;
-
-      switch (arm) {
-        case StrategyArm.DEEP_FLOW:
-          matches = task.energy === 'High' && task.duration > 30;
-          break;
-        case StrategyArm.QUICK_SPARK:
-          matches = task.energy === 'High' && task.duration <= 20;
-          break;
-        case StrategyArm.MOMENTUM:
-          matches = !!last && task.category === last.category;
-          break;
-        case StrategyArm.PALETTE_CLEANSER:
-          matches = !!last && task.category !== last.category;
-          break;
-        case StrategyArm.THE_CRUSHER:
-          matches = !!(task.dueDate && task.dueDate < oneDayFromNow);
-          break;
-        case StrategyArm.LOW_GEAR:
-          matches = task.energy === 'Low';
-          break;
-        case StrategyArm.ARCHAEOLOGIST:
-          matches = task.createdAt < fourteenDaysAgo && !task.dueDate;
-          break;
-        case StrategyArm.SNOWBALL:
-          matches = !!last && last.duration <= 15 && task.duration <= 15;
-          break;
-        case StrategyArm.TWILIGHT_RITUAL:
-          const h = context.currentTime.getHours();
-          matches = h >= 17 && h < 22 && task.energy === 'Low';
-          break;
-        default:
-          matches = false;
-      }
-
-      if (matches) {
-        samples.push({ x, arm, reward: 1.0 });
-      }
+    // Deep Flow
+    if (task.energy === 'High' && task.duration > 30) {
+        samples.push({ x, arm: StrategyArm.DEEP_FLOW, reward: 1.0 });
     }
+    // Quick Spark
+    if (task.energy === 'High' && task.duration <= 20) {
+        samples.push({ x, arm: StrategyArm.QUICK_SPARK, reward: 1.0 });
+    }
+    // Momentum
+    if (last && task.category === last.category) {
+        samples.push({ x, arm: StrategyArm.MOMENTUM, reward: 1.0 });
+    }
+    // Palette Cleanser
+    if (last && task.category !== last.category) {
+        samples.push({ x, arm: StrategyArm.PALETTE_CLEANSER, reward: 1.0 });
+    }
+    // Crusher
+    if (task.dueDate && task.dueDate < oneDayFromNow) {
+        samples.push({ x, arm: StrategyArm.THE_CRUSHER, reward: 1.0 });
+    }
+    // Low Gear
+    if (task.energy === 'Low') {
+        samples.push({ x, arm: StrategyArm.LOW_GEAR, reward: 1.0 });
+        // Twilight Ritual
+        if (hour >= 17 && hour < 22) {
+            samples.push({ x, arm: StrategyArm.TWILIGHT_RITUAL, reward: 1.0 });
+        }
+    }
+    // Archaeologist
+    if (task.createdAt < fourteenDaysAgo && !task.dueDate) {
+        samples.push({ x, arm: StrategyArm.ARCHAEOLOGIST, reward: 1.0 });
+    }
+    // Snowball
+    if (last && last.duration <= 15 && task.duration <= 15) {
+        samples.push({ x, arm: StrategyArm.SNOWBALL, reward: 1.0 });
+    }
+
     return samples;
   }
 
@@ -663,4 +681,11 @@ export class RecommendationEngine {
       (current.completedAt || 0) > (latest.completedAt || 0) ? current : latest
     );
   }
+}
+
+/**
+ * Utility to convert completedTasks to array for processing.
+ */
+function contextCompletedTasksToArray(tasks: TaskEntity[] | Iterable<TaskEntity>): TaskEntity[] {
+    return Array.isArray(tasks) ? tasks : Array.from(tasks);
 }

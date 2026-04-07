@@ -101,7 +101,8 @@ export class Matrix {
   static invert(A: number[][]): number[][] {
     const n = A.length;
     // Create augmented matrix [A | I]
-    const aug = A.map((row, i) => [...row, ...this.identity(n)[i]]);
+    const I = this.identity(n);
+    const aug = A.map((row, i) => [...row, ...I[i]]);
 
     for (let i = 0; i < n; i++) {
       // Pivot

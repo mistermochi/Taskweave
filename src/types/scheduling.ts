@@ -28,6 +28,10 @@ export interface SuggestionContext {
   tasks: TaskEntity[];
   tags: Tag[];
   completedTasks: TaskEntity[]; // Added for momentum tracking
+  /** Optional pre-calculated last completed task for O(1) resolution. */
+  lastTask?: TaskEntity;
+  /** Optional pre-calculated active task ID set or map for O(1) blocking checks. */
+  activeTaskIds?: Set<string> | Map<string, TaskEntity>;
   backlogCount: number;
   userContext?: ContextSnapshot; // Added optional context
 }

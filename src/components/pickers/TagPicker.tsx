@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Tag } from '@/entities/tag';
 import { processTagsForPicker } from '@/entities/tag/lib/tag-utils';
 import { Check, ChevronRight, ChevronDown, Hash, Search } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+import { cn, vibrate } from '@/shared/lib/utils';
 import { Input } from '@/shared/ui/ui/input';
 import { Separator } from '@/shared/ui/ui/separator';
 
@@ -111,10 +111,13 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
                         <button
                             type="button"
                             className={cn(
-                                "flex-1 flex items-center gap-2 min-w-0 text-left rounded-sm transition-colors py-0.5",
+                                "flex-1 flex items-center gap-2 min-w-0 text-left rounded-sm transition-all py-0.5 active:scale-95",
                                 "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             )}
-                            onClick={() => onSelect(tag.id)}
+                            onClick={() => {
+                                onSelect(tag.id);
+                                vibrate('light');
+                            }}
                             aria-label={`Select ${tag.name}`}
                             aria-pressed={isSelected}
                         >
@@ -166,11 +169,14 @@ export const TagPicker: React.FC<TagPickerProps> = ({ tags, selectedTagId, onSel
                 <button
                     type="button"
                     className={cn(
-                        "flex items-center w-full rounded-sm transition-colors group/row select-none px-2 py-1.5 mb-1 text-left",
+                        "flex items-center w-full rounded-sm transition-all group/row select-none px-2 py-1.5 mb-1 text-left active:scale-95",
                         "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
                         selectedTagId === '' ? "bg-accent" : "hover:bg-accent"
                     )}
-                    onClick={() => onSelect('')}
+                    onClick={() => {
+                        onSelect('');
+                        vibrate('light');
+                    }}
                     aria-label="Select Inbox"
                     aria-pressed={selectedTagId === ''}
                 >

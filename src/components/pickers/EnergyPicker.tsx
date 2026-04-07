@@ -1,7 +1,7 @@
 import React from 'react';
 import { EnergyLevel } from '@/entities/task';
 import { Check } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+import { cn, vibrate } from '@/shared/lib/utils';
 
 /**
  * Interface for EnergyPicker props.
@@ -44,11 +44,16 @@ export const EnergyPicker: React.FC<EnergyPickerProps> = ({ energy, onChange }) 
                     return (
                         <button
                             key={lvl}
-                            onClick={(e) => { e.stopPropagation(); onChange(lvl); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onChange(lvl);
+                                vibrate('light');
+                            }}
                             className={cn(
-                                "flex items-center w-full gap-2 px-2 py-1.5 rounded-sm text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+                                "flex items-center w-full gap-2 px-2 py-1.5 rounded-sm text-sm transition-all hover:bg-accent hover:text-accent-foreground active:scale-95",
                                 isSelected ? "bg-accent text-accent-foreground" : "text-foreground"
                             )}
+                            aria-pressed={isSelected}
                         >
                             <div className={cn(
                                 "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Minus, Plus, Timer } from 'lucide-react';
 import { Button } from '@/shared/ui/ui/button';
-import { cn } from '@/shared/lib/utils';
+import { cn, vibrate } from '@/shared/lib/utils';
 
 /**
  * Interface for DurationPicker props.
@@ -31,7 +31,11 @@ export const DurationPicker: React.FC<DurationPickerProps> = ({ duration, onChan
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 rounded-md"
-                    onClick={(e) => { e.stopPropagation(); onChange(Math.max(5, duration - 5)); }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onChange(Math.max(5, duration - 5));
+                        vibrate('light');
+                    }}
                 >
                     <Minus size={14} />
                 </Button>
@@ -43,7 +47,11 @@ export const DurationPicker: React.FC<DurationPickerProps> = ({ duration, onChan
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 rounded-md"
-                    onClick={(e) => { e.stopPropagation(); onChange(Math.min(240, duration + 5)); }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onChange(Math.min(240, duration + 5));
+                        vibrate('light');
+                    }}
                 >
                     <Plus size={14} />
                 </Button>
@@ -56,10 +64,14 @@ export const DurationPicker: React.FC<DurationPickerProps> = ({ duration, onChan
                         key={m}
                         variant={duration === m ? "default" : "outline"}
                         className={cn(
-                            "h-8 text-[10px] font-bold p-0",
+                            "h-8 text-[10px] font-bold p-0 transition-all active:scale-95",
                             duration !== m && "bg-muted/30 border-none shadow-none text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                         )}
-                        onClick={(e) => { e.stopPropagation(); onChange(m); }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onChange(m);
+                            vibrate('light');
+                        }}
                     >
                         {m}m
                     </Button>

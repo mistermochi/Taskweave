@@ -6,6 +6,7 @@ import { Calendar } from '@/shared/ui/ui/calendar';
 import { Button } from '@/shared/ui/ui/button';
 import { CardContent, CardFooter } from '@/shared/ui/ui/card';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
+import { vibrate } from '@/shared/lib/utils';
 
 /**
  * Interface for DatePicker props.
@@ -97,8 +98,11 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, type })
             key={preset.value}
             variant="outline"
             size="sm"
-            className="flex-1 font-bold text-[9px] h-7 px-1 uppercase tracking-tighter"
-            onClick={() => setQuick(preset.value)}
+            className="flex-1 font-bold text-[9px] h-7 px-1 uppercase tracking-tighter transition-all active:scale-95"
+            onClick={() => {
+                setQuick(preset.value);
+                vibrate('light');
+            }}
           >
             {preset.label}
           </Button>

@@ -100,8 +100,10 @@ export class Matrix {
    */
   static invert(A: number[][]): number[][] {
     const n = A.length;
+    // Bolt ⚡ Optimization: Hoist identity matrix creation to avoid O(n^2) allocations
+    const I = this.identity(n);
     // Create augmented matrix [A | I]
-    const aug = A.map((row, i) => [...row, ...this.identity(n)[i]]);
+    const aug = A.map((row, i) => [...row, ...I[i]]);
 
     for (let i = 0; i < n; i++) {
       // Pivot

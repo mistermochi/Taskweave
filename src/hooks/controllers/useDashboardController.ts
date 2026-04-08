@@ -20,20 +20,24 @@ import { RecommendationEngine } from '@/services/RecommendationEngine';
  *
  * @returns State (plans, recommendations, energy levels) and Actions (save mood, complete task).
  */
+const ENERGY_MAP = { 'High': 3, 'Medium': 2, 'Low': 1 };
+
 export const useDashboardController = () => {
   const uid = useUserId();
   const { tasks: allTasks } = useTaskContext();
 
   // Bolt ⚡ Optimization: Single-pass partitioning of active and completed tasks
-  // Plus identification of latest completed task for recommendation context.
-  const { activeTasks, completedTasks, latestCompletedTask } = useMemo(() => {
+  // Plus identification of latest completed task and active ID set for recommendation context.
+  const { activeTasks, activeTaskIds, completedTasks, latestCompletedTask } = useMemo(() => {
     const active: TaskEntity[] = [];
+    const ids = new Set<string>();
     const completed: TaskEntity[] = [];
     let latest: TaskEntity | undefined;
 
     allTasks.forEach(t => {
       if (t.status === 'active') {
         active.push(t);
+        ids.add(t.id);
       } else if (t.status === 'completed') {
         completed.push(t);
         if (!latest || (t.completedAt || 0) > (latest.completedAt || 0)) {
@@ -41,7 +45,7 @@ export const useDashboardController = () => {
         }
       }
     });
-    return { activeTasks: active, completedTasks: completed, latestCompletedTask: latest };
+    return { activeTasks: active, activeTaskIds: ids, completedTasks: completed, latestCompletedTask: latest };
   }, [allTasks]);
 
   const { vitals } = useVitalsContext();
@@ -72,7 +76,7 @@ export const useDashboardController = () => {
           tags: tags, 
           completedTasks: completedTasks,
           lastTask: latestCompletedTask, // Bolt ⚡: O(1) resolution in RecommendationEngine
-          activeTaskIds: new Set(activeTasks.map(t => t.id)), // Bolt ⚡: O(1) blocking check
+          activeTaskIds: activeTaskIds, // Bolt ⚡: Reuse stable O(1) lookup set
           backlogCount: activeTasks.length,
           userContext
         };
@@ -99,24 +103,33 @@ export const useDashboardController = () => {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const endOfToday = startOfToday + 86400000;
 
-    // Bolt ⚡: O(1) lookup for active task IDs to avoid O(N^2) in isBlocked
-    const activeTaskIds = new Set(activeTasks.map(t => t.id));
-
     const isBlocked = (task: TaskEntity): boolean => {
       if (!task.blockedBy || task.blockedBy.length === 0) return false;
       return task.blockedBy.some(blockerId => activeTaskIds.has(blockerId));
     };
 
-    let planCandidates = activeTasks.filter(task => {
-        if (isBlocked(task)) return false;
+    // Bolt ⚡ Optimization: Single O(N) pass to partition plan candidates and inbox tasks
+    const planCandidates: TaskEntity[] = [];
+    const inboxTasks: TaskEntity[] = [];
+
+    activeTasks.forEach(task => {
+        if (isBlocked(task)) return;
+
         const isAssignedToday = task.assignedDate && task.assignedDate >= startOfToday && task.assignedDate < endOfToday;
         const isDueTodayOrOverdue = task.dueDate && task.dueDate < endOfToday;
-        return task.isFocused || isAssignedToday || isDueTodayOrOverdue;
+
+        if (task.isFocused || isAssignedToday || isDueTodayOrOverdue) {
+            planCandidates.push(task);
+        } else {
+            inboxTasks.push(task);
+        }
     });
 
     if (recommendation && recommendation.taskId) {
         const isAlreadyInPlan = planCandidates.some(t => t.id === recommendation.taskId);
         if (!isAlreadyInPlan) {
+            // Bolt ⚡: O(1) lookup for recommendation from mergedTasksMap would be faster,
+            // but we only have activeTasks array here. Still, it's just one find.
             const recommendedTask = activeTasks.find(t => t.id === recommendation.taskId);
             if (recommendedTask && !isBlocked(recommendedTask)) {
                 planCandidates.push(recommendedTask);
@@ -124,32 +137,20 @@ export const useDashboardController = () => {
         }
     }
 
-    if (planCandidates.length === 0) {
-        const inboxTasks = activeTasks.filter(task => {
-            if (isBlocked(task)) return false;
-            const isAssignedToday = task.assignedDate && task.assignedDate >= startOfToday && task.assignedDate < endOfToday;
-            const isDueTodayOrOverdue = task.dueDate && task.dueDate < endOfToday;
-            return !isAssignedToday && !isDueTodayOrOverdue;
+    if (planCandidates.length === 0 && inboxTasks.length > 0) {
+        // Bolt ⚡ Optimization: O(N) search for best inbox task instead of O(N log N) sort
+        const bestInboxTask = inboxTasks.reduce((best, curr) => {
+            const durationDiff = curr.duration - best.duration;
+            if (durationDiff < 0) return curr;
+            if (durationDiff > 0) return best;
+            // Tie-breaker: newest task first
+            return curr.createdAt > best.createdAt ? curr : best;
         });
 
-        if (inboxTasks.length > 0) {
-            // Bolt ⚡ Optimization: O(N) search for best inbox task instead of O(N log N) sort
-            const bestInboxTask = inboxTasks.reduce((best, curr) => {
-                const durationDiff = curr.duration - best.duration;
-                if (durationDiff < 0) return curr;
-                if (durationDiff > 0) return best;
-                // Tie-breaker: newest task first
-                return curr.createdAt > best.createdAt ? curr : best;
-            });
-
-            if (bestInboxTask) {
-                planCandidates.push(bestInboxTask);
-            }
+        if (bestInboxTask) {
+            planCandidates.push(bestInboxTask);
         }
     }
-
-    // Bolt ⚡: Hoist map to avoid redundant object creation during sort
-    const energyMap = { 'High': 3, 'Medium': 2, 'Low': 1 };
 
     planCandidates.sort((a, b) => {
         // 1. Focused tasks always first
@@ -168,7 +169,7 @@ export const useDashboardController = () => {
         if (aTime !== bTime) return aTime - bTime;
 
         // 4. Energy requirement
-        const energyDiff = (energyMap[b.energy] || 2) - (energyMap[a.energy] || 2);
+        const energyDiff = (ENERGY_MAP[b.energy] || 2) - (ENERGY_MAP[a.energy] || 2);
         if (energyDiff !== 0) return energyDiff;
 
         // 5. Creation date

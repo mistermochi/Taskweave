@@ -21,3 +21,7 @@
 ## 2026-05-14 - Tactile Qualitative Selection
 **Learning:** For high-intent qualitative selection (e.g., mood pickers, energy levels), incorporate mobile haptic feedback via `vibrate('light')`, semantic accessibility attributes (`type="button"`, `aria-pressed`), and tactile visual feedback using `active:scale-95` with `transition-all` for smooth response. This combination significantly improves the "feel" and usability of the interface, especially on touch devices.
 **Action:** Always include haptics, `aria-pressed`, and subtle scale transitions for qualitative choice components.
+
+## 2026-06-05 - Consistent Selection Accessibility
+**Learning:** For interactive components representing a selection state (like task items in a list), using `aria-pressed` is essential for screen reader users to understand the current context. Pairing this with explicit `aria-label` and `title` on associated actions (e.g., in a detail view) creates a cohesive accessible experience across the navigation loop.
+**Action:** Implement `aria-pressed` on all interactive selection targets and provide redundant `aria-label` and `title` for icon-only action buttons.

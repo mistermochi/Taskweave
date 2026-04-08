@@ -51,6 +51,7 @@ export const EnergyPicker: React.FC<EnergyPickerProps> = ({ energy, onChange }) 
                             }}
                             className={cn(
                                 "flex items-center w-full gap-2 px-2 py-1.5 rounded-sm text-sm transition-all hover:bg-accent hover:text-accent-foreground active:scale-95",
+                                "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:outline-none",
                                 isSelected ? "bg-accent text-accent-foreground" : "text-foreground"
                             )}
                             aria-pressed={isSelected}

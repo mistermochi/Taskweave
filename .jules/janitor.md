@@ -59,3 +59,8 @@
 **Clutter:** Redundant local alias `const taskService = taskApi` in `useDashboardController.ts`. Unnecessary task array dependencies in `useMemo` hooks within `TaskApp.tsx`.
 **Learning:** Service singletons should be used directly in hooks to simplify dependency arrays and adhere to the project's "direct access" pattern. Including large raw data arrays in `useMemo` dependency lists when derived "source" variables are already present creates redundant reactivity and triggers ESLint `exhaustive-deps` warnings.
 **Action:** Deleted the `taskService` alias and updated callers. Surgical removal of redundant `useMemo` dependencies to align with React best practices and eliminate lint warnings.
+
+## 2026-04-07 - Removed Unused Lucide Icons and Redundant Logic
+**Clutter:** Unused Lucide icon imports (`ChevronDown`, `X`) and an orphaned `toggleExpand` function in navigation components.
+**Learning:** Components often accumulate "import drift" and orphaned helper functions during refactors (e.g., migrating from manual state toggling to Radix/shadcn primitives like `Collapsible`).
+**Action:** Performed a surgical cleanup of `TaskTagTree.tsx` and `TaskDetailView.tsx` to remove dead code and reduce mental overhead.

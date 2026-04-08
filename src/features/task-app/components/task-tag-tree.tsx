@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronRight, ChevronDown, Edit2, Plus, Tag as TagIcon, Trash2 } from "lucide-react";
+import { ChevronRight, Edit2, Plus, Tag as TagIcon, Trash2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Tag, tagApi } from "@/entities/tag";
 import { Task } from "@/entities/task";
@@ -102,14 +102,6 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
     });
     return map;
   }, [tags]);
-
-  const toggleExpand = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newSet = new Set(expanded);
-    if (newSet.has(id)) newSet.delete(id);
-    else newSet.add(id);
-    setExpanded(newSet);
-  };
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedTagId(id);

@@ -18,7 +18,6 @@ import {
   Trash2,
   Undo2,
   Zap,
-  X,
 } from "lucide-react";
 
 import { Badge } from "@/shared/ui/ui/badge";

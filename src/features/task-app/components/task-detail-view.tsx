@@ -454,6 +454,8 @@ export function TaskDetailView({
                     variant="ghost"
                     size="icon"
                     onClick={handleToggleComplete}
+                    aria-label={task.status === "completed" ? "Mark Active" : "Mark Done"}
+                    title={task.status === "completed" ? "Mark Active" : "Mark Done"}
                   >
                     {task.status === "completed" ? (
                       <Undo2 className="h-4 w-4 text-orange-500" />
@@ -477,6 +479,8 @@ export function TaskDetailView({
                     size="icon"
                     disabled={isReadOnly || (!!navigation.activeTaskId && navigation.activeTaskId !== task.id)}
                     onClick={handleStartFocus}
+                    aria-label="Focus"
+                    title={navigation.activeTaskId && navigation.activeTaskId !== task?.id ? "Another task is in focus" : "Focus"}
                   >
                     <Zap className={cn("h-4 w-4", !!navigation.activeTaskId && navigation.activeTaskId !== task.id && "text-muted-foreground/50")} />
                     <span className="sr-only">Focus</span>
@@ -494,6 +498,8 @@ export function TaskDetailView({
                     size="icon"
                     disabled={isReadOnly}
                     onClick={handlePlanToday}
+                    aria-label="Plan today"
+                    title="Plan today"
                   >
                     <CalendarIcon className="h-4 w-4" />
                     <span className="sr-only">Plan today</span>
@@ -508,6 +514,8 @@ export function TaskDetailView({
                     variant="ghost"
                     size="icon"
                     onClick={handleShare}
+                    aria-label="Share"
+                    title="Share"
                   >
                     <Share className="h-4 w-4" />
                     <span className="sr-only">Share</span>
@@ -528,24 +536,26 @@ export function TaskDetailView({
                     variant="ghost"
                     size="icon"
                     onClick={handleToggleArchive}
+                    aria-label={task.status === "archived" ? "Remove from Archive" : "Archive"}
+                    title={task.status === "archived" ? "Remove from Archive" : "Archive"}
                   >
-                    {task?.status === "archived" ? (
+                    {task.status === "archived" ? (
                       <ArchiveX className="h-4 w-4 text-orange-500" />
                     ) : (
                       <Archive className="h-4 w-4" />
                     )}
                     <span className="sr-only">
-                      {task?.status === "archived"
+                      {task.status === "archived"
                         ? "Remove from Archive"
                         : "Archive"}
                     </span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {task?.status === "archived" ? "Remove from Archive" : "Archive"}
+                  {task.status === "archived" ? "Remove from Archive" : "Archive"}
                 </TooltipContent>
               </Tooltip>
-              {task?.status === "archived" && (
+              {task.status === "archived" && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -554,6 +564,8 @@ export function TaskDetailView({
                       size="icon"
                       className={showDeleteConfirm ? "text-red-500 hover:text-red-600 hover:bg-red-50" : ""}
                       onClick={handleDelete}
+                      aria-label={showDeleteConfirm ? "Confirm Delete" : "Delete Task"}
+                      title={showDeleteConfirm ? "Confirm Delete" : "Delete Task"}
                     >
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">Delete Task</span>

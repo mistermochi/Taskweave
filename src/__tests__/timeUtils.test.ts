@@ -4,7 +4,7 @@
  * various recurrence patterns (daily, weekly, monthly).
  */
 
-import { calculateTaskTime, formatTimer, getNextRecurrenceDate } from '@/shared/lib/timeUtils';
+import { calculateTaskTime, formatTimer, getNextRecurrenceDate, formatRecurrence } from '@/shared/lib/timeUtils';
 import { TaskEntity, RecurrenceConfig } from '@/entities/task';
 
 // Mock Date.now() to ensure consistent test results
@@ -221,6 +221,26 @@ describe('timeUtils', () => {
 
         // Reset time for other tests in this suite
         jest.setSystemTime(baseDate);
+    });
+  });
+
+  describe('formatRecurrence', () => {
+    const dailyConfig: RecurrenceConfig = { frequency: 'daily', interval: 1 };
+    const monthlyConfig: RecurrenceConfig = { frequency: 'monthly', interval: 1, monthlyType: 'date' };
+
+    it('should format daily recurrence', () => {
+      expect(formatRecurrence(dailyConfig)).toBe('Daily');
+    });
+
+    it('should use the provided baseDate for monthly date-based recurrence', () => {
+      const baseDate = new Date('2024-04-28T10:00:00Z');
+      expect(formatRecurrence(monthlyConfig, baseDate)).toBe('Day 28 monthly');
+    });
+
+    it('should default to today if no baseDate is provided (potential issue if not careful)', () => {
+      // Mock today as April 9th
+      jest.useFakeTimers().setSystemTime(new Date('2024-04-09T10:00:00Z'));
+      expect(formatRecurrence(monthlyConfig)).toBe('Day 9 monthly');
     });
   });
 });

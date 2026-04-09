@@ -117,7 +117,7 @@ export const TaskListItem = React.memo(({ task, categoryTag, isSelected, onClick
         {task.recurrence && (
           <Badge variant="outline" className="flex items-center gap-1 text-[10px] px-1.5 py-0 border-purple-500/30 text-purple-400">
             <Repeat className="h-3 w-3" aria-hidden="true" />
-            {formatRecurrence(task.recurrence)}
+            {formatRecurrence(task.recurrence, task.dueDate ? new Date(task.dueDate) : undefined)}
           </Badge>
         )}
         {task.blockedBy?.length > 0 && (

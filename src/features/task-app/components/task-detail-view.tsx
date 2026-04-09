@@ -825,7 +825,7 @@ export function TaskDetailView({
                         className="flex items-center gap-1 border-purple-500/30 text-purple-400 cursor-pointer hover:bg-purple-400/10 transition-colors"
                       >
                         <Repeat className="h-3 w-3" />
-                        {formatRecurrence(localRecurrence)}
+                        {formatRecurrence(localRecurrence, localDueDate ? new Date(localDueDate) : undefined)}
                       </Badge>
                     ) : (
                       <Badge

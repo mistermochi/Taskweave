@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Angry, Frown, Meh, Smile, Laugh } from 'lucide-react';
-import { cn } from "@/shared/lib/utils";
+import { cn, vibrate } from "@/shared/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";
 
 /**
@@ -40,10 +40,15 @@ export const SmileyScale = ({ value, onChange, className }: SmileyScaleProps) =>
           <Tooltip key={step.level}>
             <TooltipTrigger asChild>
               <button
-                onClick={() => onChange(step.level)}
+                onClick={() => {
+                  onChange(step.level);
+                  vibrate('light');
+                }}
                 aria-pressed={isActive}
+                aria-label={step.label}
+                title={step.label}
                 className={cn(
-                  "group flex flex-col items-center justify-center p-1 rounded-full transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "group flex flex-col items-center justify-center p-1 rounded-full transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95",
                   isActive ? "scale-110" : "opacity-40 hover:opacity-80"
                 )}
                 type="button"

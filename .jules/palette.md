@@ -25,3 +25,7 @@
 ## 2026-06-05 - Consistent Selection Accessibility
 **Learning:** For interactive components representing a selection state (like task items in a list), using `aria-pressed` is essential for screen reader users to understand the current context. Pairing this with explicit `aria-label` and `title` on associated actions (e.g., in a detail view) creates a cohesive accessible experience across the navigation loop.
 **Action:** Implement `aria-pressed` on all interactive selection targets and provide redundant `aria-label` and `title` for icon-only action buttons.
+
+## 2026-06-20 - Holistic Tactile Accessibility
+**Learning:** High-quality micro-UX requires a dual approach: semantic ARIA attributes (like `role="progressbar"`) for screen readers, and tactile feedback (haptics via `vibrate`, visual scaling via `active:scale-95`) for physical interaction. These layers combined make components like mood scales and readiness rings feel "alive" and inclusive.
+**Action:** Always pair semantic labels (`aria-label`, `aria-valuenow`) with tactile feedback (`vibrate`, scale transitions) for high-intent qualitative or progress-based UI elements. Use `aria-hidden` to prune redundant visual-only nodes from the accessibility tree.

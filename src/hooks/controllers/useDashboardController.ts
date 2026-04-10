@@ -21,6 +21,7 @@ import { RecommendationEngine } from '@/services/RecommendationEngine';
  * @returns State (plans, recommendations, energy levels) and Actions (save mood, complete task).
  */
 const ENERGY_MAP = { 'High': 3, 'Medium': 2, 'Low': 1 };
+const MOOD_ENERGY_MAP = [0, 20, 40, 60, 80, 100];
 
 export const useDashboardController = () => {
   const uid = useUserId();
@@ -91,14 +92,14 @@ export const useDashboardController = () => {
       }
     };
     calculateRecommendation();
-  }, [activeTasks, completedTasks, energyModel.currentEnergy, tags, latestCompletedTask]);
+  }, [activeTasks, completedTasks, energyModel.currentEnergy, tags, latestCompletedTask, activeTaskIds]);
   
   /**
    * Complex calculation for the "Today's Plan" section.
    * Partitions tasks based on focus state, assigned dates, and hard deadlines.
    * Injects AI recommendations into the plan if not already present.
    */
-  const { suggestedPlan, completedCount } = useMemo(() => {
+  const { suggestedPlan } = useMemo(() => {
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const endOfToday = startOfToday + 86400000;
@@ -177,10 +178,9 @@ export const useDashboardController = () => {
     });
 
     return {
-        suggestedPlan: planCandidates,
-        completedCount: completedTasks.length
+        suggestedPlan: planCandidates
     };
-  }, [activeTasks, completedTasks, recommendation]);
+  }, [activeTasks, recommendation, activeTaskIds]);
 
   /**
    * Retrieves the most recent focus intention log for the current day.
@@ -200,8 +200,7 @@ export const useDashboardController = () => {
     if (!uid) return;
     const context = await contextApi.getSnapshot();
     const id = crypto.randomUUID();
-    const energyMap = [0, 20, 40, 60, 80, 100];
-    const energyValue = energyMap[level] || 60;
+    const energyValue = MOOD_ENERGY_MAP[level] || 60;
 
     await setDoc(doc(db, 'users', uid, 'vitals', id), {
       id,
@@ -273,11 +272,9 @@ export const useDashboardController = () => {
     state: {
       suggestedPlan,
       activeTasks: activeTasks,
-      taskCount: activeTasks.length,
       latestMood: energyModel.moodIndex,
       latestEnergy: energyModel.currentEnergy,
       latestFocus,
-      hasMoodEntry: energyModel.hasEntry,
       tags,
       recommendation
     },

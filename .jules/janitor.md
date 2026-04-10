@@ -64,3 +64,8 @@
 **Clutter:** Unused Lucide icon imports (`ChevronDown`, `X`) and an orphaned `toggleExpand` function in navigation components.
 **Learning:** Components often accumulate "import drift" and orphaned helper functions during refactors (e.g., migrating from manual state toggling to Radix/shadcn primitives like `Collapsible`).
 **Action:** Performed a surgical cleanup of `TaskTagTree.tsx` and `TaskDetailView.tsx` to remove dead code and reduce mental overhead.
+
+## 2026-04-10 - Cleaned Up Unused State and Dependencies in useDashboardController
+**Clutter:** Unused state variables `taskCount`, `hasMoodEntry`, and internal `completedCount` in `useDashboardController.ts`. Redundant local array allocation in `saveMood`.
+**Learning:** Even well-optimized controllers can accumulate "shadow state" that is calculated but never consumed by the UI. High-frequency hooks like those in dashboards benefit from hoisting static configuration (like energy maps) to the module level to ensure reference stability and reduce allocation overhead.
+**Action:** Removed unreferenced state properties and hoisted the mood energy map. Corrected hook dependency arrays to include stable O(1) lookup sets like `activeTaskIds`.

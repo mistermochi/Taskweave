@@ -69,3 +69,7 @@
 ## 2026-04-07 - [Hoisting Loop-Invariant Allocations]
 **Learning:** Redundant allocations of static data structures inside hot loops or mapping functions (e.g., identity matrices in `Matrix.invert` or `ENERGY_MAP` in hooks) create unnecessary GC pressure and CPU overhead. Hoisting these to a higher scope reduces complexity and improves performance, especially for algorithms like LinUCB that perform frequent matrix inversions.
 **Action:** Always identify and hoist loop-invariant objects or matrices out of mapping functions and render loops.
+
+## 2025-05-31 - [LinUCB Algorithmic and Memory Optimization]
+**Learning:** Leveraging mathematical symmetries (e.g., symmetry of ^{-1}$) allows reducing (d^2)$ operations in hot loops by consolidating matrix-vector products. Additionally, transitioning from immutable matrix/vector operations to in-place mutations for internal service state significantly reduces GC pressure without compromising correctness, especially during batch training/recalibration.
+**Action:** When implementing linear models or bandit algorithms, identify redundant matrix-vector products and use in-place operations for internal parameter updates. Always ensure cached derived values (like inverses) are invalidated upon mutation.

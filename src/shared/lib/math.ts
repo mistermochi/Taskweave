@@ -70,6 +70,33 @@ export class Matrix {
   }
 
   /**
+   * Performs in-place Matrix addition of an outer product (A += x * x^T).
+   * @param A - The matrix to modify (n x n).
+   * @param x - The vector (n).
+   */
+  static addOuterProductInPlace(A: number[][], x: number[]): void {
+    const n = x.length;
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        A[i][j] += x[i] * x[j];
+      }
+    }
+  }
+
+  /**
+   * Performs in-place vector addition of a scaled vector (a += s * b).
+   * @param a - The vector to modify (n).
+   * @param b - The vector to add (n).
+   * @param s - The scalar multiplier.
+   */
+  static addScaledVectorInPlace(a: number[], b: number[], s: number): void {
+    const n = a.length;
+    for (let i = 0; i < n; i++) {
+      a[i] += s * b[i];
+    }
+  }
+
+  /**
    * Performs element-wise vector addition.
    * @param a - First vector.
    * @param b - Second vector.

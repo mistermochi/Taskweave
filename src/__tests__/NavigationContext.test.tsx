@@ -185,35 +185,5 @@ describe('NavigationContext', () => {
       expect(result.current.activeTagId).toBe('tag-work-1');
     });
 
-    it('should handle quick add task by switching view and setting section', () => {
-      const { result } = renderHook(() => useNavigation(), { wrapper });
-
-      act(() => {
-        result.current.showDashboard();
-      });
-
-      act(() => {
-        result.current.quickAddTask('today');
-      });
-
-      expect(result.current.currentView).toBe(ViewName.DATABASE);
-      expect(result.current.autoCreateSection).toBe('today');
-      // Should also clear the active tag filter
-      expect(result.current.activeTagId).toBeNull();
-    });
-
-    it('should clear the autoCreateSection after it has been read', () => {
-        const { result } = renderHook(() => useNavigation(), { wrapper });
-
-        act(() => {
-          result.current.quickAddTask('inbox');
-        });
-        expect(result.current.autoCreateSection).toBe('inbox');
-
-        act(() => {
-            result.current.clearAutoCreate();
-        });
-        expect(result.current.autoCreateSection).toBeNull();
-    });
   });
 });

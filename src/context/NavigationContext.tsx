@@ -19,8 +19,6 @@ interface NavigationState {
   isFocusExpanded: boolean;
   /** Whether a view transition is currently in progress. */
   isNavigating: boolean;
-  /** Name of the section to automatically show/create when switching to database. */
-  autoCreateSection: string | null;
   /** ID of the task for which the summary modal is being shown. */
   summaryTaskId?: string;
   /** Whether the quick-focus suggestion modal is visible. */
@@ -59,10 +57,6 @@ interface NavigationActions {
   startBreathing: () => void;
   /** Transitions to the sensory grounding exercise view. */
   startGrounding: () => void;
-  /** Navigates to the database and triggers a quick-add flow for a specific section. */
-  quickAddTask: (section?: string) => void;
-  /** Clears the auto-create section flag. */
-  clearAutoCreate: () => void;
   /** Sets the active tag filter. */
   selectTag: (tagId: string | null) => void;
   /** Hides the task completion summary modal. */
@@ -91,7 +85,6 @@ export const NavigationProvider: React.FC<PropsWithChildren> = ({ children }) =>
     activeTaskId: undefined,
     activeTagId: null,
     isFocusExpanded: false,
-    autoCreateSection: null,
     summaryTaskId: undefined,
     isQuickFocusModalOpen: false,
   });
@@ -213,19 +206,6 @@ export const NavigationProvider: React.FC<PropsWithChildren> = ({ children }) =>
                 previousView: prevState.currentView
             }));
         });
-    },
-    quickAddTask: (section = 'inbox') => {
-        startTransition(() => {
-            setState(prevState => ({
-                ...prevState,
-                currentView: ViewName.DATABASE,
-                autoCreateSection: section,
-                activeTagId: null,
-            }));
-        });
-    },
-    clearAutoCreate: () => {
-        setState(prevState => ({ ...prevState, autoCreateSection: null }));
     },
     selectTag: (tagId: string | null) => {
         startTransition(() => {

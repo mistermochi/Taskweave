@@ -25,3 +25,7 @@
 ## 2026-06-05 - Consistent Selection Accessibility
 **Learning:** For interactive components representing a selection state (like task items in a list), using `aria-pressed` is essential for screen reader users to understand the current context. Pairing this with explicit `aria-label` and `title` on associated actions (e.g., in a detail view) creates a cohesive accessible experience across the navigation loop.
 **Action:** Implement `aria-pressed` on all interactive selection targets and provide redundant `aria-label` and `title` for icon-only action buttons.
+
+## 2026-04-10 - Progress Bar Accessibility
+**Learning:** Components that visualize scores or status (like `ReadinessRing`) must use the semantic `role="progressbar"` with appropriate ARIA attributes (`aria-valuenow`, `aria-label`) to be perceivable by assistive technologies. Hiding decorative SVG and internal text elements via `aria-hidden="true"` prevents redundant announcements, ensuring a clean and descriptive output for screen reader users.
+**Action:** Implement `role="progressbar"` for all score indicators and hide internal decorative elements.

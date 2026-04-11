@@ -56,6 +56,8 @@ interface ArmParams {
   b: number[];
   /** Cached inverse of A. Nullified when A is updated. */
   A_inv?: number[][];
+  /** Cached Ridge Regression coefficients (A^-1 * b). Nullified when A or b is updated. */
+  theta?: number[];
 }
 
 /**
@@ -156,9 +158,19 @@ export class LinUCBService {
           }
           const A_inv = arm.A_inv;
 
-          const theta = Matrix.dot(A_inv, b);
+          // Bolt ⚡ Optimization: Use cached theta (A^-1 * b) if available to avoid O(d^2) matrix-vector product
+          if (!arm.theta) {
+              arm.theta = Matrix.dot(A_inv, b);
+          }
+          const theta = arm.theta;
+
           const p = Matrix.vectorDot(theta, x);
-          const variance = Matrix.vectorDot(x, Matrix.dot(A_inv, x));
+
+          // Bolt ⚡ Optimization: Reuse matrix-vector product result v = A^-1 * x
+          // to calculate variance x^T * A^-1 * x in O(d) instead of O(d^2).
+          const v = Matrix.dot(A_inv, x);
+          const variance = Matrix.vectorDot(x, v);
+
           const safeVariance = Math.max(0, variance);
           const cb = ALPHA * Math.sqrt(safeVariance);
           
@@ -196,16 +208,16 @@ export class LinUCBService {
          await this.loadPromise;
     }
 
-    const { A, b } = this.arms[armIdx];
+    const arm = this.arms[armIdx];
+    const { A, b } = arm;
 
-    const outer = Matrix.outerProduct(x);
-    this.arms[armIdx].A = Matrix.add(A, outer);
+    // Bolt ⚡ Optimization: Use in-place updates to avoid O(d^2) and O(d) allocations
+    Matrix.addOuterProductInPlace(A, x);
+    Matrix.addScaledVectorInPlace(b, x, reward);
 
-    const weightedX = Matrix.scale(x, reward);
-    this.arms[armIdx].b = Matrix.vecAdd(b, weightedX);
-
-    // Bolt ⚡ Optimization: Invalidate cached inverse when matrix A is updated
-    this.arms[armIdx].A_inv = undefined;
+    // Bolt ⚡ Optimization: Invalidate cached inverse and theta when parameters are updated
+    arm.A_inv = undefined;
+    arm.theta = undefined;
 
     await this.saveModel();
   }
@@ -220,17 +232,19 @@ export class LinUCBService {
          await this.loadPromise;
     }
 
-    for (const { x, arm, reward } of samples) {
-        if (arm < 0 || arm >= NUM_ARMS) continue;
+    for (const { x, arm: armIdx, reward } of samples) {
+        if (armIdx < 0 || armIdx >= NUM_ARMS) continue;
         
-        const { A, b } = this.arms[arm];
-        const outer = Matrix.outerProduct(x);
-        this.arms[arm].A = Matrix.add(A, outer);
-        const weightedX = Matrix.scale(x, reward);
-        this.arms[arm].b = Matrix.vecAdd(b, weightedX);
+        const arm = this.arms[armIdx];
+        const { A, b } = arm;
 
-        // Bolt ⚡ Optimization: Invalidate cached inverse
-        this.arms[arm].A_inv = undefined;
+        // Bolt ⚡ Optimization: Use in-place updates
+        Matrix.addOuterProductInPlace(A, x);
+        Matrix.addScaledVectorInPlace(b, x, reward);
+
+        // Bolt ⚡ Optimization: Invalidate cached inverse and theta
+        arm.A_inv = undefined;
+        arm.theta = undefined;
     }
 
     await this.saveModel();

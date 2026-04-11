@@ -80,6 +80,31 @@ export class Matrix {
   }
 
   /**
+   * In-place addition of outer product (A = A + x * x^T).
+   * Reduces GC pressure by avoiding allocation of a new matrix.
+   */
+  static addOuterProductInPlace(A: number[][], x: number[]): void {
+    const n = x.length;
+    for (let i = 0; i < n; i++) {
+      const row = A[i];
+      const xi = x[i];
+      for (let j = 0; j < n; j++) {
+        row[j] += xi * x[j];
+      }
+    }
+  }
+
+  /**
+   * In-place addition of a scaled vector (a = a + s * x).
+   * Reduces GC pressure by avoiding allocation of a new vector.
+   */
+  static addScaledVectorInPlace(a: number[], x: number[], s: number): void {
+    for (let i = 0; i < a.length; i++) {
+      a[i] += s * x[i];
+    }
+  }
+
+  /**
    * Generates an Identity Matrix of size n.
    * @param n - The dimension of the matrix.
    * @returns An n x n identity matrix.

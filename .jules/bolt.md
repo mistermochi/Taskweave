@@ -69,3 +69,7 @@
 ## 2026-04-07 - [Hoisting Loop-Invariant Allocations]
 **Learning:** Redundant allocations of static data structures inside hot loops or mapping functions (e.g., identity matrices in `Matrix.invert` or `ENERGY_MAP` in hooks) create unnecessary GC pressure and CPU overhead. Hoisting these to a higher scope reduces complexity and improves performance, especially for algorithms like LinUCB that perform frequent matrix inversions.
 **Action:** Always identify and hoist loop-invariant objects or matrices out of mapping functions and render loops.
+
+## 2026-04-11 - [In-place Matrix Updates and Theta Caching]
+**Learning:** Model updates in bandit algorithms (like LinUCB) are allocation-heavy if new matrices are created on every sample. Implementing in-place updates ( = A + x x^T$) eliminates (d^2)$ allocations. Additionally, caching the Ridge Regression coefficients ($\theta = A^{-1}b$) reduces prediction complexity from (d^2)$ to (d)$ for the mean reward component, providing significant speedups in high-frequency recommendation paths.
+**Action:** Use in-place mutations for large matrix/vector state updates and cache intermediate regression results ($\theta$) to minimize redundant linear algebra operations.

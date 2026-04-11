@@ -87,8 +87,8 @@ export const useDashboardController = () => {
         } else {
             setRecommendation(null);
         }
-      } catch (e) {
-        console.error("Failed to calculate recommendation for dashboard", e);
+      } catch {
+        // Fallback: recommendation calculation failure is non-critical for dashboard
       }
     };
     calculateRecommendation();
@@ -261,8 +261,8 @@ export const useDashboardController = () => {
               userContext: userContext,
           };
           await RecommendationEngine.getInstance().logOrganicSelection(task, completionContext);
-      } catch (e) {
-          console.error("Failed to log organic selection:", e);
+      } catch {
+          // Fallback: logging organic selection failure is non-critical
       }
 
       return nextDate;

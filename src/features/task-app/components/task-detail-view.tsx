@@ -198,8 +198,7 @@ export function TaskDetailView({
         });
         vibrate('success');
       }
-    } catch (e) {
-      console.error("Failed to toggle task completion", e);
+    } catch {
       useTaskAppStore.getState().showToast("Action failed");
     }
   };
@@ -252,8 +251,7 @@ export function TaskDetailView({
         });
       }
       vibrate('light');
-    } catch (e) {
-      console.error("Failed to toggle archive", e);
+    } catch {
       useTaskAppStore.getState().showToast("Action failed");
     }
   };
@@ -280,8 +278,7 @@ export function TaskDetailView({
       onClose?.();
       useTaskAppStore.getState().showToast("Task deleted");
       vibrate('success');
-    } catch (e) {
-      console.error("Failed to delete task", e);
+    } catch {
       useTaskAppStore.getState().showToast("Action failed");
     }
   };
@@ -321,9 +318,8 @@ export function TaskDetailView({
     setIsSaving(true);
     const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
-    const onError = (err: Error) => {
+    const onError = () => {
       useTaskAppStore.getState().showToast("Failed to sync changes. Please check your connection.");
-      console.error("Optimistic write failed:", err);
     };
 
     try {
@@ -433,8 +429,7 @@ export function TaskDetailView({
         useTaskAppStore.getState().showToast(isOffline ? "Changes saved locally" : "Changes saved");
       }
       vibrate('success');
-    } catch (e) {
-      console.error("Failed to save task", e);
+    } catch {
       useTaskAppStore.getState().showToast("Failed to save. Check connection.");
     } finally {
       setIsSaving(false);

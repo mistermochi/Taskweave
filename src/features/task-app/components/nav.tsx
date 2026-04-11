@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { LucideIcon } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
+import { cn, vibrate } from "@/shared/lib/utils";
 import { ReactNode } from "react";
 
 import { buttonVariants } from "@/shared/ui/ui/button";
@@ -39,6 +39,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
           const handleClick = () => {
             setActiveView(viewId);
             link.onClick?.();
+            vibrate('light');
           };
 
           if (isCollapsed) {

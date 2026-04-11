@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/shared/lib/utils"
+import { cn, vibrate } from "@/shared/lib/utils"
 import { Button } from "./button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip"
 import { useNavigation } from "@/context/NavigationContext"
@@ -36,8 +36,15 @@ export interface FabProps
 }
 
 const Fab = React.forwardRef<HTMLButtonElement, FabProps>(
-  ({ className, size, position, icon, label, tooltip, ...props }, ref) => {
+  ({ className, size, position, icon, label, tooltip, onClick, ...props }, ref) => {
     const { activeTaskId } = useNavigation();
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      vibrate('light');
+      if (onClick) {
+        onClick(e);
+      }
+    };
 
     const fabButton = (
       <Button
@@ -49,6 +56,7 @@ const Fab = React.forwardRef<HTMLButtonElement, FabProps>(
           position !== "static" && (activeTaskId ? "bottom-24" : "bottom-6")
         )}
         ref={ref}
+        onClick={handleClick}
         {...props}
       >
         {icon}

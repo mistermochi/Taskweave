@@ -209,7 +209,12 @@ export function TaskNavigationContent({
           {isCollapsed && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: isOnline ? '#10b981' : '#f43f5e' }} />
+                <div
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: isOnline ? '#10b981' : '#f43f5e' }}
+                  role="status"
+                  aria-label={isOnline ? "Online" : "Offline"}
+                />
               </TooltipTrigger>
               <TooltipContent side="right">
                 {isOnline ? "Online" : "Offline"}

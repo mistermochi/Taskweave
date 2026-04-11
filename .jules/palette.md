@@ -29,3 +29,7 @@
 ## 2026-04-10 - Progress Bar Accessibility
 **Learning:** Components that visualize scores or status (like `ReadinessRing`) must use the semantic `role="progressbar"` with appropriate ARIA attributes (`aria-valuenow`, `aria-label`) to be perceivable by assistive technologies. Hiding decorative SVG and internal text elements via `aria-hidden="true"` prevents redundant announcements, ensuring a clean and descriptive output for screen reader users.
 **Action:** Implement `role="progressbar"` for all score indicators and hide internal decorative elements.
+
+## 2026-06-15 - Structured List Item Accessibility
+**Learning:** For interactive list items containing rich metadata (Badges), removing the parent `aria-label` and using structured `sr-only` context labels inside each component provides a much more navigable experience for screen reader users. This allows them to explore details at their own pace rather than hearing a single, long concatenated string. Ensure interactive list items use semantic `button` with `type="button"`.
+**Action:** Use `sr-only` labels like "Project: ", "Due: ", etc. within metadata components. Prefer semantic `<button>` for list items to inherit correct roles and focus behavior.

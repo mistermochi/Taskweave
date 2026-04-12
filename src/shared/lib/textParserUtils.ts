@@ -32,7 +32,7 @@ export interface ParsedTaskInput {
  * parseTaskInput("Gym ~60m !high") // { cleanTitle: "Gym", attributes: { duration: 60, energy: 'High' } }
  */
 export const parseTaskInput = (text: string): ParsedTaskInput => {
-    let cleanTitle = text;
+    let cleanTitle = text || "";
     const attributes: ParsedTaskInput['attributes'] = {};
 
     // A. Multi-Day Weekly: "every mon, wed, fri" or "every monday and thursday"

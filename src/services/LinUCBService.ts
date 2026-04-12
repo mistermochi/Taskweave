@@ -198,11 +198,9 @@ export class LinUCBService {
 
     const { A, b } = this.arms[armIdx];
 
-    const outer = Matrix.outerProduct(x);
-    this.arms[armIdx].A = Matrix.add(A, outer);
-
-    const weightedX = Matrix.scale(x, reward);
-    this.arms[armIdx].b = Matrix.vecAdd(b, weightedX);
+    // Bolt ⚡ Optimization: Use in-place operations to avoid redundant allocations per sample
+    Matrix.addOuterProductInPlace(A, x);
+    Matrix.addScaledVectorInPlace(b, x, reward);
 
     // Bolt ⚡ Optimization: Invalidate cached inverse when matrix A is updated
     this.arms[armIdx].A_inv = undefined;
@@ -224,10 +222,11 @@ export class LinUCBService {
         if (arm < 0 || arm >= NUM_ARMS) continue;
         
         const { A, b } = this.arms[arm];
-        const outer = Matrix.outerProduct(x);
-        this.arms[arm].A = Matrix.add(A, outer);
-        const weightedX = Matrix.scale(x, reward);
-        this.arms[arm].b = Matrix.vecAdd(b, weightedX);
+
+        // Bolt ⚡ Optimization: Use in-place operations to avoid massive GC pressure
+        // during history replay which can process thousands of samples.
+        Matrix.addOuterProductInPlace(A, x);
+        Matrix.addScaledVectorInPlace(b, x, reward);
 
         // Bolt ⚡ Optimization: Invalidate cached inverse
         this.arms[arm].A_inv = undefined;

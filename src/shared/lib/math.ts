@@ -25,12 +25,17 @@ export class Matrix {
 
   /**
    * Calculates the dot product of two vectors.
+   * Bolt ⚡ Optimization: Use standard for loop instead of reduce for hot path performance.
    * @param a - First vector.
    * @param b - Second vector.
    * @returns The scalar dot product.
    */
   static vectorDot(a: number[], b: number[]): number {
-    return a.reduce((sum, val, i) => sum + val * b[i], 0);
+    let sum = 0;
+    for (let i = 0; i < a.length; i++) {
+      sum += a[i] * b[i];
+    }
+    return sum;
   }
 
   /**
@@ -60,6 +65,23 @@ export class Matrix {
   }
 
   /**
+   * Performs in-place addition of outer product (A = A + x * x^T).
+   * Bolt ⚡ Optimization: Eliminates O(d^2) allocations per sample during model updates.
+   * @param A - Target matrix to update in-place.
+   * @param x - Vector to compute outer product from.
+   */
+  static addOuterProductInPlace(A: number[][], x: number[]): void {
+    const n = x.length;
+    for (let i = 0; i < n; i++) {
+      const xi = x[i];
+      if (xi === 0) continue;
+      for (let j = 0; j < n; j++) {
+        A[i][j] += xi * x[j];
+      }
+    }
+  }
+
+  /**
    * Multiplies a vector by a scalar.
    * @param x - The vector.
    * @param s - The scalar.
@@ -77,6 +99,19 @@ export class Matrix {
    */
   static vecAdd(a: number[], b: number[]): number[] {
     return a.map((val, i) => val + b[i]);
+  }
+
+  /**
+   * Performs in-place addition of scaled vector (a = a + s * x).
+   * Bolt ⚡ Optimization: Eliminates O(d) allocations per sample during model updates.
+   * @param a - Target vector to update in-place.
+   * @param x - Vector to scale and add.
+   * @param s - Scalar multiplier.
+   */
+  static addScaledVectorInPlace(a: number[], x: number[], s: number): void {
+    for (let i = 0; i < a.length; i++) {
+      a[i] += s * x[i];
+    }
   }
 
   /**
@@ -100,10 +135,17 @@ export class Matrix {
    */
   static invert(A: number[][]): number[][] {
     const n = A.length;
-    // Bolt ⚡ Optimization: Hoist identity matrix creation to avoid O(n^2) allocations
-    const I = this.identity(n);
-    // Create augmented matrix [A | I]
-    const aug = A.map((row, i) => [...row, ...I[i]]);
+    // Bolt ⚡ Optimization: Construct augmented matrix [A | I] directly
+    // to avoid O(n^2) allocations for a separate identity matrix.
+    const aug = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const row = new Array(2 * n).fill(0);
+      for (let j = 0; j < n; j++) {
+        row[j] = A[i][j];
+      }
+      row[n + i] = 1;
+      aug[i] = row;
+    }
 
     for (let i = 0; i < n; i++) {
       // Pivot

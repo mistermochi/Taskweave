@@ -56,6 +56,8 @@ interface ArmParams {
   b: number[];
   /** Cached inverse of A. Nullified when A is updated. */
   A_inv?: number[][];
+  /** Cached Ridge Regression coefficients (theta = A_inv * b). */
+  theta?: number[];
 }
 
 /**
@@ -156,9 +158,25 @@ export class LinUCBService {
           }
           const A_inv = arm.A_inv;
 
-          const theta = Matrix.dot(A_inv, b);
+          // Bolt ⚡ Optimization: Cache theta (A_inv * b) to avoid redundant matrix-vector product.
+          if (!arm.theta) {
+            arm.theta = Matrix.dot(A_inv, b);
+          }
+          const theta = arm.theta;
+
           const p = Matrix.vectorDot(theta, x);
-          const variance = Matrix.vectorDot(x, Matrix.dot(A_inv, x));
+
+          /**
+           * Bolt ⚡ Optimization:
+           * variance = x^T * A_inv * x
+           * Since A is symmetric positive-definite, A_inv is also symmetric.
+           * We can optimize x^T * A_inv * x by calculating v = A_inv * x once
+           * and then performing vectorDot(x, v).
+           * This reduces the matrix-vector products from 2 to 1 in this loop.
+           */
+          const v = Matrix.dot(A_inv, x);
+          const variance = Matrix.vectorDot(x, v);
+
           const safeVariance = Math.max(0, variance);
           const cb = ALPHA * Math.sqrt(safeVariance);
           
@@ -196,16 +214,15 @@ export class LinUCBService {
          await this.loadPromise;
     }
 
-    const { A, b } = this.arms[armIdx];
+    const arm = this.arms[armIdx];
 
-    const outer = Matrix.outerProduct(x);
-    this.arms[armIdx].A = Matrix.add(A, outer);
+    // Bolt ⚡ Optimization: Use in-place operations to avoid O(d^2) and O(d) allocations
+    Matrix.addOuterProductInPlace(arm.A, x);
+    Matrix.addScaledVectorInPlace(arm.b, x, reward);
 
-    const weightedX = Matrix.scale(x, reward);
-    this.arms[armIdx].b = Matrix.vecAdd(b, weightedX);
-
-    // Bolt ⚡ Optimization: Invalidate cached inverse when matrix A is updated
-    this.arms[armIdx].A_inv = undefined;
+    // Bolt ⚡ Optimization: Invalidate cached inverse and coefficients when model is updated
+    arm.A_inv = undefined;
+    arm.theta = undefined;
 
     await this.saveModel();
   }
@@ -220,17 +237,18 @@ export class LinUCBService {
          await this.loadPromise;
     }
 
-    for (const { x, arm, reward } of samples) {
-        if (arm < 0 || arm >= NUM_ARMS) continue;
-        
-        const { A, b } = this.arms[arm];
-        const outer = Matrix.outerProduct(x);
-        this.arms[arm].A = Matrix.add(A, outer);
-        const weightedX = Matrix.scale(x, reward);
-        this.arms[arm].b = Matrix.vecAdd(b, weightedX);
+    for (const { x, arm: armIdx, reward } of samples) {
+        if (armIdx < 0 || armIdx >= NUM_ARMS) continue;
 
-        // Bolt ⚡ Optimization: Invalidate cached inverse
-        this.arms[arm].A_inv = undefined;
+        const arm = this.arms[armIdx];
+        
+        // Bolt ⚡ Optimization: Use in-place operations
+        Matrix.addOuterProductInPlace(arm.A, x);
+        Matrix.addScaledVectorInPlace(arm.b, x, reward);
+
+        // Bolt ⚡ Optimization: Invalidate cached inverse and coefficients
+        arm.A_inv = undefined;
+        arm.theta = undefined;
     }
 
     await this.saveModel();

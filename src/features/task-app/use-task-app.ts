@@ -30,7 +30,7 @@ type TaskAppStore = {
 };
 
 export const useTaskAppStore = create<TaskAppStore>((set) => ({
-  activeView: 'tasks', // Default to tasks for now to maintain current experience
+  activeView: 'dashboard', // Default to dashboard for verification
   setActiveView: (view) => set({ activeView: view }),
   taskTab: 'active',
   setTaskTab: (tab) => set({ taskTab: tab }),

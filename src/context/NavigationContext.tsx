@@ -21,8 +21,6 @@ interface NavigationState {
   isNavigating: boolean;
   /** ID of the task for which the summary modal is being shown. */
   summaryTaskId?: string;
-  /** Whether the quick-focus suggestion modal is visible. */
-  isQuickFocusModalOpen: boolean;
 }
 
 /**
@@ -61,10 +59,6 @@ interface NavigationActions {
   selectTag: (tagId: string | null) => void;
   /** Hides the task completion summary modal. */
   hideSummary: () => void;
-  /** Opens the quick-focus suggestion modal. */
-  openQuickFocusModal: () => void;
-  /** Closes the quick-focus suggestion modal. */
-  closeQuickFocusModal: () => void;
 }
 
 type NavigationContextType = NavigationState & NavigationActions;
@@ -86,7 +80,6 @@ export const NavigationProvider: React.FC<PropsWithChildren> = ({ children }) =>
     activeTagId: null,
     isFocusExpanded: false,
     summaryTaskId: undefined,
-    isQuickFocusModalOpen: false,
   });
   const [isPending, startTransition] = useTransition();
 
@@ -144,10 +137,6 @@ export const NavigationProvider: React.FC<PropsWithChildren> = ({ children }) =>
     showTaskHistory: () => navigate(ViewName.TASK_HISTORY),
     
     focusOnTask: (taskId: string) => {
-        if (taskId === '') {
-            setState(prevState => ({ ...prevState, isQuickFocusModalOpen: true }));
-            return;
-        }
         startTransition(() => {
             setState(prevState => ({
                 ...prevState,
@@ -155,13 +144,6 @@ export const NavigationProvider: React.FC<PropsWithChildren> = ({ children }) =>
                 isFocusExpanded: false, // Start minimized
             }));
         });
-    },
-
-    openQuickFocusModal: () => {
-        setState(prevState => ({ ...prevState, isQuickFocusModalOpen: true }));
-    },
-    closeQuickFocusModal: () => {
-        setState(prevState => ({ ...prevState, isQuickFocusModalOpen: false }));
     },
 
     toggleFocusExpansion: () => {

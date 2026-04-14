@@ -69,3 +69,8 @@
 **Clutter:** Unused state variables `taskCount`, `hasMoodEntry`, and internal `completedCount` in `useDashboardController.ts`. Redundant local array allocation in `saveMood`.
 **Learning:** Even well-optimized controllers can accumulate "shadow state" that is calculated but never consumed by the UI. High-frequency hooks like those in dashboards benefit from hoisting static configuration (like energy maps) to the module level to ensure reference stability and reduce allocation overhead.
 **Action:** Removed unreferenced state properties and hoisted the mood energy map. Corrected hook dependency arrays to include stable O(1) lookup sets like `activeTaskIds`.
+
+## 2026-04-12 - Identified Dual Navigation Systems and Orphaned ViewNames
+**Clutter:** Parallel navigation systems (`NavigationContext` and `useTaskAppStore`) with overlapping responsibilities. Orphaned `ViewName` members (`CHAT`, `TASK_HISTORY`) with no corresponding UI implementation.
+**Learning:** The application is transitioning between a custom `NavigationContext` (inherited from an earlier architecture) and a Zustand-based `useTaskAppStore` with a hash-router. Core UI rendering in `TaskApp.tsx` is driven by the Zustand store, leaving several `NavigationContext` transient views unreferenced and non-functional.
+**Action:** Removed the orphaned `QuickFocusModal` and its associated state from the context. Further consolidation of these two systems is recommended to prevent state desynchronization and reduce cognitive overhead.

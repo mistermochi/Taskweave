@@ -70,6 +70,16 @@ export class Matrix {
   }
 
   /**
+   * Updates vector a by adding vector x scaled by s in-place (a = a + s*x).
+   * Bolt ⚡ Optimization: Eliminates O(d) allocations.
+   */
+  static addScaledVectorInPlace(a: number[], x: number[], s: number): void {
+    for (let i = 0; i < a.length; i++) {
+      a[i] += x[i] * s;
+    }
+  }
+
+  /**
    * Performs element-wise vector addition.
    * @param a - First vector.
    * @param b - Second vector.
@@ -77,6 +87,40 @@ export class Matrix {
    */
   static vecAdd(a: number[], b: number[]): number[] {
     return a.map((val, i) => val + b[i]);
+  }
+
+  /**
+   * Updates matrix A by adding the outer product (x * x^T) in-place.
+   * Bolt ⚡ Optimization: Eliminates O(d^2) allocations.
+   */
+  static addOuterProductInPlace(A: number[][], x: number[]): void {
+    const n = x.length;
+    for (let i = 0; i < n; i++) {
+      const xi = x[i];
+      const row = A[i];
+      for (let j = 0; j < n; j++) {
+        row[j] += xi * x[j];
+      }
+    }
+  }
+
+  /**
+   * Calculates the quadratic form x^T * A * x.
+   * Bolt ⚡ Optimization: Assumes A is symmetric and uses O(d^2/2) ops and zero allocations.
+   */
+  static symmetricQuadraticForm(x: number[], A: number[][]): number {
+    const n = x.length;
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+      const xi = x[i];
+      // Diagonal term
+      sum += A[i][i] * xi * xi;
+      // Off-diagonal terms (leverage symmetry)
+      for (let j = i + 1; j < n; j++) {
+        sum += 2 * A[i][j] * xi * x[j];
+      }
+    }
+    return sum;
   }
 
   /**
@@ -100,10 +144,16 @@ export class Matrix {
    */
   static invert(A: number[][]): number[][] {
     const n = A.length;
-    // Bolt ⚡ Optimization: Hoist identity matrix creation to avoid O(n^2) allocations
-    const I = this.identity(n);
-    // Create augmented matrix [A | I]
-    const aug = A.map((row, i) => [...row, ...I[i]]);
+    // Bolt ⚡ Optimization: Construct augmented matrix [A | I] directly
+    // avoids O(n^2) identity matrix allocation and spread operations.
+    const aug = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const row = new Array(2 * n);
+      const Arow = A[i];
+      for (let j = 0; j < n; j++) row[j] = Arow[j];
+      for (let j = 0; j < n; j++) row[n + j] = (i === j ? 1 : 0);
+      aug[i] = row;
+    }
 
     for (let i = 0; i < n; i++) {
       // Pivot

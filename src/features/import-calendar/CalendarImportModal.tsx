@@ -5,9 +5,9 @@ import { Calendar } from 'lucide-react';
 import { CalendarEvent } from '@/hooks/controllers/useCalendarImportController';
 import { Modal } from '@/shared/ui/ui/dialog';
 import { EmptyState } from '@/shared/ui/ui/empty-state';
-import { TaskRow } from '@/entities/task';
+import { TaskListItem } from '@/features/task-app/components/task-list-item';
 import { Tag } from '@/entities/tag';
-import { TaskEntity, EnergyLevel } from '@/entities/task';
+import { Task, TaskEntity, EnergyLevel } from '@/entities/task';
 import { UserSettings } from '@/types';
 import { Button } from '@/shared/ui/ui/button';
 
@@ -113,15 +113,12 @@ export const CalendarImportModal: React.FC<CalendarImportModalProps> = ({
                 const taskPreview = eventToTaskPreview(event, tags, settings, isAlreadyImported);
 
                 return (
-                    <TaskRow
+                    <TaskListItem
                         key={event.id}
-                        task={taskPreview}
-                        allTasks={[]}
-                        tags={tags}
-                        onComplete={() => {}}
-                        onFocus={() => {}}
+                        task={taskPreview as unknown as Task}
+                        categoryTag={tags.find(t => t.id === taskPreview.category)}
                         isSelected={selectedIds.has(event.id)}
-                        onSelect={isAlreadyImported ? undefined : (t) => onToggle(t.id)}
+                        onClick={isAlreadyImported ? () => {} : (t) => onToggle(t.id)}
                     />
                 );
             })}

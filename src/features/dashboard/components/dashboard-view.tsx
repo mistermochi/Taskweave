@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Plus, Star
+  Plus, Star, X
 } from 'lucide-react';
+import { vibrate } from '@/shared/lib/utils';
 import { Task, TaskEntity } from '@/entities/task';
 import { Tag } from '@/entities/tag';
 import { useDashboardController } from '@/hooks/controllers/useDashboardController';
@@ -89,17 +90,33 @@ export const DashboardView: React.FC = () => {
   const tasks = state.activeTasks as unknown as TaskEntity[];
   
   const [intention, setIntention] = useState(state.latestFocus);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setIntention(state.latestFocus); }, [state.latestFocus]);
+  useEffect(() => {
+    setIntention(state.latestFocus);
+  }, [state.latestFocus]);
 
   const handleIntentionBlur = () => {
-    if (intention !== state.latestFocus) actions.saveFocus(intention);
+    if (intention !== state.latestFocus) {
+        actions.saveFocus(intention);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       (e.target as HTMLInputElement).blur();
+    } else if (e.key === 'Escape') {
+        setIntention('');
+        vibrate('light');
     }
+  };
+
+  const handleClearIntention = (e: React.MouseEvent) => {
+    // Use preventDefault on mousedown to prevent the input from blurring,
+    // which would trigger an early save with the old value.
+    e.preventDefault();
+    setIntention('');
+    vibrate('light');
   };
 
   const createNewTask = () => {
@@ -135,7 +152,8 @@ export const DashboardView: React.FC = () => {
                         <Star size={16} fill="currentColor" />
                     </div>
                     <input
-                        className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
+                        ref={inputRef}
+                        className="w-full bg-transparent border-b border-border py-2 pl-7 pr-8 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
                         placeholder="What is your main focus?"
                         aria-label="Main focus"
                         value={intention}
@@ -143,6 +161,16 @@ export const DashboardView: React.FC = () => {
                         onBlur={handleIntentionBlur}
                         onKeyDown={handleKeyDown}
                     />
+                    {intention && (
+                        <button
+                            type="button"
+                            onMouseDown={handleClearIntention}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-muted-foreground/30 hover:text-muted-foreground transition-colors"
+                            aria-label="Clear focus"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">

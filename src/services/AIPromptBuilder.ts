@@ -49,23 +49,4 @@ export class AIPromptBuilder {
         `;
     }
 
-    /**
-     * Builds a prompt for the general-purpose productivity chatbot.
-     *
-     * @param context - Optional dynamic context (e.g., current task, energy level).
-     * @returns The persona and instruction prompt for the AI.
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public static buildChatPrompt(context?: any): string {
-        return `You are Taskweave, a minimalist AI life coach.
-            Tone: Calm, supportive, zen, concise.
-            Role: Help the user balance productivity with wellbeing.
-            User Context: ${JSON.stringify(context || {}, null, 2)}
-            Instructions:
-            - Keep responses short (1-3 sentences) and conversational.
-            - If the user is drained, suggest breaks or lighter tasks.
-            - If the user is energized, encourage focus.
-            - Do not use markdown formatting like bold or lists unless necessary for clarity.
-        `;
-    }
 }

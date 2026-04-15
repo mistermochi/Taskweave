@@ -50,45 +50,6 @@ export class AIService {
     }
 
     /**
-     * Sends a chat message to the AI coach and retrieves a response.
-     *
-     * @param history - List of previous messages in the conversation.
-     * @param message - The current user message.
-     * @param context - Optional context about the user's state (tasks, energy, etc.).
-     * @returns A promise resolving to the AI's response text.
-     */
-    public async sendChatMessage(
-        history: { role: 'user' | 'model'; text: string }[],
-        message: string,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        context?: any
-    ): Promise<string> {
-        if (!this.ai) return "AI Service not available.";
-        try {
-            const systemInstruction = AIPromptBuilder.buildChatPrompt(context);
-            const contents = history.map(h => ({
-                role: h.role,
-                parts: [{ text: h.text }]
-            }));
-            contents.push({ role: 'user', parts: [{ text: message }] });
-
-            const result = await this.ai.models.generateContent({
-                model: 'gemini-1.5-flash-preview',
-                contents: contents,
-                config: {
-                    systemInstruction,
-                    temperature: 0.7,
-                }
-            });
-
-            return result.text || "...";
-        } catch (e) {
-            console.error("Chat Error", e);
-            return "I'm having trouble connecting to the cloud right now.";
-        }
-    }
-
-    /**
      * Generates synthetic training data using the AI model.
      * This data is used to "warm-start" the machine learning model (LinUCB)
      * based on expert productivity heuristics.

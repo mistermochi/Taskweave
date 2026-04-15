@@ -69,3 +69,7 @@
 ## 2026-04-07 - [Hoisting Loop-Invariant Allocations]
 **Learning:** Redundant allocations of static data structures inside hot loops or mapping functions (e.g., identity matrices in `Matrix.invert` or `ENERGY_MAP` in hooks) create unnecessary GC pressure and CPU overhead. Hoisting these to a higher scope reduces complexity and improves performance, especially for algorithms like LinUCB that perform frequent matrix inversions.
 **Action:** Always identify and hoist loop-invariant objects or matrices out of mapping functions and render loops.
+
+## 2026-04-15 - [In-place Matrix Operations for ML Hot Paths]
+**Learning:** Standard functional patterns (like `.map` and spreads) in matrix algebra create massive GC pressure when training models on large histories. Transitioning to in-place mutations for covariance matrix updates (A = A + x*x^T) and caching regression coefficients (theta = A^-1*b) drastically reduces both latency and memory overhead in the recommendation engine.
+**Action:** Prefer in-place operations and coefficient caching for linear algebra-heavy services where parameters are updated frequently but queried repeatedly between updates.

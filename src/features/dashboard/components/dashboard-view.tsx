@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Plus, Star
+  Plus, Star, X
 } from 'lucide-react';
 import { Task, TaskEntity } from '@/entities/task';
 import { Tag } from '@/entities/tag';
+import { vibrate } from "@/shared/lib/utils";
 import { useDashboardController } from '@/hooks/controllers/useDashboardController';
 import { ReadinessRing } from './readiness-ring';
 import { SmileyScale } from './smiley-scale';
@@ -89,17 +90,38 @@ export const DashboardView: React.FC = () => {
   const tasks = state.activeTasks as unknown as TaskEntity[];
   
   const [intention, setIntention] = useState(state.latestFocus);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const intentionRef = useRef(intention);
 
-  useEffect(() => { setIntention(state.latestFocus); }, [state.latestFocus]);
+  useEffect(() => {
+    setIntention(state.latestFocus);
+    intentionRef.current = state.latestFocus;
+  }, [state.latestFocus]);
 
   const handleIntentionBlur = () => {
-    if (intention !== state.latestFocus) actions.saveFocus(intention);
+    if (intentionRef.current !== state.latestFocus) {
+      actions.saveFocus(intentionRef.current);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      (e.target as HTMLInputElement).blur();
+      inputRef.current?.blur();
+    } else if (e.key === 'Escape') {
+      setIntention('');
+      intentionRef.current = '';
+      vibrate('light');
+      inputRef.current?.blur();
     }
+  };
+
+  const handleClearIntention = (e: React.MouseEvent) => {
+    // Prevent the input from losing focus immediately so the click completes
+    e.preventDefault();
+    setIntention('');
+    intentionRef.current = '';
+    vibrate('light');
+    inputRef.current?.focus();
   };
 
   const createNewTask = () => {
@@ -135,14 +157,30 @@ export const DashboardView: React.FC = () => {
                         <Star size={16} fill="currentColor" />
                     </div>
                     <input
-                        className="w-full bg-transparent border-b border-border py-2 pl-7 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
+                        ref={inputRef}
+                        className="w-full bg-transparent border-b border-border py-2 pl-7 pr-8 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
                         placeholder="What is your main focus?"
                         aria-label="Main focus"
                         value={intention}
-                        onChange={(e) => setIntention(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setIntention(val);
+                          intentionRef.current = val;
+                        }}
                         onBlur={handleIntentionBlur}
                         onKeyDown={handleKeyDown}
                     />
+                    {intention && (
+                      <button
+                        type="button"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground/30 hover:text-muted-foreground transition-colors p-1"
+                        onClick={handleClearIntention}
+                        onMouseDown={handleClearIntention}
+                        aria-label="Clear focus"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">

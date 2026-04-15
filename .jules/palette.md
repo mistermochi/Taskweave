@@ -33,3 +33,7 @@
 ## 2026-06-15 - Structured List Item Accessibility
 **Learning:** For interactive list items containing rich metadata (Badges), removing the parent `aria-label` and using structured `sr-only` context labels inside each component provides a much more navigable experience for screen reader users. This allows them to explore details at their own pace rather than hearing a single, long concatenated string. Ensure interactive list items use semantic `button` with `type="button"`.
 **Action:** Use `sr-only` labels like "Project: ", "Due: ", etc. within metadata components. Prefer semantic `<button>` for list items to inherit correct roles and focus behavior.
+
+## 2026-04-15 - Clear Button Focus Management
+**Learning:** When adding a 'clear' button to an input, use `onMouseDown` with `event.preventDefault()` on the button to prevent the input from losing focus (blurring). This ensures the clear action completes without triggering redundant `onBlur` save logic or closing the keyboard on mobile. Pairing this with the `Escape` key for clearing/blurring and light haptic feedback (`vibrate('light')`) creates a highly responsive and accessible interaction pattern.
+**Action:** Implement `onMouseDown` with `preventDefault()` for clear buttons. Always support `Escape` for dismissal/clearing in high-intent text inputs.

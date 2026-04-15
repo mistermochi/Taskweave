@@ -74,3 +74,8 @@
 **Clutter:** Parallel navigation systems (`NavigationContext` and `useTaskAppStore`) with overlapping responsibilities. Orphaned `ViewName` members (`CHAT`, `TASK_HISTORY`) with no corresponding UI implementation.
 **Learning:** The application is transitioning between a custom `NavigationContext` (inherited from an earlier architecture) and a Zustand-based `useTaskAppStore` with a hash-router. Core UI rendering in `TaskApp.tsx` is driven by the Zustand store, leaving several `NavigationContext` transient views unreferenced and non-functional.
 **Action:** Removed the orphaned `QuickFocusModal` and its associated state from the context. Further consolidation of these two systems is recommended to prevent state desynchronization and reduce cognitive overhead.
+
+## 2026-04-15 - Consolidated Task List Components and Preserved Observability
+**Clutter:** Redundant `TaskRow` component and its associated `TaskDetailsSheetContent`.
+**Learning:** Consolidating UI components into a single "Source of Truth" (like `TaskListItem`) reduces structural entropy. However, Janitor sweeps must never remove `console.error` in catch blocks for fire-and-forget operations, as they are essential for production observability when no other logging service exists.
+**Action:** Refactored `CalendarImportModal` to use `TaskListItem`, deleted the orphaned components, and explicitly preserved error logging.

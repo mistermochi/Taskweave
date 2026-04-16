@@ -56,6 +56,8 @@ interface ArmParams {
   b: number[];
   /** Cached inverse of A. Nullified when A is updated. */
   A_inv?: number[][];
+  /** Cached Ridge Regression coefficients (A_inv * b). Nullified when A or b is updated. */
+  theta?: number[];
 }
 
 /**
@@ -156,9 +158,16 @@ export class LinUCBService {
           }
           const A_inv = arm.A_inv;
 
-          const theta = Matrix.dot(A_inv, b);
+          // Bolt ⚡ Optimization: Cache theta (A_inv * b) to avoid O(d^2) matrix-vector product
+          if (!arm.theta) {
+              arm.theta = Matrix.dot(A_inv, b);
+          }
+          const theta = arm.theta;
+
           const p = Matrix.vectorDot(theta, x);
-          const variance = Matrix.vectorDot(x, Matrix.dot(A_inv, x));
+
+          // Bolt ⚡ Optimization: Use symmetricQuadraticForm to avoid intermediate vector allocation
+          const variance = Matrix.symmetricQuadraticForm(x, A_inv);
           const safeVariance = Math.max(0, variance);
           const cb = ALPHA * Math.sqrt(safeVariance);
           
@@ -198,14 +207,13 @@ export class LinUCBService {
 
     const { A, b } = this.arms[armIdx];
 
-    const outer = Matrix.outerProduct(x);
-    this.arms[armIdx].A = Matrix.add(A, outer);
+    // Bolt ⚡ Optimization: Use in-place updates to eliminate O(d^2) and O(d) allocations
+    Matrix.addOuterProductInPlace(A, x);
+    Matrix.addScaledVectorInPlace(b, x, reward);
 
-    const weightedX = Matrix.scale(x, reward);
-    this.arms[armIdx].b = Matrix.vecAdd(b, weightedX);
-
-    // Bolt ⚡ Optimization: Invalidate cached inverse when matrix A is updated
+    // Bolt ⚡ Optimization: Invalidate cached inverse and theta when model is updated
     this.arms[armIdx].A_inv = undefined;
+    this.arms[armIdx].theta = undefined;
 
     await this.saveModel();
   }
@@ -224,13 +232,14 @@ export class LinUCBService {
         if (arm < 0 || arm >= NUM_ARMS) continue;
         
         const { A, b } = this.arms[arm];
-        const outer = Matrix.outerProduct(x);
-        this.arms[arm].A = Matrix.add(A, outer);
-        const weightedX = Matrix.scale(x, reward);
-        this.arms[arm].b = Matrix.vecAdd(b, weightedX);
 
-        // Bolt ⚡ Optimization: Invalidate cached inverse
+        // Bolt ⚡ Optimization: Use in-place updates during batch training
+        Matrix.addOuterProductInPlace(A, x);
+        Matrix.addScaledVectorInPlace(b, x, reward);
+
+        // Bolt ⚡ Optimization: Invalidate cached parameters
         this.arms[arm].A_inv = undefined;
+        this.arms[arm].theta = undefined;
     }
 
     await this.saveModel();

@@ -69,3 +69,7 @@
 ## 2026-04-07 - [Hoisting Loop-Invariant Allocations]
 **Learning:** Redundant allocations of static data structures inside hot loops or mapping functions (e.g., identity matrices in `Matrix.invert` or `ENERGY_MAP` in hooks) create unnecessary GC pressure and CPU overhead. Hoisting these to a higher scope reduces complexity and improves performance, especially for algorithms like LinUCB that perform frequent matrix inversions.
 **Action:** Always identify and hoist loop-invariant objects or matrices out of mapping functions and render loops.
+
+## 2026-04-08 - [In-place Matrix Mutation and Coefficient Caching]
+**Learning:** In Multi-Armed Bandit algorithms, $O(d^2)$ allocations for outer products and additions during every training sample create a major GC bottleneck during history recalibration. Implementing in-place mutations ($A = A + x x^T$) eliminates this overhead. Additionally, caching the Ridge Regression coefficients ($\theta = A^{-1}b$) alongside $A^{-1}$ reduces prediction complexity by $O(d^2)$ on cache hits.
+**Action:** Prioritize in-place mutations for high-frequency matrix updates and cache derived parameters (like $\theta$) that depend on slowly-changing matrices.

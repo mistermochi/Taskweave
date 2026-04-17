@@ -43,7 +43,8 @@ export class TaskApi {
         notes: string,
         dueDate: number | undefined,
         assignedDate: number | undefined,
-        recurrence?: RecurrenceConfig
+        recurrence?: RecurrenceConfig,
+        blockedBy: string[] = []
     ): Omit<TaskEntity, 'id' | 'createdAt' | 'updatedAt'> {
         const energyLevel: EnergyLevel = energy > 75 ? 'High' : energy < 40 ? 'Low' : 'Medium';
         const finalDuration = duration === 0 ? 0 : Math.max(1, Math.min(240, duration));
@@ -71,7 +72,7 @@ export class TaskApi {
             actualDuration: null,
             completionMood: null,
             completionNotes: null,
-            blockedBy: [],
+            blockedBy,
         };
     }
 
@@ -98,12 +99,13 @@ export class TaskApi {
         dueDate: number | undefined,
         assignedDate: number | undefined,
         recurrence?: RecurrenceConfig,
+        blockedBy: string[] = [],
         onError?: (err: Error) => void
     ): Promise<string> {
         const uid = contextApi.getUserId();
         if (!uid || !title.trim()) return "";
 
-        const taskData = this.prepareTaskData(title, category, duration, energy, notes, dueDate, assignedDate, recurrence);
+        const taskData = this.prepareTaskData(title, category, duration, energy, notes, dueDate, assignedDate, recurrence, blockedBy);
         const newTaskId = crypto.randomUUID();
         const taskRef = doc(db, 'users', uid, 'tasks', newTaskId);
         const now = Date.now();
@@ -137,6 +139,7 @@ export class TaskApi {
         dueDate: number | undefined,
         assignedDate: number | undefined,
         recurrence?: RecurrenceConfig,
+        blockedBy: string[] = [],
         onError?: (err: Error) => void
     ): Promise<{ taskId: string; tagId: string }> {
         const uid = contextApi.getUserId();
@@ -161,7 +164,7 @@ export class TaskApi {
         const taskId = crypto.randomUUID();
         const taskRef = doc(db, 'users', uid, 'tasks', taskId);
 
-        const taskData = this.prepareTaskData(title, tagId, duration, energy, notes, dueDate, assignedDate, recurrence);
+        const taskData = this.prepareTaskData(title, tagId, duration, energy, notes, dueDate, assignedDate, recurrence, blockedBy);
 
         batch.set(taskRef, {
             ...taskData,

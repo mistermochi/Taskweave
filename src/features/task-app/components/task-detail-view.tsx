@@ -46,6 +46,7 @@ import { EnergyPicker } from "@/components/pickers/EnergyPicker";
 import { DurationPicker } from "@/components/pickers/DurationPicker";
 import { DatePicker } from "@/components/pickers/DatePicker";
 import { RecurrencePicker as RecurrenceInlinePicker } from "@/components/pickers/RecurrencePicker";
+import { DependencyPicker } from "@/components/pickers/DependencyPicker";
 
 interface TaskDetailViewProps {
   task: Task | null;
@@ -78,6 +79,7 @@ export function TaskDetailView({
   const [localRecurrence, setLocalRecurrence] = useState<
     RecurrenceConfig | undefined
   >();
+  const [localBlockedBy, setLocalBlockedBy] = useState<string[]>([]);
 
   const [lastParsedAttributes, setLastParsedAttributes] = useState<
     ParsedTaskInput["attributes"]
@@ -106,6 +108,7 @@ export function TaskDetailView({
       setLocalAssignedDate(task.assignedDate || undefined);
       setLocalDueDate(task.dueDate || undefined);
       setLocalRecurrence(task.recurrence || undefined);
+      setLocalBlockedBy(task.blockedBy || []);
     } else {
       setTitle("");
       setNotes("");
@@ -115,6 +118,7 @@ export function TaskDetailView({
       setLocalAssignedDate(undefined);
       setLocalDueDate(undefined);
       setLocalRecurrence(undefined);
+      setLocalBlockedBy([]);
     }
     setLastParsedAttributes({});
 
@@ -344,6 +348,7 @@ export function TaskDetailView({
             localDueDate ?? null,
             localAssignedDate ?? null,
             localRecurrence ?? null,
+            localBlockedBy,
             onError
           );
           newTaskId = result.taskId;
@@ -366,6 +371,7 @@ export function TaskDetailView({
             localDueDate ?? null,
             localAssignedDate ?? null,
             localRecurrence ?? null,
+            localBlockedBy,
             onError
           );
         }
@@ -383,7 +389,7 @@ export function TaskDetailView({
             status: 'active',
             createdAt: now,
             updatedAt: now,
-            blockedBy: [],
+            blockedBy: localBlockedBy,
         } as Task;
 
         // Optimistic UI update in store
@@ -420,6 +426,7 @@ export function TaskDetailView({
           assignedDate: localAssignedDate ?? null,
           recurrence: (localDueDate ? localRecurrence : undefined) ?? null,
           category: finalCategoryId,
+          blockedBy: localBlockedBy,
           updatedAt: now
         };
 
@@ -845,15 +852,35 @@ export function TaskDetailView({
                 </Popover>
               )}
 
-              {task.blockedBy?.length > 0 && (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 border-orange-500/30 text-orange-500"
-                >
-                  <Layers className="h-3 w-3" />
-                  {task.blockedBy.length}
-                </Badge>
-              )}
+              <Popover>
+                <PopoverTrigger asChild disabled={isReadOnly}>
+                  {localBlockedBy.length > 0 ? (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 border-orange-500/30 text-orange-500 cursor-pointer hover:bg-orange-500/10 transition-colors"
+                    >
+                      <Layers className="h-3 w-3" />
+                      {localBlockedBy.length}
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors border-dashed text-muted-foreground"
+                    >
+                      <Layers className="h-3 w-3" />
+                      Add Blockers
+                    </Badge>
+                  )}
+                </PopoverTrigger>
+                <PopoverContent className="w-fit p-3" align="start">
+                  <DependencyPicker
+                    allTasks={allTasks}
+                    currentTaskId={task?.id || "new"}
+                    selectedIds={localBlockedBy}
+                    onIdsChange={setLocalBlockedBy}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>

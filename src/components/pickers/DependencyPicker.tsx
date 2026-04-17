@@ -3,8 +3,9 @@
 import React from 'react';
 import { TaskEntity } from '@/entities/task';
 import { Check, Layers } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+import { cn, vibrate } from '@/shared/lib/utils';
 import { ScrollArea } from '@/shared/ui/ui/scroll-area';
+import { Separator } from '@/shared/ui/ui/separator';
 
 /**
  * Interface for DependencyPicker props.
@@ -38,11 +39,18 @@ const DependencySection: React.FC<{
                     return (
                         <button
                             key={task.id}
-                            onClick={(e) => { e.stopPropagation(); onToggle(task.id); }}
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onToggle(task.id);
+                                vibrate('light');
+                            }}
                             className={cn(
-                                "w-full flex items-center gap-2 p-1.5 rounded-md hover:bg-accent text-left transition-colors",
+                                "w-full flex items-center gap-2 p-1.5 rounded-md hover:bg-accent text-left transition-all active:scale-95",
+                                "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:outline-none",
                                 isSelected && "bg-accent/50"
                             )}
+                            aria-pressed={isSelected}
                         >
                             <div className={cn(
                                 "w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0",
@@ -94,6 +102,7 @@ export const DependencyPicker: React.FC<DependencyPickerProps> = ({
                 <Layers size={14} className="text-muted-foreground" />
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Set Dependencies</span>
             </div>
+            <Separator />
             <DependencySection
                 title="This task is blocked by:"
                 tasks={otherTasks}

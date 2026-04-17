@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { RecurrenceConfig, RecurrenceFrequency } from '@/entities/task';
 import { ChevronDown, Check, Repeat, X } from 'lucide-react';
 import { formatRecurrence } from '@/shared/lib/timeUtils';
-import { cn } from '@/shared/lib/utils';
+import { cn, vibrate } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/ui/button';
 import { Input } from '@/shared/ui/ui/input';
 import {
@@ -98,6 +98,7 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
     newDays.sort((a,b) => a - b);
     setWeekDays(newDays);
     commitChange({ weekDays: newDays });
+    vibrate('light');
   };
 
   const pickerContent = (
@@ -123,6 +124,7 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
                 if (val === 'weekly') commitChange({ frequency: val, weekDays: [baseDate.getDay()] });
                 else if (val === 'monthly') commitChange({ frequency: val, monthlyType: 'date' });
                 else commitChange({ frequency: val });
+                vibrate('light');
             }}
           >
             <SelectTrigger className="flex-1 h-9 bg-muted/30 border-none shadow-none focus:ring-1 focus:ring-ring">
@@ -140,19 +142,23 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
        {/* Weekly Specifics */}
        {frequency === 'weekly' && (
          <div className="flex justify-between gap-1">
-            {['S','M','T','W','T','F','S'].map((label, idx) => (
-                <Button
-                    key={idx}
-                    variant={weekDays.includes(idx) ? "default" : "outline"}
-                    className={cn(
-                        "h-7 w-7 p-0 text-[10px] font-bold",
-                        !weekDays.includes(idx) && "bg-muted/30 border-none shadow-none text-muted-foreground hover:bg-accent"
-                    )}
-                    onClick={() => toggleWeekDay(idx)}
-                >
-                    {label}
-                </Button>
-            ))}
+            {['S','M','T','W','T','F','S'].map((label, idx) => {
+                const isSelected = weekDays.includes(idx);
+                return (
+                    <Button
+                        key={idx}
+                        variant={isSelected ? "default" : "outline"}
+                        className={cn(
+                            "h-7 w-7 p-0 text-[10px] font-bold transition-all active:scale-95",
+                            !isSelected && "bg-muted/30 border-none shadow-none text-muted-foreground hover:bg-accent"
+                        )}
+                        onClick={() => toggleWeekDay(idx)}
+                        aria-pressed={isSelected}
+                    >
+                        {label}
+                    </Button>
+                );
+            })}
          </div>
        )}
 
@@ -162,13 +168,15 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
             <Button
                 variant="ghost"
                 className={cn(
-                    "w-full justify-start gap-3 h-9 text-xs",
+                    "w-full justify-start gap-3 h-9 text-xs transition-all active:scale-95",
                     monthlyType === 'date' ? "bg-accent text-accent-foreground" : "text-muted-foreground"
                 )}
                 onClick={() => {
                     setMonthlyType('date');
                     commitChange({ monthlyType: 'date' });
+                    vibrate('light');
                 }}
+                aria-pressed={monthlyType === 'date'}
             >
                 <div className={cn(
                     "w-3 h-3 rounded-full border flex items-center justify-center shrink-0",
@@ -179,31 +187,44 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
                 <span>Day {baseDate.getDate()} of every month</span>
             </Button>
 
-            <div className={cn(
-                "flex items-center gap-3 p-2 rounded-md transition-colors",
-                monthlyType === 'relative' ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/50"
-            )} onClick={() => {
-                setMonthlyType('relative');
-                const nth = Math.ceil(baseDate.getDate() / 7);
-                const safeNth = nth > 4 ? 5 : nth;
-                setWeekOfMonth(safeNth);
-                setDayOfWeek(baseDate.getDay());
-                commitChange({ monthlyType: 'relative', weekOfMonth: safeNth, weekDays: [baseDate.getDay()] });
-            }}>
-                <div className={cn(
-                    "w-3 h-3 rounded-full border flex items-center justify-center shrink-0",
-                    monthlyType === 'relative' ? "border-primary" : "border-muted-foreground"
-                )}>
-                    {monthlyType === 'relative' && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                </div>
+            <div
+                className={cn(
+                    "flex items-center w-full gap-3 p-2 rounded-md transition-all text-left",
+                    monthlyType === 'relative' ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent/50"
+                )}
+            >
+                <button
+                    type="button"
+                    className="focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-full shrink-0"
+                    onClick={() => {
+                        setMonthlyType('relative');
+                        const nth = Math.ceil(baseDate.getDate() / 7);
+                        const safeNth = nth > 4 ? 5 : nth;
+                        setWeekOfMonth(safeNth);
+                        setDayOfWeek(baseDate.getDay());
+                        commitChange({ monthlyType: 'relative', weekOfMonth: safeNth, weekDays: [baseDate.getDay()] });
+                        vibrate('light');
+                    }}
+                    aria-label="Select relative monthly recurrence"
+                    aria-pressed={monthlyType === 'relative'}
+                >
+                    <div className={cn(
+                        "w-3 h-3 rounded-full border flex items-center justify-center shrink-0",
+                        monthlyType === 'relative' ? "border-primary" : "border-muted-foreground"
+                    )}>
+                        {monthlyType === 'relative' && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                    </div>
+                </button>
                 
                 <div className="flex gap-1.5 flex-1 min-w-0">
                     <Select
                         value={String(weekOfMonth)}
                         onValueChange={(val) => {
+                            setMonthlyType('relative');
                             const v = parseInt(val);
                             setWeekOfMonth(v);
                             commitChange({ monthlyType: 'relative', weekOfMonth: v });
+                            vibrate('light');
                         }}
                     >
                         <SelectTrigger className="h-7 bg-transparent border-none p-0 focus:ring-0 text-xs font-semibold w-fit gap-1">
@@ -221,9 +242,11 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
                     <Select
                         value={String(dayOfWeek)}
                         onValueChange={(val) => {
+                            setMonthlyType('relative');
                             const v = parseInt(val);
                             setDayOfWeek(v);
                             commitChange({ monthlyType: 'relative', weekDays: [v] });
+                            vibrate('light');
                         }}
                     >
                         <SelectTrigger className="h-7 bg-transparent border-none p-0 focus:ring-0 text-xs font-semibold w-fit gap-1">
@@ -254,7 +277,10 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
                     variant="ghost"
                     size="icon"
                     className="h-5 w-5 rounded-sm hover:text-destructive"
-                    onClick={() => onChange(undefined)}
+                    onClick={() => {
+                        onChange(undefined);
+                        vibrate('light');
+                    }}
                 >
                     <X size={12} />
                 </Button>

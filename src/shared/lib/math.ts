@@ -91,6 +91,50 @@ export class Matrix {
   }
 
   /**
+   * Performs an in-place update of A = A + x * x^T.
+   * Bolt ⚡ Optimization: Eliminates O(d^2) matrix allocation and nested map calls.
+   */
+  static addOuterProductInPlace(A: number[][], x: number[]): void {
+    const n = x.length;
+    for (let i = 0; i < n; i++) {
+      const xi = x[i];
+      for (let j = 0; j < n; j++) {
+        A[i][j] += xi * x[j];
+      }
+    }
+  }
+
+  /**
+   * Performs an in-place update of v = v + s * x.
+   * Bolt ⚡ Optimization: Eliminates O(d) vector allocation.
+   */
+  static addScaledVectorInPlace(v: number[], x: number[], s: number): void {
+    for (let i = 0; i < v.length; i++) {
+      v[i] += s * x[i];
+    }
+  }
+
+  /**
+   * Calculates the quadratic form x^T * A * x.
+   * Bolt ⚡ Optimization: Uses symmetry of A and avoids intermediate vector allocations.
+   * Complexity: O(d^2).
+   */
+  static symmetricQuadraticForm(x: number[], A: number[][]): number {
+    let res = 0;
+    const n = x.length;
+    for (let i = 0; i < n; i++) {
+      const xi = x[i];
+      // Diagonal term
+      res += xi * xi * A[i][i];
+      // Off-diagonal terms (leverage symmetry: 2 * x_i * x_j * A_ij)
+      for (let j = i + 1; j < n; j++) {
+        res += 2 * xi * x[j] * A[i][j];
+      }
+    }
+    return res;
+  }
+
+  /**
    * Inverts a square matrix using Gaussian Elimination.
    * Note: This implementation is suitable for small dimensions (e.g., d=11).
    *
@@ -100,10 +144,14 @@ export class Matrix {
    */
   static invert(A: number[][]): number[][] {
     const n = A.length;
-    // Bolt ⚡ Optimization: Hoist identity matrix creation to avoid O(n^2) allocations
-    const I = this.identity(n);
-    // Create augmented matrix [A | I]
-    const aug = A.map((row, i) => [...row, ...I[i]]);
+    // Bolt ⚡ Optimization: Pre-allocate augmented matrix directly to avoid multiple spreads/maps
+    const aug: number[][] = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const row = new Array(2 * n).fill(0);
+      for (let j = 0; j < n; j++) row[j] = A[i][j];
+      row[n + i] = 1; // Inline identity matrix creation
+      aug[i] = row;
+    }
 
     for (let i = 0; i < n; i++) {
       // Pivot
@@ -111,21 +159,33 @@ export class Matrix {
       for (let j = i + 1; j < n; j++) {
         if (Math.abs(aug[j][i]) > Math.abs(aug[pivot][i])) pivot = j;
       }
-      [aug[i], aug[pivot]] = [aug[pivot], aug[i]];
+
+      if (pivot !== i) {
+        const temp = aug[i];
+        aug[i] = aug[pivot];
+        aug[pivot] = temp;
+      }
 
       const div = aug[i][i];
       if (Math.abs(div) < 1e-10) throw new Error("Matrix is singular");
 
-      for (let j = 0; j < 2 * n; j++) aug[i][j] /= div;
+      const invDiv = 1.0 / div;
+      for (let j = i; j < 2 * n; j++) aug[i][j] *= invDiv;
 
       for (let k = 0; k < n; k++) {
         if (k !== i) {
           const factor = aug[k][i];
-          for (let j = 0; j < 2 * n; j++) aug[k][j] -= factor * aug[i][j];
+          if (Math.abs(factor) > 1e-12) {
+            for (let j = i; j < 2 * n; j++) aug[k][j] -= factor * aug[i][j];
+          }
         }
       }
     }
 
-    return aug.map(row => row.slice(n));
+    const res: number[][] = new Array(n);
+    for (let i = 0; i < n; i++) {
+      res[i] = aug[i].slice(n);
+    }
+    return res;
   }
 }

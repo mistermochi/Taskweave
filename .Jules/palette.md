@@ -13,3 +13,7 @@ This journal tracks critical UX and accessibility learnings for the taskweave pr
 ## 2026-05-15 - Ultra-Compact Responsive Pickers
 **Learning:** For inline pickers, maintaining a side-by-side layout even on small viewports (by scaling down and using concise labels) preserves the hierarchy and efficiency of the "Quick Select + Precision" pattern better than stacking.
 **Action:** Optimized `DatePicker` with reduced scaling (scale-90) and abbreviated labels (TMW, WKND) to fit side-by-side on mobile.
+
+## 2025-05-15 - Standardized Empty States
+**Learning:** Using a dedicated `EmptyState` component instead of custom `div` layouts ensures consistent branding, typography, and animations across the app. It also simplifies the implementation of encouraging micro-copy and clear Call-to-Action (CTA) buttons.
+**Action:** Always check for existing `EmptyState` or similar presentation components before building custom placeholder layouts for empty lists or dashboards.

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Plus, Star, X
+  Plus, Star, X, Sparkles
 } from 'lucide-react';
 import { vibrate } from '@/shared/lib/utils';
 import { Task, TaskEntity } from '@/entities/task';
@@ -21,6 +21,7 @@ import { AppHeader } from '@/shared/ui/ui/app-header';
 import { TaskNavigation } from '@/features/task-app/components/task-navigation';
 import { TaskListItem } from '@/features/task-app/components/task-list-item';
 import { createDefaultTask } from '@/features/task-app/lib/constants';
+import { EmptyState } from '@/shared/ui/ui/empty-state';
 
 /**
  * Bolt ⚡ Optimization: Accepts state and actions as props to avoid redundant
@@ -192,17 +193,23 @@ export const DashboardView: React.FC = () => {
                             ))}
                        </div>
                     ) : (
-                        <div className="py-12 text-center text-secondary/40 border-2 border-dashed border-border rounded-xl">
-                            <p className="text-sm font-medium">Your flow is empty.</p>
-                            <Button
-                                variant="link"
-                                size="sm"
-                                className="mt-1"
-                                onClick={createNewTask}
-                            >
-                                Add a task
-                            </Button>
-                        </div>
+                        <EmptyState
+                            icon={Sparkles}
+                            title="Ready to start your day?"
+                            message="Your suggested plan is currently empty. Add tasks to see them here."
+                            className="border-2 border-dashed border-border rounded-xl"
+                            action={
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={createNewTask}
+                                    className="rounded-full px-4"
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Add Task
+                                </Button>
+                            }
+                        />
                     )}
                 </section>
 

@@ -68,6 +68,8 @@ export function AppearanceForm() {
                 onClick={() => updateSettings({ themeColor: key })}
                 className="flex items-center justify-center p-0.5"
                 title={value.name}
+                aria-label={`Set accent color to ${value.name}`}
+                aria-pressed={settings.themeColor === key}
               >
                 <div
                   style={{ backgroundColor: `hsl(${value.hsl})` }}

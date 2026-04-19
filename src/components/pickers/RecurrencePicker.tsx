@@ -281,6 +281,7 @@ export const RecurrencePicker: React.FC<RecurrencePickerProps> = ({
                         onChange(undefined);
                         vibrate('light');
                     }}
+                    aria-label="Clear recurrence"
                 >
                     <X size={12} />
                 </Button>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Plus, Star, X
+  Plus, Star, X, Sparkles
 } from 'lucide-react';
 import { vibrate } from '@/shared/lib/utils';
 import { Task, TaskEntity } from '@/entities/task';
@@ -18,6 +18,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/ui/she
 import { useTaskAppStore } from '@/features/task-app/use-task-app';
 import { useReferenceContext } from '@/context/ReferenceContext';
 import { AppHeader } from '@/shared/ui/ui/app-header';
+import { EmptyState } from '@/shared/ui/ui/empty-state';
 import { TaskNavigation } from '@/features/task-app/components/task-navigation';
 import { TaskListItem } from '@/features/task-app/components/task-list-item';
 import { createDefaultTask } from '@/features/task-app/lib/constants';
@@ -192,17 +193,22 @@ export const DashboardView: React.FC = () => {
                             ))}
                        </div>
                     ) : (
-                        <div className="py-12 text-center text-secondary/40 border-2 border-dashed border-border rounded-xl">
-                            <p className="text-sm font-medium">Your flow is empty.</p>
-                            <Button
-                                variant="link"
-                                size="sm"
-                                className="mt-1"
-                                onClick={createNewTask}
-                            >
-                                Add a task
-                            </Button>
-                        </div>
+                        <EmptyState
+                            icon={Sparkles}
+                            title="Your flow is empty"
+                            message="Add tasks to your inbox and we'll suggest a plan based on your energy."
+                            className="border-2 border-dashed border-border rounded-xl"
+                            action={
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={createNewTask}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Add a task
+                                </Button>
+                            }
+                        />
                     )}
                 </section>
 

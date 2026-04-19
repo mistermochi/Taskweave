@@ -73,3 +73,7 @@
 ## 2026-04-08 - [In-place Matrix Mutation and Coefficient Caching]
 **Learning:** In Multi-Armed Bandit algorithms, $O(d^2)$ allocations for outer products and additions during every training sample create a major GC bottleneck during history recalibration. Implementing in-place mutations ($A = A + x x^T$) eliminates this overhead. Additionally, caching the Ridge Regression coefficients ($\theta = A^{-1}b$) alongside $A^{-1}$ reduces prediction complexity by $O(d^2)$ on cache hits.
 **Action:** Prioritize in-place mutations for high-frequency matrix updates and cache derived parameters (like $\theta$) that depend on slowly-changing matrices.
+
+## 2026-05-24 - [Reference Stabilization in Firestore Contexts]
+**Learning:** Firestore collection hooks frequently emit new array references even when the data is semantically identical (due to metadata changes or unrelated document updates). Chaining these into global contexts triggers application-wide re-renders. Implementing a two-tier stabilization (object-level via property check, then collection-level via shallow array check) ensures reference identity across the entire component tree for unchanged data.
+**Action:** Always implement object and collection-level stabilization when wrapping Firestore collection hooks in React Context to preserve downstream memoization and effect stability.

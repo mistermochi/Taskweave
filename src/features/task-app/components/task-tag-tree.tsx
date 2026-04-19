@@ -13,14 +13,12 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-  ContextMenuSeparator,
 } from "@/shared/ui/ui/context-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/shared/ui/ui/dropdown-menu";
 import { Button } from "@/shared/ui/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/ui/tooltip";

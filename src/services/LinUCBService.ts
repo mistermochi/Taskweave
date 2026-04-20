@@ -228,6 +228,8 @@ export class LinUCBService {
          await this.loadPromise;
     }
 
+    const updatedArms = new Set<number>();
+
     for (const { x, arm, reward } of samples) {
         if (arm < 0 || arm >= NUM_ARMS) continue;
         
@@ -237,10 +239,14 @@ export class LinUCBService {
         Matrix.addOuterProductInPlace(A, x);
         Matrix.addScaledVectorInPlace(b, x, reward);
 
-        // Bolt ⚡ Optimization: Invalidate cached parameters
-        this.arms[arm].A_inv = undefined;
-        this.arms[arm].theta = undefined;
+        updatedArms.add(arm);
     }
+
+    // Bolt ⚡ Optimization: Invalidate cached parameters once per arm after batch update
+    updatedArms.forEach(armIdx => {
+        this.arms[armIdx].A_inv = undefined;
+        this.arms[armIdx].theta = undefined;
+    });
 
     await this.saveModel();
   }

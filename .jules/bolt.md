@@ -73,3 +73,7 @@
 ## 2026-04-08 - [In-place Matrix Mutation and Coefficient Caching]
 **Learning:** In Multi-Armed Bandit algorithms, $O(d^2)$ allocations for outer products and additions during every training sample create a major GC bottleneck during history recalibration. Implementing in-place mutations ($A = A + x x^T$) eliminates this overhead. Additionally, caching the Ridge Regression coefficients ($\theta = A^{-1}b$) alongside $A^{-1}$ reduces prediction complexity by $O(d^2)$ on cache hits.
 **Action:** Prioritize in-place mutations for high-frequency matrix updates and cache derived parameters (like $\theta$) that depend on slowly-changing matrices.
+
+## 2026-04-21 - [Snapshot Isolation vs. Micro-optimization]
+**Learning:** In hot loops constructing immutable-style contexts (like `SuggestionContext`), replacing array spreads with reference passes for "speed" is a high-risk anti-pattern. While it saves an O(C) allocation, it breaks snapshot isolation if the source array is mutated later in the loop (e.g., via `push`), corrupting all previously created contexts. Additionally, manual Map `delete/set` to exclude an item breaks Map iteration order, which can affect deterministic outputs or feature engineering.
+**Action:** Prioritize snapshot integrity via spreads for historical data. Use single-pass `forEach` or `for...of` to filter collections without mutating source Maps or creating multiple intermediate arrays.

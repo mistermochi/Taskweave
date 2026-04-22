@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Plus, Star, X
+  Plus, Star, X, Sparkles
 } from 'lucide-react';
 import { vibrate } from '@/shared/lib/utils';
 import { Task, TaskEntity } from '@/entities/task';
@@ -20,6 +20,7 @@ import { useReferenceContext } from '@/context/ReferenceContext';
 import { AppHeader } from '@/shared/ui/ui/app-header';
 import { TaskNavigation } from '@/features/task-app/components/task-navigation';
 import { TaskListItem } from '@/features/task-app/components/task-list-item';
+import { EmptyState } from '@/shared/ui/ui/empty-state';
 import { createDefaultTask } from '@/features/task-app/lib/constants';
 
 /**
@@ -120,6 +121,7 @@ export const DashboardView: React.FC = () => {
   };
 
   const createNewTask = () => {
+    vibrate('light');
     setSelectedTask(createDefaultTask());
   };
 
@@ -192,17 +194,20 @@ export const DashboardView: React.FC = () => {
                             ))}
                        </div>
                     ) : (
-                        <div className="py-12 text-center text-secondary/40 border-2 border-dashed border-border rounded-xl">
-                            <p className="text-sm font-medium">Your flow is empty.</p>
-                            <Button
-                                variant="link"
-                                size="sm"
-                                className="mt-1"
-                                onClick={createNewTask}
-                            >
-                                Add a task
-                            </Button>
-                        </div>
+                        <EmptyState
+                            icon={Sparkles}
+                            title="Your flow is empty."
+                            message="We'll suggest tasks here based on your energy and priorities."
+                            action={
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={createNewTask}
+                                >
+                                    Add a task
+                                </Button>
+                            }
+                        />
                     )}
                 </section>
 

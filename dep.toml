@@ -15,7 +15,7 @@ define = {
   "process.env.GEMINI_API_KEY" = "${GEMINI_API_KEY}",
   "process.env.API_KEY" = "${GEMINI_API_KEY}"
 }
-external = ["react", "react-dom", "lucide-react", "dexie", "dexie-react-hooks"]
+external = ["react", "react-dom", "lucide-react"]
 
 [serve]
 port = 3000

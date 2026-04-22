@@ -79,3 +79,8 @@
 **Clutter:** Redundant `TaskRow` component and its associated `TaskDetailsSheetContent`.
 **Learning:** Consolidating UI components into a single "Source of Truth" (like `TaskListItem`) reduces structural entropy. However, Janitor sweeps must never remove `console.error` in catch blocks for fire-and-forget operations, as they are essential for production observability when no other logging service exists.
 **Action:** Refactored `CalendarImportModal` to use `TaskListItem`, deleted the orphaned components, and explicitly preserved error logging.
+
+## 2026-04-18 - Removed Unused Dexie Dependencies
+**Clutter:** Unused `dexie` and `dexie-react-hooks` dependencies in `package.json` and `dep.toml`.
+**Learning:** In addition to `package.json`, the project uses `dep.toml` for build-time external dependency management. Forgetting to sync both can lead to inconsistent build configurations.
+**Action:** Removed orphaned dependencies from both configuration files and synchronized the lockfile.

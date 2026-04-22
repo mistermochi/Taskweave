@@ -77,3 +77,6 @@
 ## 2026-05-24 - [Reference Stabilization in Firestore Contexts]
 **Learning:** Firestore collection hooks frequently emit new array references even when the data is semantically identical (due to metadata changes or unrelated document updates). Chaining these into global contexts triggers application-wide re-renders. Implementing a two-tier stabilization (object-level via property check, then collection-level via shallow array check) ensures reference identity across the entire component tree for unchanged data.
 **Action:** Always implement object and collection-level stabilization when wrapping Firestore collection hooks in React Context to preserve downstream memoization and effect stability.
+## 2026-04-10 - [Eliminating O(N^2) Array Spreading in Loops]
+**Learning:** Spreading an accumulating array (e.g., `[...previousCompletions]`) inside a chronological loop creates an O(N²) time and space bottleneck, even if the algorithm's core logic is optimized to O(N). Passing the array by reference is safe when the context is transient and the array is only mutated after the current iteration's use.
+**Action:** Avoid using the spread operator on large arrays inside loops. Use direct references if the object being created is short-lived or if you can guarantee mutation safety.

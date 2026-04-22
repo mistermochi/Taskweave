@@ -184,7 +184,7 @@ export class RecommendationEngine {
         availableMinutes: 60,
         tasks: activeTasksAtTime,
         tags: [],
-        completedTasks: [...previousCompletions], // Bolt ⚡: Maintain history for feature extraction
+        completedTasks: previousCompletions, // Bolt ⚡: Maintain history for feature extraction
         lastTask, // Bolt ⚡: Pass pre-identified last task
         activeTaskIds: activePool, // Bolt ⚡: Pass existing active pool Map for O(1) blocking check without allocation
         backlogCount: activeTasksAtTime.length,

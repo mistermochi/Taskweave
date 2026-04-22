@@ -105,32 +105,6 @@ export const getStartOfDay = (now: number | Date = Date.now()): number => {
 };
 
 /**
- * Adjusts a recurrence configuration to match a new anchor date.
- * Used when a user manually moves a recurring task.
- */
-export const syncRecurrenceToNewDate = (
-  oldConfig: RecurrenceConfig, 
-  newDateTimestamp: number
-): RecurrenceConfig => {
-  const newDate = new Date(newDateTimestamp);
-  const newConfig = { ...oldConfig };
-
-  if (newConfig.frequency === 'weekly') {
-     if (!newConfig.weekDays || newConfig.weekDays.length <= 1) {
-         newConfig.weekDays = [newDate.getDay()];
-     }
-  } else if (newConfig.frequency === 'monthly') {
-      if (newConfig.monthlyType === 'relative') {
-          const nth = Math.ceil(newDate.getDate() / 7);
-          newConfig.weekOfMonth = nth > 4 ? 5 : nth;
-          newConfig.weekDays = [newDate.getDay()];
-      }
-  }
-  
-  return newConfig;
-};
-
-/**
  * Calculates the next occurrence timestamp for a recurring task.
  *
  * @param baseDateTimestamp - The anchor date for the next calculation.

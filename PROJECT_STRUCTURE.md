@@ -24,7 +24,6 @@ React Context providers that manage global state and bridge services with the UI
 Custom React hooks for shared logic:
 - `/controllers`: View-specific logic (e.g., `useBreathingController`) to keep components lean.
 - `useFirestore.ts`: Generic real-time data fetching from Firebase.
-- `useTaskTimer.ts`: Manages the countdown and persistence for active focus sessions.
 
 ### `/components`
 Reusable UI elements, organized by feature:

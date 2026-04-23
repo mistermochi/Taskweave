@@ -84,3 +84,8 @@
 **Clutter:** Unused `dexie` and `dexie-react-hooks` dependencies in `package.json` and `dep.toml`.
 **Learning:** In addition to `package.json`, the project uses `dep.toml` for build-time external dependency management. Forgetting to sync both can lead to inconsistent build configurations.
 **Action:** Removed orphaned dependencies from both configuration files and synchronized the lockfile.
+
+## 2026-04-20 - Removed Unreferenced Task Metadata and Timer Hooks
+**Clutter:** `useTaskTimer` and `useTaskDisplayInfo` in `src/entities/task/lib/useTaskTimer.ts`.
+**Learning:** Core domain hooks (like those for task display info or timers) can become orphans after major UI refactors (e.g., removal of `TaskRow`). Always use global `grep` to verify if seemingly essential hooks are actually still in use before assuming they are protected.
+**Action:** Deleted the unreferenced hook file and updated the entity index and documentation to reduce cognitive load and mental debt.

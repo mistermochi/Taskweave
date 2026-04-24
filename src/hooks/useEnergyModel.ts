@@ -30,22 +30,20 @@ export const useEnergyModel = (): EnergyModel => {
   const model = useMemo(() => {
     const startOfDay = getStartOfDay();
 
-    // Filter for today's mood vitals (since 4 AM)
-    // Bolt ⚡ Optimization: Remove redundant sort as VitalsContext already provides data sorted desc
-    const todaysVitals = vitals
-      .filter(v => v.type === 'mood' && v.timestamp >= startOfDay);
+    // Bolt ⚡ Optimization: Use find() for O(1) early exit instead of O(N) filter().
+    // Since vitals are already sorted descending, the first match is the latest entry.
+    const latestMood = vitals.find(v => v.type === 'mood' && v.timestamp >= startOfDay);
 
     let currentEnergy = 60; // Default / Fallback
     let moodIndex = 3;
     let hasEntry = false;
     let lastUpdated = 0;
 
-    if (todaysVitals.length > 0) {
-      const latest = todaysVitals[0];
-      currentEnergy = normalizeEnergy(latest.value);
+    if (latestMood) {
+      currentEnergy = normalizeEnergy(latestMood.value);
       moodIndex = getMoodIndexFromEnergy(currentEnergy);
       hasEntry = true;
-      lastUpdated = latest.timestamp;
+      lastUpdated = latestMood.timestamp;
     }
 
     return {

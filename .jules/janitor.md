@@ -84,3 +84,8 @@
 **Clutter:** Unused `dexie` and `dexie-react-hooks` dependencies in `package.json` and `dep.toml`.
 **Learning:** In addition to `package.json`, the project uses `dep.toml` for build-time external dependency management. Forgetting to sync both can lead to inconsistent build configurations.
 **Action:** Removed orphaned dependencies from both configuration files and synchronized the lockfile.
+
+## 2026-04-20 - Removed Orphaned Tag Utility Functions
+**Clutter:** Unreferenced utility functions `getChildTagIds`, `getTagDepth`, and `getTagLineage` in `src/shared/lib/tagUtils.ts`.
+**Learning:** As the application moves towards more robust API-driven or flat-map data management (like in `tagApi.ts`), legacy recursive hierarchy helpers often become dead weight. These utilities can survive multiple refactors because they are "pure" and don't cause errors, but they increase structural entropy.
+**Action:** Deleted the orphaned utility file and verified that no components or tests were implicitly dependent on it.

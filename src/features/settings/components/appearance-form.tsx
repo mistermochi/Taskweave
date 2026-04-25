@@ -2,7 +2,7 @@
 
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { Sun, Moon } from 'lucide-react';
-import { cn } from "@/shared/lib/utils";
+import { cn, vibrate } from "@/shared/lib/utils";
 import {
   Card,
   CardContent,
@@ -38,7 +38,12 @@ export function AppearanceForm() {
           <ToggleGroup
             type="single"
             value={settings.themeMode}
-            onValueChange={(value) => value && updateSettings({ themeMode: value as 'light' | 'dark' })}
+            onValueChange={(value) => {
+              if (value) {
+                updateSettings({ themeMode: value as 'light' | 'dark' });
+                vibrate('light');
+              }
+            }}
             className="grid grid-cols-2 gap-2"
           >
             <ToggleGroupItem
@@ -65,9 +70,17 @@ export function AppearanceForm() {
               <button
                 key={key}
                 type="button"
-                onClick={() => updateSettings({ themeColor: key })}
-                className="flex items-center justify-center p-0.5"
+                onClick={() => {
+                  updateSettings({ themeColor: key });
+                  vibrate('light');
+                }}
+                className={cn(
+                  "flex items-center justify-center p-0.5 rounded-full transition-all active:scale-95 outline-none",
+                  "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                )}
                 title={value.name}
+                aria-label={`Set accent color to ${value.name}`}
+                aria-pressed={settings.themeColor === key}
               >
                 <div
                   style={{ backgroundColor: `hsl(${value.hsl})` }}

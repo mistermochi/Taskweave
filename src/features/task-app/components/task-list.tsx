@@ -8,6 +8,7 @@ import { TaskListItem } from "./task-list-item";
 
 import { ScrollArea } from "@/shared/ui/ui/scroll-area";
 import { Skeleton } from "@/shared/ui/ui/skeleton";
+import { SectionHeader } from "@/shared/ui/ui/section-header";
 
 interface TaskListProps {
   items: Task[];
@@ -114,7 +115,9 @@ export function TaskList({ items, tags, loading = false }: TaskListProps) {
       <div className="flex flex-col gap-2 p-4 pt-0">
         {loading && items.length === 0 && (
           <div className="flex flex-col gap-4 py-4">
-            <Skeleton className="h-4 w-20" />
+            <div className="py-2">
+              <Skeleton className="h-4 w-20" />
+            </div>
             <div className="flex flex-col gap-2">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex items-center gap-4 p-2 rounded-lg border border-transparent">
@@ -130,9 +133,15 @@ export function TaskList({ items, tags, loading = false }: TaskListProps) {
         )}
         {groups.map((group) => (
           <div key={group.label} className="flex flex-col gap-2">
-            <div className="text-muted-foreground sticky top-0 bg-background/95 z-10 py-2 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
-                {group.label}
-            </div>
+            <SectionHeader
+              title={group.label}
+              className="px-0"
+              action={
+                <span className="text-[10px] text-muted-foreground/50 tabular-nums font-bold">
+                  {group.tasks.length}
+                </span>
+              }
+            />
             {group.tasks.map((item) => (
               <TaskListItem
                 key={item.id}

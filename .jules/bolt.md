@@ -80,3 +80,7 @@
 ## 2026-04-10 - [Eliminating O(N^2) Array Spreading in Loops]
 **Learning:** Spreading an accumulating array (e.g., `[...previousCompletions]`) inside a chronological loop creates an O(N²) time and space bottleneck, even if the algorithm's core logic is optimized to O(N). Passing the array by reference is safe when the context is transient and the array is only mutated after the current iteration's use.
 **Action:** Avoid using the spread operator on large arrays inside loops. Use direct references if the object being created is short-lived or if you can guarantee mutation safety.
+
+## 2026-04-26 - [Reducing Allocations in History Replay]
+**Learning:** Chaining `Array.from(map.values()).filter()` inside a loop that iterates over thousands of historical events creates significant GC pressure due to redundant intermediate array allocations ((N \cdot M)$ total allocations). Replacing it with a single-pass `Map.forEach` loop maintains memory efficiency and improves execution speed.
+**Action:** In high-frequency loops processing `Map` or `Set` data, use `.forEach()` to build the required subset in a single pass instead of chaining multiple iterator-to-array transformations.

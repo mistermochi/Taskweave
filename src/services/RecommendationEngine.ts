@@ -172,10 +172,11 @@ export class RecommendationEngine {
       }
 
       // 4. Construct context for this completion event.
-      // Bolt ⚡: activeTasksAtTime is pool minus current task.
-      // We use the pool directly to avoid re-allocating an array if possible,
-      // but the SuggestionContext interface expects an array.
-      const activeTasksAtTime = Array.from(activePool.values()).filter(t => t.id !== task.id);
+      // Bolt ⚡ Optimization: Construct activeTasksAtTime in a single pass to avoid O(2M) allocation
+      const activeTasksAtTime: TaskEntity[] = [];
+      activePool.forEach(t => {
+        if (t.id !== task.id) activeTasksAtTime.push(t);
+      });
       const lastTask = i > 0 ? completedTasks[i - 1] : undefined;
 
       const context: SuggestionContext = {

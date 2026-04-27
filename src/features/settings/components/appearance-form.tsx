@@ -2,7 +2,7 @@
 
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { Sun, Moon } from 'lucide-react';
-import { cn } from "@/shared/lib/utils";
+import { cn, vibrate } from "@/shared/lib/utils";
 import {
   Card,
   CardContent,
@@ -43,14 +43,16 @@ export function AppearanceForm() {
           >
             <ToggleGroupItem
               value="light"
-              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5"
+              onClick={() => vibrate('light')}
+              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5 active:scale-95 transition-all"
             >
               <Sun className="h-4 w-4" />
               <span className="text-xs font-medium">Light</span>
             </ToggleGroupItem>
             <ToggleGroupItem
               value="dark"
-              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5"
+              onClick={() => vibrate('light')}
+              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5 active:scale-95 transition-all"
             >
               <Moon className="h-4 w-4" />
               <span className="text-xs font-medium">Dark</span>
@@ -65,8 +67,13 @@ export function AppearanceForm() {
               <button
                 key={key}
                 type="button"
-                onClick={() => updateSettings({ themeColor: key })}
-                className="flex items-center justify-center p-0.5"
+                aria-label={`Set accent color to ${value.name}`}
+                aria-pressed={settings.themeColor === key}
+                onClick={() => {
+                  updateSettings({ themeColor: key });
+                  vibrate('light');
+                }}
+                className="flex items-center justify-center p-0.5 active:scale-95 transition-all"
                 title={value.name}
               >
                 <div

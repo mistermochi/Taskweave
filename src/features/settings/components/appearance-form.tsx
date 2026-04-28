@@ -2,7 +2,7 @@
 
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { Sun, Moon } from 'lucide-react';
-import { cn } from "@/shared/lib/utils";
+import { cn, vibrate } from "@/shared/lib/utils";
 import {
   Card,
   CardContent,
@@ -38,19 +38,26 @@ export function AppearanceForm() {
           <ToggleGroup
             type="single"
             value={settings.themeMode}
-            onValueChange={(value) => value && updateSettings({ themeMode: value as 'light' | 'dark' })}
+            onValueChange={(value) => {
+              if (value) {
+                vibrate('light');
+                updateSettings({ themeMode: value as 'light' | 'dark' });
+              }
+            }}
             className="grid grid-cols-2 gap-2"
           >
             <ToggleGroupItem
               value="light"
-              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5"
+              aria-label="Set light theme"
+              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5 active:scale-95 transition-all"
             >
               <Sun className="h-4 w-4" />
               <span className="text-xs font-medium">Light</span>
             </ToggleGroupItem>
             <ToggleGroupItem
               value="dark"
-              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5"
+              aria-label="Set dark theme"
+              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5 active:scale-95 transition-all"
             >
               <Moon className="h-4 w-4" />
               <span className="text-xs font-medium">Dark</span>
@@ -61,25 +68,33 @@ export function AppearanceForm() {
         <div className="space-y-3">
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Accent Color</Label>
           <div className="flex flex-wrap gap-2">
-            {Object.entries(THEME_COLORS).map(([key, value]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => updateSettings({ themeColor: key })}
-                className="flex items-center justify-center p-0.5"
-                title={value.name}
-              >
-                <div
-                  style={{ backgroundColor: `hsl(${value.hsl})` }}
-                  className={cn(
-                    "w-8 h-8 rounded-full border-2 transition-all hover:scale-110",
-                    settings.themeColor === key
-                      ? "border-foreground scale-110"
-                      : "border-transparent opacity-80"
-                  )}
-                />
-              </button>
-            ))}
+            {Object.entries(THEME_COLORS).map(([key, value]) => {
+              const isActive = settings.themeColor === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    vibrate('light');
+                    updateSettings({ themeColor: key });
+                  }}
+                  className="flex items-center justify-center p-0.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 transition-all"
+                  title={value.name}
+                  aria-label={`Set accent color to ${value.name}`}
+                  aria-pressed={isActive}
+                >
+                  <div
+                    style={{ backgroundColor: `hsl(${value.hsl})` }}
+                    className={cn(
+                      "w-8 h-8 rounded-full border-2 transition-all hover:scale-110",
+                      isActive
+                        ? "border-foreground scale-110"
+                        : "border-transparent opacity-80"
+                    )}
+                  />
+                </button>
+              );
+            })}
           </div>
         </div>
       </CardContent>

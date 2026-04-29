@@ -13,3 +13,7 @@ This journal tracks critical UX and accessibility learnings for the taskweave pr
 ## 2026-05-15 - Ultra-Compact Responsive Pickers
 **Learning:** For inline pickers, maintaining a side-by-side layout even on small viewports (by scaling down and using concise labels) preserves the hierarchy and efficiency of the "Quick Select + Precision" pattern better than stacking.
 **Action:** Optimized `DatePicker` with reduced scaling (scale-90) and abbreviated labels (TMW, WKND) to fit side-by-side on mobile.
+
+## 2026-06-20 - Robust Empty State Accessibility
+**Learning:** When using `role="region"` for a component like `EmptyState`, it is more robust and localization-friendly to use `aria-labelledby` pointing to the internal heading (using `useId`) rather than duplicating the title in an `aria-label`. Marking decorative icon containers with `aria-hidden="true"` ensures a cleaner screen reader experience.
+**Action:** Use `useId` and `aria-labelledby` for labeled regions and hide decorative visuals.

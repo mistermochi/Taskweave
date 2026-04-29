@@ -30,7 +30,12 @@ export class Matrix {
    * @returns The scalar dot product.
    */
   static vectorDot(a: number[], b: number[]): number {
-    return a.reduce((sum, val, i) => sum + val * b[i], 0);
+    let sum = 0;
+    const n = a.length;
+    for (let i = 0; i < n; i++) {
+      sum += a[i] * b[i];
+    }
+    return sum;
   }
 
   /**
@@ -92,14 +97,19 @@ export class Matrix {
 
   /**
    * Performs an in-place update of A = A + x * x^T.
-   * Bolt ⚡ Optimization: Eliminates O(d^2) matrix allocation and nested map calls.
+   * Bolt ⚡ Optimization: Leverages symmetry of x*x^T to reduce multiplications by ~45%.
    */
   static addOuterProductInPlace(A: number[][], x: number[]): void {
     const n = x.length;
     for (let i = 0; i < n; i++) {
       const xi = x[i];
-      for (let j = 0; j < n; j++) {
-        A[i][j] += xi * x[j];
+      // Diagonal term
+      A[i][i] += xi * xi;
+      // Off-diagonal terms (A_ij = A_ji)
+      for (let j = i + 1; j < n; j++) {
+        const val = xi * x[j];
+        A[i][j] += val;
+        A[j][i] += val;
       }
     }
   }

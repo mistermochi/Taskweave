@@ -30,7 +30,12 @@ export class Matrix {
    * @returns The scalar dot product.
    */
   static vectorDot(a: number[], b: number[]): number {
-    return a.reduce((sum, val, i) => sum + val * b[i], 0);
+    let sum = 0;
+    const n = a.length;
+    for (let i = 0; i < n; i++) {
+      sum += a[i] * b[i];
+    }
+    return sum;
   }
 
   /**

@@ -408,51 +408,52 @@ export class RecommendationEngine {
 
     const isBlocked = (task: TaskEntity): boolean => {
         if (!task.blockedBy || task.blockedBy.length === 0) return false;
-        return task.blockedBy.some(blockerId => activeTaskIds.has(blockerId));
+        if (activeTaskIds instanceof Map) {
+            return task.blockedBy.some(blockerId => activeTaskIds.has(blockerId));
+        }
+        return task.blockedBy.some(blockerId => (activeTaskIds as Set<string>).has(blockerId));
     };
-    let tasks = allActiveTasks.filter(t => !isBlocked(t));
     
     const last = providedLastTask || ctx.lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
     let chosenTask: TaskEntity | null = null;
     let type: 'task' | 'wellbeing' = 'task';
     let reason = "";
 
+    // Bolt ⚡ Optimization: Resolve strategy with single-pass selection pattern.
+    // We combine blocking checks and strategy filters into one O(N) traversal.
     switch (arm) {
       case StrategyArm.DEEP_FLOW:
-        tasks = tasks.filter(t => t.energy === 'High' && t.duration > 30);
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t => !isBlocked(t) && t.energy === 'High' && t.duration > 30);
         reason = "Deep Flow: Capitalize on your energy.";
         break;
 
       case StrategyArm.QUICK_SPARK:
-        tasks = tasks.filter(t => t.energy === 'High' && t.duration <= 20);
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t => !isBlocked(t) && t.energy === 'High' && t.duration <= 20);
         reason = "Quick Spark: Build momentum fast.";
         break;
 
       case StrategyArm.MOMENTUM:
-        if (last) tasks = tasks.filter(t => t.category === last.category);
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t => !isBlocked(t) && (!last || t.category === last.category));
         const tagName = ctx.tags.find(t => t.id === last?.category)?.name || last?.category;
         reason = `Momentum: Stay in the ${tagName} zone.`;
         break;
 
       case StrategyArm.PALETTE_CLEANSER:
-        if (last) tasks = tasks.filter(t => t.category !== last.category);
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t => !isBlocked(t) && (!last || t.category !== last.category));
         reason = "Palette Cleanser: Switch context to stay fresh.";
         break;
 
       case StrategyArm.THE_CRUSHER:
-        tasks = tasks.filter(t => t.dueDate && t.dueDate < oneDayFromNow);
-        // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
-        chosenTask = tasks.length > 0 ? tasks.reduce((prev, curr) => (curr.dueDate || 0) < (prev.dueDate || 0) ? curr : prev) : null;
+        chosenTask = this.pickBest(
+            allActiveTasks,
+            t => !isBlocked(t) && !!(t.dueDate && t.dueDate < oneDayFromNow),
+            (a, b) => (a.dueDate || 0) - (b.dueDate || 0)
+        );
         reason = "The Crusher: Clear urgent items.";
         break;
 
       case StrategyArm.LOW_GEAR:
-        tasks = tasks.filter(t => t.energy === 'Low');
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t => !isBlocked(t) && t.energy === 'Low');
         reason = "Low Gear: Productive despite low energy.";
         break;
 
@@ -476,21 +477,21 @@ export class RecommendationEngine {
 
       case StrategyArm.ARCHAEOLOGIST:
         const fourteenDaysAgo = now - (14 * 24 * 60 * 60 * 1000);
-        tasks = tasks.filter(t => t.createdAt < fourteenDaysAgo && !t.dueDate);
-        // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
-        chosenTask = tasks.length > 0 ? tasks.reduce((prev, curr) => curr.createdAt < prev.createdAt ? curr : prev) : null;
+        chosenTask = this.pickBest(
+            allActiveTasks,
+            t => !isBlocked(t) && t.createdAt < fourteenDaysAgo && !t.dueDate,
+            (a, b) => a.createdAt - b.createdAt
+        );
         reason = "The Archaeologist: Clear stagnant items.";
         break;
 
       case StrategyArm.SNOWBALL:
-        tasks = tasks.filter(t => t.duration <= 15);
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t => !isBlocked(t) && t.duration <= 15);
         reason = "Snowball Effect: Stack small wins.";
         break;
 
       case StrategyArm.TWILIGHT_RITUAL:
-        tasks = tasks.filter(t => t.energy === 'Low');
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t => !isBlocked(t) && t.energy === 'Low');
         reason = "Twilight Ritual: Wind down productively.";
         break;
     }
@@ -529,16 +530,33 @@ export class RecommendationEngine {
 
   /**
    * Selects the most suitable task from a candidate list.
-   * Prioritizes tasks by earliest due date, followed by most recent creation date.
+   * Bolt ⚡ Optimization: Accepts a predicate and comparison function to enable single-pass filtering and selection.
+   * Default priority: Earliest due date, followed by most recent creation date.
    */
-  private pickBest(tasks: TaskEntity[]): TaskEntity | null {
-    if (tasks.length === 0) return null;
+  private pickBest(
+    tasks: TaskEntity[],
+    predicate?: (t: TaskEntity) => boolean,
+    compare?: (a: TaskEntity, b: TaskEntity) => number
+  ): TaskEntity | null {
+    let best: TaskEntity | null = null;
     
-    let best = tasks[0];
-    
-    for (let i = 1; i < tasks.length; i++) {
+    for (let i = 0; i < tasks.length; i++) {
         const current = tasks[i];
+        if (predicate && !predicate(current)) continue;
         
+        if (!best) {
+            best = current;
+            continue;
+        }
+
+        if (compare) {
+            if (compare(current, best) < 0) {
+                best = current;
+            }
+            continue;
+        }
+
+        // Default priority: 1. Earliest Due Date, 2. Most Recent Creation
         if (current.dueDate && best.dueDate) {
             if (current.dueDate < best.dueDate) {
                 best = current;

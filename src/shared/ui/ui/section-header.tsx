@@ -28,9 +28,9 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle, a
     className
   )}>
     <div>
-      <div className="flex items-center gap-2">
+      <h3 className="flex items-center gap-2">
         {title}
-      </div>
+      </h3>
       {subtitle && <p className="text-[10px] text-muted-foreground/60 font-medium normal-case tracking-normal mt-0.5">{subtitle}</p>}
     </div>
     {action}

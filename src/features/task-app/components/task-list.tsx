@@ -8,6 +8,7 @@ import { TaskListItem } from "./task-list-item";
 
 import { ScrollArea } from "@/shared/ui/ui/scroll-area";
 import { Skeleton } from "@/shared/ui/ui/skeleton";
+import { SectionHeader } from "@/shared/ui/ui/section-header";
 
 interface TaskListProps {
   items: Task[];
@@ -130,9 +131,14 @@ export function TaskList({ items, tags, loading = false }: TaskListProps) {
         )}
         {groups.map((group) => (
           <div key={group.label} className="flex flex-col gap-2">
-            <div className="text-muted-foreground sticky top-0 bg-background/95 z-10 py-2 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
-                {group.label}
-            </div>
+            <SectionHeader
+              title={group.label}
+              action={
+                <span className="text-[10px] font-medium opacity-60">
+                  {group.tasks.length}
+                </span>
+              }
+            />
             {group.tasks.map((item) => (
               <TaskListItem
                 key={item.id}

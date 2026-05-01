@@ -172,10 +172,12 @@ export class RecommendationEngine {
       }
 
       // 4. Construct context for this completion event.
-      // Bolt ⚡: activeTasksAtTime is pool minus current task.
-      // We use the pool directly to avoid re-allocating an array if possible,
-      // but the SuggestionContext interface expects an array.
-      const activeTasksAtTime = Array.from(activePool.values()).filter(t => t.id !== task.id);
+      // Bolt ⚡ Optimization: Build activeTasksAtTime in a single pass over the pool
+      // to avoid double array allocation of Array.from().filter().
+      const activeTasksAtTime: TaskEntity[] = [];
+      activePool.forEach(t => {
+        if (t.id !== task.id) activeTasksAtTime.push(t);
+      });
       const lastTask = i > 0 ? completedTasks[i - 1] : undefined;
 
       const context: SuggestionContext = {
@@ -399,6 +401,11 @@ export class RecommendationEngine {
    * @param arm - The index of the strategy arm.
    * @param ctx - The suggestion context.
    * @param lastTask - Optional pre-identified last completed task.
+   *
+   * Bolt ⚡ Optimization: Implements a single-pass task selection pattern.
+   * By enhancing `pickBest` to accept a predicate, it combines blocking checks,
+   * filtering, and strategy-specific sorting logic into one O(N) traversal,
+   * eliminating multiple `.filter()` calls and redundant array allocations.
    */
   private resolveStrategy(arm: number, ctx: SuggestionContext, providedLastTask?: TaskEntity): Suggestion | null {
     const allActiveTasks = ctx.tasks;
@@ -406,11 +413,14 @@ export class RecommendationEngine {
     const now = ctx.currentTime.getTime();
     const oneDayFromNow = now + 86400000;
 
-    const isBlocked = (task: TaskEntity): boolean => {
-        if (!task.blockedBy || task.blockedBy.length === 0) return false;
-        return task.blockedBy.some(blockerId => activeTaskIds.has(blockerId));
+    const passesGlobalFilter = (task: TaskEntity): boolean => {
+        if (!task.blockedBy || task.blockedBy.length === 0) return true;
+        // Bolt ⚡: Optimized blocker check with for loop
+        for (let i = 0; i < task.blockedBy.length; i++) {
+            if (activeTaskIds.has(task.blockedBy[i])) return false;
+        }
+        return true;
     };
-    let tasks = allActiveTasks.filter(t => !isBlocked(t));
     
     const last = providedLastTask || ctx.lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
     let chosenTask: TaskEntity | null = null;
@@ -419,40 +429,46 @@ export class RecommendationEngine {
 
     switch (arm) {
       case StrategyArm.DEEP_FLOW:
-        tasks = tasks.filter(t => t.energy === 'High' && t.duration > 30);
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t =>
+          passesGlobalFilter(t) && t.energy === 'High' && t.duration > 30
+        );
         reason = "Deep Flow: Capitalize on your energy.";
         break;
 
       case StrategyArm.QUICK_SPARK:
-        tasks = tasks.filter(t => t.energy === 'High' && t.duration <= 20);
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t =>
+          passesGlobalFilter(t) && t.energy === 'High' && t.duration <= 20
+        );
         reason = "Quick Spark: Build momentum fast.";
         break;
 
       case StrategyArm.MOMENTUM:
-        if (last) tasks = tasks.filter(t => t.category === last.category);
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t =>
+          passesGlobalFilter(t) && (last ? t.category === last.category : true)
+        );
         const tagName = ctx.tags.find(t => t.id === last?.category)?.name || last?.category;
         reason = `Momentum: Stay in the ${tagName} zone.`;
         break;
 
       case StrategyArm.PALETTE_CLEANSER:
-        if (last) tasks = tasks.filter(t => t.category !== last.category);
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t =>
+          passesGlobalFilter(t) && (last ? t.category !== last.category : true)
+        );
         reason = "Palette Cleanser: Switch context to stay fresh.";
         break;
 
       case StrategyArm.THE_CRUSHER:
-        tasks = tasks.filter(t => t.dueDate && t.dueDate < oneDayFromNow);
-        // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
-        chosenTask = tasks.length > 0 ? tasks.reduce((prev, curr) => (curr.dueDate || 0) < (prev.dueDate || 0) ? curr : prev) : null;
+        chosenTask = this.pickBest(allActiveTasks,
+          t => passesGlobalFilter(t) && !!(t.dueDate && t.dueDate < oneDayFromNow),
+          (a, b) => (a.dueDate || 0) - (b.dueDate || 0)
+        );
         reason = "The Crusher: Clear urgent items.";
         break;
 
       case StrategyArm.LOW_GEAR:
-        tasks = tasks.filter(t => t.energy === 'Low');
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t =>
+          passesGlobalFilter(t) && t.energy === 'Low'
+        );
         reason = "Low Gear: Productive despite low energy.";
         break;
 
@@ -476,21 +492,24 @@ export class RecommendationEngine {
 
       case StrategyArm.ARCHAEOLOGIST:
         const fourteenDaysAgo = now - (14 * 24 * 60 * 60 * 1000);
-        tasks = tasks.filter(t => t.createdAt < fourteenDaysAgo && !t.dueDate);
-        // Bolt ⚡ Optimization: O(N) search instead of O(N log N) sort
-        chosenTask = tasks.length > 0 ? tasks.reduce((prev, curr) => curr.createdAt < prev.createdAt ? curr : prev) : null;
+        chosenTask = this.pickBest(allActiveTasks,
+          t => passesGlobalFilter(t) && t.createdAt < fourteenDaysAgo && !t.dueDate,
+          (a, b) => a.createdAt - b.createdAt
+        );
         reason = "The Archaeologist: Clear stagnant items.";
         break;
 
       case StrategyArm.SNOWBALL:
-        tasks = tasks.filter(t => t.duration <= 15);
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t =>
+          passesGlobalFilter(t) && t.duration <= 15
+        );
         reason = "Snowball Effect: Stack small wins.";
         break;
 
       case StrategyArm.TWILIGHT_RITUAL:
-        tasks = tasks.filter(t => t.energy === 'Low');
-        chosenTask = this.pickBest(tasks);
+        chosenTask = this.pickBest(allActiveTasks, t =>
+          passesGlobalFilter(t) && t.energy === 'Low'
+        );
         reason = "Twilight Ritual: Wind down productively.";
         break;
     }
@@ -530,18 +549,39 @@ export class RecommendationEngine {
   /**
    * Selects the most suitable task from a candidate list.
    * Prioritizes tasks by earliest due date, followed by most recent creation date.
+   *
+   * Bolt ⚡ Optimization: Accepts optional predicate and comparison function
+   * to enable single-pass task selection without intermediate array allocations.
    */
-  private pickBest(tasks: TaskEntity[]): TaskEntity | null {
-    if (tasks.length === 0) return null;
+  private pickBest(
+    tasks: TaskEntity[],
+    predicate?: (task: TaskEntity) => boolean,
+    compare?: (a: TaskEntity, b: TaskEntity) => number
+  ): TaskEntity | null {
+    let best: TaskEntity | null = null;
     
-    let best = tasks[0];
-    
-    for (let i = 1; i < tasks.length; i++) {
+    for (let i = 0; i < tasks.length; i++) {
         const current = tasks[i];
+        if (predicate && !predicate(current)) continue;
         
+        if (!best) {
+            best = current;
+            continue;
+        }
+
+        if (compare) {
+            if (compare(current, best) < 0) {
+                best = current;
+            }
+            continue;
+        }
+
+        // Default comparison logic: earliest due date, then latest creation date
         if (current.dueDate && best.dueDate) {
             if (current.dueDate < best.dueDate) {
                 best = current;
+                continue;
+            } else if (current.dueDate > best.dueDate) {
                 continue;
             }
         } else if (current.dueDate && !best.dueDate) {
@@ -655,12 +695,17 @@ export class RecommendationEngine {
 
   /**
    * Finds the most recently completed task in a list.
-   * Bolt ⚡ Optimization: O(N) single-pass traversal.
+   * Bolt ⚡ Optimization: O(N) single-pass traversal with standard for loop
+   * to eliminate callback execution overhead.
    */
   private getLatestCompletedTask(tasks: TaskEntity[]): TaskEntity | null {
     if (tasks.length === 0) return null;
-    return tasks.reduce((latest, current) =>
-      (current.completedAt || 0) > (latest.completedAt || 0) ? current : latest
-    );
+    let latest = tasks[0];
+    for (let i = 1; i < tasks.length; i++) {
+        if ((tasks[i].completedAt || 0) > (latest.completedAt || 0)) {
+            latest = tasks[i];
+        }
+    }
+    return latest;
   }
 }

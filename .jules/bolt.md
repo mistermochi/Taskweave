@@ -80,3 +80,7 @@
 ## 2026-04-10 - [Eliminating O(N^2) Array Spreading in Loops]
 **Learning:** Spreading an accumulating array (e.g., `[...previousCompletions]`) inside a chronological loop creates an O(N²) time and space bottleneck, even if the algorithm's core logic is optimized to O(N). Passing the array by reference is safe when the context is transient and the array is only mutated after the current iteration's use.
 **Action:** Avoid using the spread operator on large arrays inside loops. Use direct references if the object being created is short-lived or if you can guarantee mutation safety.
+
+## 2026-06-05 - [Single-Pass Task Selection Pattern]
+**Learning:** Chaining multiple `.filter()` calls and `pickBest` (which internally iterates) in the recommendation engine's strategy resolution leads to redundant $O(N)$ passes and multiple intermediate array allocations. Enhancing the selection utility to accept a predicate allows consolidating blocker checks, strategy-specific filters, and "best" selection into a single $O(N)$ pass.
+**Action:** When resolving items from a collection based on multiple criteria (e.g., status, blockers, and strategy logic), use a single-pass selection pattern with predicates instead of chained array filters to minimize CPU and GC pressure.

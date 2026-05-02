@@ -80,3 +80,7 @@
 ## 2026-04-10 - [Eliminating O(N^2) Array Spreading in Loops]
 **Learning:** Spreading an accumulating array (e.g., `[...previousCompletions]`) inside a chronological loop creates an O(N²) time and space bottleneck, even if the algorithm's core logic is optimized to O(N). Passing the array by reference is safe when the context is transient and the array is only mutated after the current iteration's use.
 **Action:** Avoid using the spread operator on large arrays inside loops. Use direct references if the object being created is short-lived or if you can guarantee mutation safety.
+
+## 2026-05-25 - [Early-Exit with .find() on Pre-Sorted Vitals]
+**Learning:** Chaining `.filter()[0]` on a collection to retrieve the "latest" item is an anti-pattern that forces a full O(N) traversal and redundant array allocation. Since `VitalsContext` guarantees descending chronological order, using `.find()` provides an O(1) early-exit in the common case (latest entry is often the first) and eliminates unnecessary GC pressure.
+**Action:** Always use `.find()` instead of `.filter()[0]` when only a single match is needed, especially on collections with known sort orders.

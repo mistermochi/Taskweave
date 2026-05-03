@@ -85,6 +85,10 @@
 **Learning:** In addition to `package.json`, the project uses `dep.toml` for build-time external dependency management. Forgetting to sync both can lead to inconsistent build configurations.
 **Action:** Removed orphaned dependencies from both configuration files and synchronized the lockfile.
 
+## 2026-04-20 - Removed Unreferenced Task Metadata and Timer Hooks
+**Clutter:** `useTaskTimer` and `useTaskDisplayInfo` in `src/entities/task/lib/useTaskTimer.ts`.
+**Learning:** Core domain hooks (like those for task display info or timers) can become orphans after major UI refactors (e.g., removal of `TaskRow`). Always use global `grep` to verify if seemingly essential hooks are actually still in use before assuming they are protected.
+**Action:** Deleted the unreferenced hook file and updated the entity index and documentation to reduce cognitive load and mental debt.
 ## 2026-04-29 - Removed Orphaned tagUtils Utility
 **Clutter:** The orphaned utility file `src/shared/lib/tagUtils.ts` containing legacy recursive hierarchy helpers (`getChildTagIds`, `getTagDepth`, `getTagLineage`).
 **Learning:** As the application's domain logic matures, early utility helpers often become redundant or superseded by domain-specific optimizations (like `processTagsForPicker` in the tag entity). Regular grep-based audits are essential to identify these unreferenced files and prevent structural entropy.

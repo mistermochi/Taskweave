@@ -21,7 +21,6 @@ import { useReferenceContext } from '@/context/ReferenceContext';
 import { AppHeader } from '@/shared/ui/ui/app-header';
 import { TaskNavigation } from '@/features/task-app/components/task-navigation';
 import { TaskListItem } from '@/features/task-app/components/task-list-item';
-import { EmptyState } from '@/shared/ui/ui/empty-state';
 import { createDefaultTask } from '@/features/task-app/lib/constants';
 
 /**

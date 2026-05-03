@@ -37,23 +37,6 @@ export const getMoodIndexFromEnergy = (energy: number): number => {
 };
 
 /**
- * Calculates the total passive energy drain based on time elapsed.
- * Includes a 30-minute grace period where no drain occurs.
- *
- * @param lastTimestamp - The Unix timestamp of the last energy update.
- * @param currentTimestamp - The current Unix timestamp.
- * @returns The amount of energy to drain.
- */
-export const calculatePassiveDrain = (lastTimestamp: number, currentTimestamp: number): number => {
-  const msDiff = currentTimestamp - lastTimestamp;
-  const hoursDiff = msDiff / (1000 * 60 * 60);
-  
-  if (hoursDiff <= 0.5) return 0; // 30 min grace period
-  
-  return Math.floor(hoursDiff * PASSIVE_DRAIN_RATE_PER_HOUR);
-};
-
-/**
  * Calculates the net energy change (impact) resulting from a task session.
  * Considers task duration, user mood, and whether the task went over its planned time.
  *

@@ -44,6 +44,8 @@ export const TaskProvider: React.FC<PropsWithChildren> = ({ children }) => {
    * Local cache for stabilization.
    */
   const prevMapRef = useRef<Record<string, TaskEntity>>({});
+  const prevTasksRef = useRef<TaskEntity[]>([]);
+  const prevFinalMapRef = useRef<Record<string, TaskEntity>>({});
 
   const { tasks, tasksMap } = useMemo(() => {
     const newMap: Record<string, TaskEntity> = {};
@@ -60,8 +62,23 @@ export const TaskProvider: React.FC<PropsWithChildren> = ({ children }) => {
       newList.push(newMap[t.id]);
     });
 
+    // Bolt ⚡ Optimization: Collection-level stabilization
+    let finalTasks = newList;
+    let finalMap = newMap;
+
+    const tasksChanged = newList.length !== prevTasksRef.current.length ||
+                        newList.some((t, i) => t !== prevTasksRef.current[i]);
+
+    if (!tasksChanged) {
+      finalTasks = prevTasksRef.current;
+      finalMap = prevFinalMapRef.current;
+    }
+
     prevMapRef.current = newMap;
-    return { tasks: newList, tasksMap: newMap };
+    prevTasksRef.current = finalTasks;
+    prevFinalMapRef.current = finalMap;
+
+    return { tasks: finalTasks, tasksMap: finalMap };
   }, [allTasks]);
 
   const value = useMemo(() => ({

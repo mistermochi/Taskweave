@@ -34,52 +34,6 @@ export class Matrix {
   }
 
   /**
-   * Performs element-wise matrix addition.
-   * @param A - First matrix.
-   * @param B - Second matrix.
-   * @returns The sum matrix.
-   */
-  static add(A: number[][], B: number[][]): number[][] {
-    return A.map((row, i) => row.map((val, j) => val + B[i][j]));
-  }
-
-  /**
-   * Calculates the outer product of a vector with itself (x * x^T).
-   * @param x - The input vector.
-   * @returns The resulting square matrix.
-   */
-  static outerProduct(x: number[]): number[][] {
-    const n = x.length;
-    const res = Array.from({ length: n }, () => new Array(n).fill(0));
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n; j++) {
-        res[i][j] = x[i] * x[j];
-      }
-    }
-    return res;
-  }
-
-  /**
-   * Multiplies a vector by a scalar.
-   * @param x - The vector.
-   * @param s - The scalar.
-   * @returns The scaled vector.
-   */
-  static scale(x: number[], s: number): number[] {
-    return x.map(val => val * s);
-  }
-
-  /**
-   * Performs element-wise vector addition.
-   * @param a - First vector.
-   * @param b - Second vector.
-   * @returns The sum vector.
-   */
-  static vecAdd(a: number[], b: number[]): number[] {
-    return a.map((val, i) => val + b[i]);
-  }
-
-  /**
    * Generates an Identity Matrix of size n.
    * @param n - The dimension of the matrix.
    * @returns An n x n identity matrix.

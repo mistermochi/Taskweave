@@ -367,6 +367,12 @@ export function TaskApp({
     return mergedSource!;
   }, [taskTab, activeSource, completedSource, archivedSource, mergedSource]);
 
+  // Bolt ⚡ Optimization: Memoize search parsing to avoid redundant regex execution
+  // when the task list updates but the search query remains the same.
+  const parsedSearch = React.useMemo(() =>
+    searchQuery ? parseTaskInput(searchQuery) : null
+  , [searchQuery]);
+
   const filteredTasks = React.useMemo(() => {
     // Bolt ⚡ Optimization: Return sourceTasks reference directly if no filters are active
     // and no status fallback is required. This avoids redundant O(N) traversals
@@ -374,8 +380,6 @@ export function TaskApp({
     const isUnfiltered = !searchQuery && !selectedTagId && sourceTasks !== mergedSource;
     if (isUnfiltered) return sourceTasks;
 
-    // Bolt ⚡: Hoist search parsing and only execute if query exists
-    const parsedSearch = searchQuery ? parseTaskInput(searchQuery) : null;
     const tagKeyword = parsedSearch?.attributes.tagKeyword;
     const searchTitle = parsedSearch?.cleanTitle.toLowerCase();
     const lowerTagKeyword = tagKeyword?.toLowerCase();
@@ -426,7 +430,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, searchQuery]);
+  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, parsedSearch]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

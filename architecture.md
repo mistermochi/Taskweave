@@ -47,7 +47,6 @@
 │   │   └── ...
 │   ├── useFirestore.ts          # Firebase data fetching hooks
 │   ├── useEnergyModel.ts        # Energy calculation model
-│   ├── useTaskTimer.ts          # Task timing logic
 │   ├── useTaskEditState.ts      # Task editing state management
 │   ├── useContextService.ts     # Context service singleton hook
 │   └── usePassiveDrain.ts       # Energy depletion over time
@@ -186,7 +185,7 @@ export const useDashboardController = () => {
 | **Data Hooks** | `useFirestore.ts` | Firebase data fetching |
 | **Controller Hooks** | `useDashboardController.ts` | View business logic |
 | **Service Hooks** | `useContextService.ts` | Access singleton services |
-| **Feature Hooks** | `useEnergyModel.ts`, `useTaskTimer.ts` | Specific domain logic |
+| **Feature Hooks** | `useEnergyModel.ts` | Specific domain logic |
 
 ---
 

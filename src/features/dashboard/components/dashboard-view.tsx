@@ -14,6 +14,7 @@ import { QuickActions } from './quick-actions';
 import { SectionHeader } from '@/shared/ui/ui/section-header';
 import { Card } from '@/shared/ui/ui/card';
 import { Button } from '@/shared/ui/ui/button';
+import { EmptyState } from '@/shared/ui/ui/empty-state';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/ui/sheet';
 import { useTaskAppStore } from '@/features/task-app/use-task-app';
 import { useReferenceContext } from '@/context/ReferenceContext';
@@ -204,9 +205,11 @@ export const DashboardView: React.FC = () => {
                                     size="sm"
                                     onClick={createNewTask}
                                 >
+                                    <Plus className="mr-2 h-4 w-4" />
                                     Add a task
                                 </Button>
                             }
+                            className="border-2 border-dashed border-border rounded-xl"
                         />
                     )}
                 </section>

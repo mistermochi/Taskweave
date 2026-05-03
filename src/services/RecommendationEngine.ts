@@ -174,12 +174,13 @@ export class RecommendationEngine {
       // 4. Construct context for this completion event.
       // Bolt ⚡ Optimization: Avoid O(N) Array.from + filter allocation.
       // Single pass to build the array, omitting the current task.
+      // Note: Using forEach instead of for...of for ES5 compatibility.
       const activeTasksAtTime: TaskEntity[] = [];
-      for (const t of activePool.values()) {
+      activePool.forEach(t => {
         if (t.id !== task.id) {
           activeTasksAtTime.push(t);
         }
-      }
+      });
       const lastTask = i > 0 ? completedTasks[i - 1] : undefined;
 
       const context: SuggestionContext = {

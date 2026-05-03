@@ -84,3 +84,7 @@
 ## 2026-05-03 - [Optimizing Hot Path Loops and Allocations]
 **Learning:** Chaining `Array.from().filter()` on Map values inside tight loops (like history recalibration) creates significant GC pressure and CPU overhead due to redundant array allocations and multiple traversals. Replacing these with `for...of` loops and manual array construction, along with replacing `.reduce()` with standard `for` loops in utility functions, provides measurable speedups (~40%+ in this case) by eliminating callback overhead and intermediate structures.
 **Action:** Always prefer `for...of` over `Array.from().filter()` or `.reduce()` in performance-critical paths or large history replay loops.
+
+## 2026-05-03 - [TypeScript ES5 Compatibility for Iteration]
+**Learning:** In projects targeting ES5, `for...of` loops on `IterableIterator` objects (like `Map.values()`) trigger TS2802 errors unless `downlevelIteration` is enabled. Using `.forEach()` on the collection directly is a safer and equally performant alternative that avoids these build-time issues.
+**Action:** Use `collection.forEach()` instead of `for...of` for Map/Set iteration when targeting ES5.

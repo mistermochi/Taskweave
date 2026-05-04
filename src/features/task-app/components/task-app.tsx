@@ -204,8 +204,10 @@ export function TaskApp({
   }, [tasks, optimisticTasks, shallowEqualArray]);
 
   // Bolt ⚡ Optimization: Consolidate tag merging and lookup map generation into a single O(T) pass.
+  // We use .forEach on the Map to ensure compatibility with the es5 target and avoid intermediate array allocations.
   const { mergedTags, mergedTagsMap, mergedTagsByName } = React.useMemo(() => {
-    const tagMap = new Map<string, Tag>(tags.map(t => [t.id, t]));
+    const tagMap = new Map<string, Tag>();
+    tags.forEach(t => tagMap.set(t.id, t));
 
     Object.entries(optimisticTags).forEach(([id, update]) => {
       if (update === null) {
@@ -220,11 +222,12 @@ export function TaskApp({
       }
     });
 
-    const allMerged = Array.from(tagMap.values());
+    const allMerged: Tag[] = [];
     const idMap: Record<string, Tag> = {};
     const nameMap: Record<string, Tag> = {};
 
-    allMerged.forEach(tag => {
+    tagMap.forEach(tag => {
+      allMerged.push(tag);
       idMap[tag.id] = tag;
       nameMap[tag.name.toLowerCase()] = tag;
     });
@@ -430,7 +433,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, parsedSearch]);
+  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, parsedSearch, searchQuery]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

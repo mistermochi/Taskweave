@@ -13,3 +13,7 @@ This journal tracks critical UX and accessibility learnings for the taskweave pr
 ## 2026-05-15 - Ultra-Compact Responsive Pickers
 **Learning:** For inline pickers, maintaining a side-by-side layout even on small viewports (by scaling down and using concise labels) preserves the hierarchy and efficiency of the "Quick Select + Precision" pattern better than stacking.
 **Action:** Optimized `DatePicker` with reduced scaling (scale-90) and abbreviated labels (TMW, WKND) to fit side-by-side on mobile.
+
+## 2026-05-16 - Tactile Qualitative Selection
+**Learning:** Qualitative selections (like colors or modes) feel more responsive and intentional when they provide immediate physical (vibration) and visual (scaling) feedback. Combining this with standard accessibility attributes ensures a delight-filled experience for all users.
+**Action:** Implement `vibrate('light')`, `active:scale-95`, and `aria-pressed` for qualitative selection components like `AppearanceForm`.

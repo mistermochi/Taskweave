@@ -80,3 +80,7 @@
 ## 2026-04-10 - [Eliminating O(N^2) Array Spreading in Loops]
 **Learning:** Spreading an accumulating array (e.g., `[...previousCompletions]`) inside a chronological loop creates an O(N²) time and space bottleneck, even if the algorithm's core logic is optimized to O(N). Passing the array by reference is safe when the context is transient and the array is only mutated after the current iteration's use.
 **Action:** Avoid using the spread operator on large arrays inside loops. Use direct references if the object being created is short-lived or if you can guarantee mutation safety.
+
+## 2026-04-12 - [Single-Pass Strategy Resolution Regressions]
+**Learning:** Refactoring multi-pass fluent logic (e.g., `.filter().filter().reduce()`) into a single-pass traversal (`pickBest` with a predicate) can easily introduce regressions if the predicate logic doesn't perfectly mirror the original conditional branching. Specifically, checking for a "last completed task" inside a predicate can unintentionally exclude all results if no task has been completed yet, whereas the original multi-pass logic might have skipped that specific filter.
+**Action:** When consolidating filters into a single-pass predicate, ensure "optional" constraints are handled with explicit null-checks (`!last || t.category === last.category`) to preserve the original fallback behavior.

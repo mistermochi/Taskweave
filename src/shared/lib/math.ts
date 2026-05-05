@@ -25,12 +25,17 @@ export class Matrix {
 
   /**
    * Calculates the dot product of two vectors.
+   * Bolt ⚡ Optimization: Uses a standard for loop to eliminate reduce callback overhead.
    * @param a - First vector.
    * @param b - Second vector.
    * @returns The scalar dot product.
    */
   static vectorDot(a: number[], b: number[]): number {
-    return a.reduce((sum, val, i) => sum + val * b[i], 0);
+    let sum = 0;
+    for (let i = 0; i < a.length; i++) {
+        sum += a[i] * b[i];
+    }
+    return sum;
   }
 
   /**

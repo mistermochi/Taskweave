@@ -39,10 +39,6 @@ interface NavigationActions {
   showInsights: () => void;
   /** Shortcut to show the settings view. */
   showSettings: () => void;
-  /** Shortcut to show the AI chat view. */
-  showChat: () => void;
-  /** Shortcut to show the task history view. */
-  showTaskHistory: () => void;
   /** Sets a specific task as the active focus target. */
   focusOnTask: (taskId: string) => void;
   /** Toggles the focus player between minimized and expanded modes. */
@@ -133,8 +129,6 @@ export const NavigationProvider: React.FC<PropsWithChildren> = ({ children }) =>
     },
     showInsights: () => navigate(ViewName.INSIGHTS),
     showSettings: () => navigate(ViewName.SETTINGS),
-    showChat: () => navigate(ViewName.CHAT),
-    showTaskHistory: () => navigate(ViewName.TASK_HISTORY),
     
     focusOnTask: (taskId: string) => {
         startTransition(() => {

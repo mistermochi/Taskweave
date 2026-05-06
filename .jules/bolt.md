@@ -80,3 +80,7 @@
 ## 2026-04-10 - [Eliminating O(N^2) Array Spreading in Loops]
 **Learning:** Spreading an accumulating array (e.g., `[...previousCompletions]`) inside a chronological loop creates an O(N²) time and space bottleneck, even if the algorithm's core logic is optimized to O(N). Passing the array by reference is safe when the context is transient and the array is only mutated after the current iteration's use.
 **Action:** Avoid using the spread operator on large arrays inside loops. Use direct references if the object being created is short-lived or if you can guarantee mutation safety.
+
+## 2026-05-06 - [Optimized Latest Entry Lookup]
+**Learning:** Chaining `.filter()` followed by index access `[0]` to retrieve the most recent item from a sorted collection creates an unnecessary intermediate array and traverses the entire list. Using `.find()` instead leverages the existing sort order for an O(1) early-exit and zero allocations.
+**Action:** When retrieving a single "latest" item from a collection known to be sorted, always prefer `.find()` over `.filter()[0]`.

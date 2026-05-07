@@ -10,6 +10,22 @@ jest.mock('@/shared/lib/utils', () => ({
   vibrate: jest.fn(),
 }));
 
+// Mock Firebase to avoid initialization errors in CI
+jest.mock('@/shared/api/firebase', () => ({
+  auth: {},
+  db: {},
+}));
+
+jest.mock('firebase/auth', () => ({
+  getAuth: jest.fn(),
+  onAuthStateChanged: jest.fn(() => () => {}),
+}));
+
+jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(),
+  enableMultiTabIndexedDbPersistence: jest.fn(() => Promise.resolve()),
+}));
+
 describe('AppearanceForm UX and Accessibility', () => {
   const mockUpdateSettings = jest.fn();
   const mockSettings = {

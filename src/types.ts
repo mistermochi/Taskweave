@@ -8,8 +8,6 @@ export enum ViewName {
   SETTINGS = 'SETTINGS'
 }
 
-export type NavigationParams = string | { taskId?: string; initialTitle?: string; mode?: 'default' | 'focus' };
-
 export interface UserSettings {
   displayName: string;
   photoURL?: string;

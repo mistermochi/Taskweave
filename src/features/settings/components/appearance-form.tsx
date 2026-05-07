@@ -2,7 +2,7 @@
 
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { Sun, Moon } from 'lucide-react';
-import { cn } from "@/shared/lib/utils";
+import { cn, vibrate } from "@/shared/lib/utils";
 import {
   Card,
   CardContent,
@@ -38,19 +38,24 @@ export function AppearanceForm() {
           <ToggleGroup
             type="single"
             value={settings.themeMode}
-            onValueChange={(value) => value && updateSettings({ themeMode: value as 'light' | 'dark' })}
+            onValueChange={(value) => {
+              if (value) {
+                updateSettings({ themeMode: value as 'light' | 'dark' });
+                vibrate('light');
+              }
+            }}
             className="grid grid-cols-2 gap-2"
           >
             <ToggleGroupItem
               value="light"
-              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5"
+              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5 transition-all active:scale-95"
             >
               <Sun className="h-4 w-4" />
               <span className="text-xs font-medium">Light</span>
             </ToggleGroupItem>
             <ToggleGroupItem
               value="dark"
-              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5"
+              className="flex items-center justify-center gap-2 h-10 border data-[state=on]:border-primary data-[state=on]:bg-primary/5 transition-all active:scale-95"
             >
               <Moon className="h-4 w-4" />
               <span className="text-xs font-medium">Dark</span>
@@ -65,16 +70,23 @@ export function AppearanceForm() {
               <button
                 key={key}
                 type="button"
-                onClick={() => updateSettings({ themeColor: key })}
-                className="flex items-center justify-center p-0.5"
+                onClick={() => {
+                  updateSettings({ themeColor: key });
+                  vibrate('light');
+                }}
+                className={cn(
+                  "flex items-center justify-center p-0.5 rounded-full transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  settings.themeColor === key ? "ring-2 ring-ring ring-offset-2" : "hover:scale-105"
+                )}
                 title={value.name}
+                aria-pressed={settings.themeColor === key}
               >
                 <div
                   style={{ backgroundColor: `hsl(${value.hsl})` }}
                   className={cn(
-                    "w-8 h-8 rounded-full border-2 transition-all hover:scale-110",
+                    "w-8 h-8 rounded-full border-2 transition-all",
                     settings.themeColor === key
-                      ? "border-foreground scale-110"
+                      ? "border-foreground"
                       : "border-transparent opacity-80"
                   )}
                 />

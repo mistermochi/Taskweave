@@ -93,3 +93,8 @@
 **Clutter:** The orphaned utility file `src/shared/lib/tagUtils.ts` containing legacy recursive hierarchy helpers (`getChildTagIds`, `getTagDepth`, `getTagLineage`).
 **Learning:** As the application's domain logic matures, early utility helpers often become redundant or superseded by domain-specific optimizations (like `processTagsForPicker` in the tag entity). Regular grep-based audits are essential to identify these unreferenced files and prevent structural entropy.
 **Action:** Deleted the unreferenced utility file and verified structural integrity with a full production build.
+
+## 2026-05-07 - Removed Orphaned NavigationParams Type
+**Clutter:** The `NavigationParams` type in `src/types.ts` and its unused parameter in `NavigationContext.navigate`.
+**Learning:** Even as navigation systems evolve (e.g., towards Zustand-based stores), legacy type definitions can remain in core files. However, Janitor sweeps must be careful not to remove enum members or state properties that represent dormant but functional feature paths (like `BREATHING` mode) which are still referenced by tests and specialized controllers.
+**Action:** Removed the orphaned type and simplified the `navigate` function signature.

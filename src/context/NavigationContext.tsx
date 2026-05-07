@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useTransition, PropsWithChildren } from 'react';
-import { ViewName, NavigationParams } from '@/types';
+import { ViewName } from '@/types';
 
 /**
  * State representing the user's current position and interaction mode within the app.
@@ -27,8 +27,8 @@ interface NavigationState {
  * Available navigation actions for modifying the application state.
  */
 interface NavigationActions {
-  /** Navigates to a specific view with optional parameters. */
-  navigate: (view: ViewName, params?: NavigationParams) => void;
+  /** Navigates to a specific view. */
+  navigate: (view: ViewName) => void;
   /** Reverts to the previous view in the history. */
   returnToPreviousView: () => void;
   /** Shortcut to show the dashboard. */
@@ -79,7 +79,7 @@ export const NavigationProvider: React.FC<PropsWithChildren> = ({ children }) =>
   });
   const [isPending, startTransition] = useTransition();
 
-  const navigate: NavigationActions['navigate'] = (view, params) => {
+  const navigate: NavigationActions['navigate'] = (view) => {
     startTransition(() => {
         setState(prevState => {
             const newState: Omit<NavigationState, 'isNavigating'> = { ...prevState, currentView: view };

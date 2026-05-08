@@ -36,7 +36,6 @@ interface TaskAppProps {
   tags: Tag[];
   tasksLoading?: boolean;
   tagsLoading?: boolean;
-  defaultLayout: number[] | undefined;
   defaultCollapsed?: boolean;
   hasPendingWrites?: boolean;
 }
@@ -46,7 +45,6 @@ export function TaskApp({
   tags,
   tasksLoading = false,
   tagsLoading = false,
-  defaultLayout = [20, 32, 48],
   defaultCollapsed = false,
   hasPendingWrites = false,
 }: TaskAppProps) {

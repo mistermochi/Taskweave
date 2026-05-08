@@ -98,3 +98,8 @@
 **Clutter:** The `NavigationParams` type in `src/types.ts` and its unused parameter in `NavigationContext.navigate`.
 **Learning:** Even as navigation systems evolve (e.g., towards Zustand-based stores), legacy type definitions can remain in core files. However, Janitor sweeps must be careful not to remove enum members or state properties that represent dormant but functional feature paths (like `BREATHING` mode) which are still referenced by tests and specialized controllers.
 **Action:** Removed the orphaned type and simplified the `navigate` function signature.
+
+## 2026-05-20 - Removed Unused defaultLayout Prop
+**Clutter:** The `defaultLayout` prop in `TaskApp.tsx` and its passing in `src/app/page.tsx`.
+**Learning:** Leftover boilerplate props from template components (like resizable panels) can remain even after the underlying functionality is removed or changed. These "ghost props" increase cognitive load and make the component interface appear more complex than it actually is.
+**Action:** Removed the unused prop and cleaned up the entry point, verifying that no logic depended on this value.

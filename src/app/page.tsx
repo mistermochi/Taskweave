@@ -84,7 +84,6 @@ function MainContent({
 }: {
   authLoading: boolean;
 }) {
-  const defaultLayout = [20, 32, 48];
   const defaultCollapsed = false;
 
   const { tasks, loading: tasksLoading, hasPendingWrites: tasksPending } = useTaskContext();
@@ -99,7 +98,6 @@ function MainContent({
         tags={tags}
         tasksLoading={authLoading || tasksLoading}
         tagsLoading={authLoading || tagsLoading}
-        defaultLayout={defaultLayout}
         defaultCollapsed={defaultCollapsed}
         hasPendingWrites={tasksPending || tagsPending}
       />

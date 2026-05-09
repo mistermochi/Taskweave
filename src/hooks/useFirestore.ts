@@ -41,7 +41,7 @@ export const useUserId = () => {
  * @returns Object containing the data array, loading state, and pending writes flag.
  *
  * @example
- * const { data: tasks, hasPendingWrites } = useFirestoreCollection<TaskEntity>('tasks', [orderBy('createdAt')]);
+ * const { data: tasks, hasPendingWrites } = useFirestoreCollection<Task>('tasks', [orderBy('createdAt')]);
  */
 export function useFirestoreCollection<T>(
   collectionName: string, 

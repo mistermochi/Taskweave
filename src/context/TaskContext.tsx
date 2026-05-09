@@ -3,16 +3,16 @@
 import React, { createContext, useContext, useMemo, useRef, PropsWithChildren } from 'react';
 import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '@/hooks/useFirestore';
-import { TaskEntity } from '@/entities/task';
+import { Task } from '@/entities/task';
 
 /**
  * Interface for the Task Database context.
  */
 interface TaskContextType {
   /** Array of currently active (non-completed, non-archived) tasks. */
-  tasks: TaskEntity[];
+  tasks: Task[];
   /** Lookup map for tasks keyed by their unique ID. */
-  tasksMap: Record<string, TaskEntity>;
+  tasksMap: Record<string, Task>;
   /** Loading state for the tasks subscription. */
   loading: boolean;
   /** Whether there are local writes that have not yet been synchronized with the server. */
@@ -38,18 +38,18 @@ const TaskContext = createContext<TaskContextType>({
  *   existing object reference, keeping the downstream component tree stable.
  */
 export const TaskProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  const { data: allTasks, loading, hasPendingWrites } = useFirestoreCollection<TaskEntity>('tasks');
+  const { data: allTasks, loading, hasPendingWrites } = useFirestoreCollection<Task>('tasks');
 
   /**
    * Local cache for stabilization.
    */
-  const prevMapRef = useRef<Record<string, TaskEntity>>({});
-  const prevTasksRef = useRef<TaskEntity[]>([]);
-  const prevFinalMapRef = useRef<Record<string, TaskEntity>>({});
+  const prevMapRef = useRef<Record<string, Task>>({});
+  const prevTasksRef = useRef<Task[]>([]);
+  const prevFinalMapRef = useRef<Record<string, Task>>({});
 
   const { tasks, tasksMap } = useMemo(() => {
-    const newMap: Record<string, TaskEntity> = {};
-    const newList: TaskEntity[] = [];
+    const newMap: Record<string, Task> = {};
+    const newList: Task[] = [];
     const prevMap = prevMapRef.current;
 
     allTasks.forEach(t => {

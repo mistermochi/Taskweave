@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { TaskEntity } from '@/types/scheduling';
+import { Task } from '@/types/scheduling';
 import { AIPromptBuilder } from './AIPromptBuilder';
 import { ARM_NAMES } from "./LinUCBService";
 
@@ -57,7 +57,7 @@ export class AIService {
      * @param tasks - The user's actual task backlog to use as context for scenario generation.
      * @returns A promise resolving to an array of synthetic scenarios.
      */
-    async getCalibrationData(tasks: TaskEntity[]): Promise<{ hour: number; energy: number; lastCategory?: string; strategy: string }[]> {
+    async getCalibrationData(tasks: Task[]): Promise<{ hour: number; energy: number; lastCategory?: string; strategy: string }[]> {
         if (!this.ai) throw new Error("AI Service not available");
 
         const systemInstruction = AIPromptBuilder.buildCalibrationPrompt(tasks, ARM_NAMES);

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { TaskEntity } from '@/entities/task';
+import { Task } from '@/entities/task';
 import { Check, Layers } from 'lucide-react';
 import { cn, vibrate } from '@/shared/lib/utils';
 import { ScrollArea } from '@/shared/ui/ui/scroll-area';
@@ -12,7 +12,7 @@ import { Separator } from '@/shared/ui/ui/separator';
  */
 interface DependencyPickerProps {
     /** List of all tasks for potential dependency matching. */
-    allTasks: TaskEntity[];
+    allTasks: Task[];
     /** ID of the task currently being edited (to prevent self-dependency). */
     currentTaskId: string;
     /** Array of task IDs that are currently blocking this task. */
@@ -26,7 +26,7 @@ interface DependencyPickerProps {
  */
 const DependencySection: React.FC<{
     title: string;
-    tasks: TaskEntity[];
+    tasks: Task[];
     selectedIds: Set<string>;
     onToggle: (id: string) => void;
 }> = ({ title, tasks, selectedIds, onToggle }) => (

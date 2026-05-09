@@ -1,6 +1,6 @@
 import { db } from '@/shared/api/firebase';
 import { getDoc, doc, updateDoc, deleteDoc, setDoc, writeBatch, collection, addDoc } from 'firebase/firestore';
-import { Task, TaskEntity, EnergyLevel, RecurrenceConfig } from '../model/types';
+import { Task, EnergyLevel, RecurrenceConfig } from '../model/types';
 import { Category } from '@/entities/tag';
 import { contextApi } from '@/entities/context';
 import { getNextRecurrenceDate, calculateTaskTime } from '@/shared/lib/timeUtils';
@@ -45,7 +45,7 @@ export class TaskApi {
         assignedDate: number | undefined,
         recurrence?: RecurrenceConfig,
         blockedBy: string[] = []
-    ): Omit<TaskEntity, 'id' | 'createdAt' | 'updatedAt'> {
+    ): Omit<Task, 'id' | 'createdAt' | 'updatedAt'> {
         const energyLevel: EnergyLevel = energy > 75 ? 'High' : energy < 40 ? 'Low' : 'Medium';
         const finalDuration = duration === 0 ? 0 : Math.max(1, Math.min(240, duration));
         const sanitizedRecurrence = recurrence ? JSON.parse(JSON.stringify(recurrence)) : null;
@@ -188,7 +188,7 @@ export class TaskApi {
      * @param taskId - The unique ID of the task to update.
      * @param updates - Partial object containing the fields to update.
      */
-    public async updateTask(taskId: string, updates: Partial<TaskEntity>, onError?: (err: Error) => void): Promise<void> {
+    public async updateTask(taskId: string, updates: Partial<Task>, onError?: (err: Error) => void): Promise<void> {
         const uid = contextApi.getUserId();
         if (!uid) return;
 
@@ -277,10 +277,10 @@ export class TaskApi {
      * - Calculates the next occurrence if the task has a `recurrence` config.
      * - Delegates to `completeTaskAndRespawn` for the atomic batch operation.
      */
-    public async completeTask(task: TaskEntity, actualSeconds: number, allActiveTasks: TaskEntity[]): Promise<number | null> {
+    public async completeTask(task: Task, actualSeconds: number, allActiveTasks: Task[]): Promise<number | null> {
         if (!task) return null;
 
-        let nextTaskData: Omit<TaskEntity, 'id' | 'createdAt' | 'updatedAt'> | undefined;
+        let nextTaskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> | undefined;
 
         if (task.recurrence) {
             const baseAnchor = task.dueDate || task.assignedDate || Date.now();
@@ -301,9 +301,9 @@ export class TaskApi {
             };
         }
 
-        const updatedTask: Partial<TaskEntity> = { ...task, actualDuration: Math.max(0, actualSeconds) };
+        const updatedTask: Partial<Task> = { ...task, actualDuration: Math.max(0, actualSeconds) };
 
-        return await this.completeTaskAndRespawn(updatedTask as TaskEntity, nextTaskData, allActiveTasks);
+        return await this.completeTaskAndRespawn(updatedTask as Task, nextTaskData, allActiveTasks);
     }
 
     /**
@@ -318,7 +318,7 @@ export class TaskApi {
      * 2. (Optional) Creates a new task document for the next recurrence.
      * 3. (Optional) Removes the `blockedBy` reference from any tasks waiting on the original task.
      */
-    private async completeTaskAndRespawn(originalTask: TaskEntity, nextTaskData?: Omit<TaskEntity, 'id' | 'createdAt' | 'updatedAt'>, allActiveTasks?: TaskEntity[]): Promise<number | null> {
+    private async completeTaskAndRespawn(originalTask: Task, nextTaskData?: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>, allActiveTasks?: Task[]): Promise<number | null> {
         const uid = contextApi.getUserId();
         if (!uid) return null;
 
@@ -380,7 +380,7 @@ export class TaskApi {
      * @param remainingSeconds - Snapshot of the remaining time for the task.
      * @param allActiveTasks - Current task list to identify and pause the previous active task.
      */
-    public async startSession(taskId: string, remainingSeconds: number, allActiveTasks: TaskEntity[]) {
+    public async startSession(taskId: string, remainingSeconds: number, allActiveTasks: Task[]) {
         const uid = contextApi.getUserId();
         if (!uid) return;
     
@@ -452,7 +452,7 @@ export class TaskApi {
      * - Adds a record to the `activityLogs` collection for analytics.
      * - Creates a new `UserVital` entry for mood tracking.
      */
-    public async logSessionCompletion(task: TaskEntity, mood: string, notes: string, newEnergyLevel?: number): Promise<void> {
+    public async logSessionCompletion(task: Task, mood: string, notes: string, newEnergyLevel?: number): Promise<void> {
         const uid = contextApi.getUserId();
         if (!uid) return;
         

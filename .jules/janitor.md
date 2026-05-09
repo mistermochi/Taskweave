@@ -103,3 +103,8 @@
 **Clutter:** The `defaultLayout` prop in `TaskApp.tsx` and its passing in `src/app/page.tsx`.
 **Learning:** Leftover boilerplate props from template components (like resizable panels) can remain even after the underlying functionality is removed or changed. These "ghost props" increase cognitive load and make the component interface appear more complex than it actually is.
 **Action:** Removed the unused prop and cleaned up the entry point, verifying that no logic depended on this value.
+
+## 2026-05-09 - Consolidated Task Entity Types
+**Clutter:** Redundant `TaskEntity` and `Task` type definitions and an unused `embedding` property.
+**Learning:** Maintaining multiple names for the same core entity increases cognitive load. Consolidating to the most concise name (`Task`) improves codebase signal. Surgical updates are required to avoid breaking UI strings or introducing duplicate imports during global refactors.
+**Action:** Renamed `TaskEntity` to `Task`, removed the redundant alias and unused property, and updated all references across 20 files.

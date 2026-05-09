@@ -1,4 +1,4 @@
-import { TaskEntity } from '@/entities/task';
+import { Task } from '@/entities/task';
 
 /**
  * Utility class for constructing complex prompts for the AI Service.
@@ -14,7 +14,7 @@ export class AIPromptBuilder {
      * @param armNames - The names of the available strategic "arms" the model can choose.
      * @returns A multi-line string containing the prompt instructions.
      */
-    public static buildCalibrationPrompt(tasks: TaskEntity[], armNames: readonly string[]): string {
+    public static buildCalibrationPrompt(tasks: Task[], armNames: readonly string[]): string {
         const now = Date.now();
         const taskSummaries = tasks.map(t => {
             const ageDays = Math.floor((now - t.createdAt) / (1000 * 60 * 60 * 24));

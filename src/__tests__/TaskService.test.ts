@@ -11,7 +11,7 @@ import { db } from '@/shared/api/firebase';
 import { contextApi } from '../entities/context';
 import { doc, setDoc, updateDoc, deleteDoc, writeBatch, collection, addDoc } from 'firebase/firestore';
 import { getNextRecurrenceDate } from '@/shared/lib/timeUtils';
-import { TaskEntity, RecurrenceConfig } from '@/entities/task';
+import { Task, RecurrenceConfig } from '@/entities/task';
 
 // --- Mocks ---
 
@@ -165,7 +165,7 @@ describe('taskApi', () => {
 
   // Test completeTask
   describe('completeTask', () => {
-    const mockTask: TaskEntity = {
+    const mockTask: Task = {
       id: 'task-1',
       title: 'A regular task',
       status: 'active',
@@ -173,7 +173,7 @@ describe('taskApi', () => {
       energy: 'Medium',
       category: 'Work',
       createdAt: MOCK_NOW - 1000,
-    } as TaskEntity;
+    } as Task;
 
     it('should complete a non-recurring task', async () => {
       const nextDate = await taskService.completeTask(mockTask, 1700, []);
@@ -195,7 +195,7 @@ describe('taskApi', () => {
     });
 
     it('should complete a recurring task and create the next instance', async () => {
-      const recurringTask: TaskEntity = {
+      const recurringTask: Task = {
         ...mockTask,
         id: 'task-recur',
         dueDate: MOCK_NOW,
@@ -231,7 +231,7 @@ describe('taskApi', () => {
     });
 
     it('should update the duration for a completed quick focus (unplanned) task', async () => {
-        const quickFocusTask: TaskEntity = {
+        const quickFocusTask: Task = {
           ...mockTask,
           id: 'task-quick-focus',
           duration: 0, // This is an unplanned task
@@ -256,18 +256,18 @@ describe('taskApi', () => {
       });
       
     it('should unlock dependent tasks upon completion', async () => {
-        const blockerTask: TaskEntity = {
+        const blockerTask: Task = {
             id: 'task-blocker',
             title: 'Do this first',
             status: 'active',
-        } as TaskEntity;
+        } as Task;
 
-        const dependentTask: TaskEntity = {
+        const dependentTask: Task = {
             id: 'task-dependent',
             title: 'Do this after',
             status: 'active',
             blockedBy: ['task-blocker'],
-        } as TaskEntity;
+        } as Task;
         
         const allActiveTasks = [blockerTask, dependentTask];
 
@@ -294,7 +294,7 @@ describe('taskApi', () => {
   // Test Focus Session methods
   describe('Focus Sessions', () => {
     it('should start a session correctly', async () => {
-      const mockActiveTasks: TaskEntity[] = [];
+      const mockActiveTasks: Task[] = [];
       await taskService.startSession('task-focus', 1500, mockActiveTasks);
       
       // Verify batch was used for the operation
@@ -317,7 +317,7 @@ describe('taskApi', () => {
   describe('logSessionCompletion', () => {
     it('should update task and log activity and vitals', async () => {
       const updateSpy = jest.spyOn(taskService, 'updateTask');
-      const mockTask: TaskEntity = { id: 'task-log', title: 'Test', category: 'Work', duration: 30, energy: 'Medium', status: 'active', createdAt: 1 } as TaskEntity;
+      const mockTask: Task = { id: 'task-log', title: 'Test', category: 'Work', duration: 30, energy: 'Medium', status: 'active', createdAt: 1 } as Task;
       
       await taskService.logSessionCompletion(mockTask, 'Energized', 'Great session!', 85);
 

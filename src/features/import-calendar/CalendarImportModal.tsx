@@ -7,7 +7,7 @@ import { Modal } from '@/shared/ui/ui/dialog';
 import { EmptyState } from '@/shared/ui/ui/empty-state';
 import { TaskListItem } from '@/features/task-app/components/task-list-item';
 import { Tag } from '@/entities/tag';
-import { Task, TaskEntity, EnergyLevel } from '@/entities/task';
+import { Task, EnergyLevel } from '@/entities/task';
 import { UserSettings } from '@/types';
 import { Button } from '@/shared/ui/ui/button';
 
@@ -36,9 +36,9 @@ interface CalendarImportModalProps {
 }
 
 /**
- * Helper function to map a raw calendar event into a preview TaskEntity.
+ * Helper function to map a raw calendar event into a preview Task.
  */
-const eventToTaskPreview = (event: CalendarEvent, tags: Tag[], settings: Partial<UserSettings>, isImported: boolean): TaskEntity => {
+const eventToTaskPreview = (event: CalendarEvent, tags: Tag[], settings: Partial<UserSettings>, isImported: boolean): Task => {
     const calendarId = event.calendarId;
     const mappedTagId = settings.calendarProjectMapping?.[calendarId] || '';
 
@@ -66,7 +66,7 @@ const eventToTaskPreview = (event: CalendarEvent, tags: Tag[], settings: Partial
       googleCalendarEventId: event.id,
       googleCalendarId: event.calendarId,
       blockedBy: [],
-    } as TaskEntity;
+    } as Task;
 };
 
 /**

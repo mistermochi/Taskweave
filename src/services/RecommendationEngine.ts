@@ -1,4 +1,4 @@
-import { TaskEntity, Category, SuggestionContext, Suggestion, UserVital } from "@/types/scheduling";
+import { Task, Category, SuggestionContext, Suggestion, UserVital } from "@/types/scheduling";
 import { LinUCBService, StrategyArm, ARM_NAMES } from "./LinUCBService";
 import { AIService } from "./AIService";
 import { AIPromptBuilder } from "./AIPromptBuilder";
@@ -37,7 +37,7 @@ export class RecommendationEngine {
    * 2. Maps each scenario to a context vector and strategy arm.
    * 3. Performs batch training on the `LinUCBService`.
    */
-  async calibrate(tasks: TaskEntity[]): Promise<number> {
+  async calibrate(tasks: Task[]): Promise<number> {
     const ai = AIService.getInstance();
     if (!ai.isAvailable()) throw new Error("AI Service not configured");
 
@@ -53,7 +53,7 @@ export class RecommendationEngine {
         const mockDate = new Date();
         mockDate.setHours(s.hour, 0, 0, 0);
 
-        const mockCompleted: TaskEntity[] = [];
+        const mockCompleted: Task[] = [];
         if (s.lastCategory) {
             mockCompleted.push({
                 id: 'synth-last',
@@ -65,7 +65,7 @@ export class RecommendationEngine {
                 createdAt: Date.now(),
                 completedAt: mockDate.getTime() - (15 * 60000),
                 actualDuration: 30 * 60
-            } as TaskEntity);
+            } as Task);
         }
 
         const syntheticContext: SuggestionContext = {
@@ -107,7 +107,7 @@ export class RecommendationEngine {
    * 2. Reuses pre-sorted arrays and pointers for O(1) amortized lookup.
    * 3. Avoids O(N) array scans inside the history loop.
    */
-  async recalibrateFromHistory(allTasks: TaskEntity[], allVitals: UserVital[]): Promise<number> {
+  async recalibrateFromHistory(allTasks: Task[], allVitals: UserVital[]): Promise<number> {
     const bandit = LinUCBService.getInstance();
     bandit.resetModel();
 
@@ -133,8 +133,8 @@ export class RecommendationEngine {
     let vitalPointer = 0;
     let createPtr = 0;
     let removePtr = 0;
-    const activePool = new Map<string, TaskEntity>();
-    const previousCompletions: TaskEntity[] = [];
+    const activePool = new Map<string, Task>();
+    const previousCompletions: Task[] = [];
     const allSamples: { x: number[], arm: number, reward: number }[] = [];
     
     for (let i = 0; i < completedTasks.length; i++) {
@@ -258,7 +258,7 @@ export class RecommendationEngine {
    * 7. Duration of last task (normalized)
    * 8-11. Category of last task (One-hot encoded: Work, Wellbeing, Personal, Hobbies)
    */
-  public buildContextVector(ctx: SuggestionContext, providedLastTask?: TaskEntity): number[] {
+  public buildContextVector(ctx: SuggestionContext, providedLastTask?: Task): number[] {
     const bias = 1.0;
     const hour = ctx.currentTime.getHours() / 24;
     const energy = ctx.energy / 100;
@@ -315,7 +315,7 @@ export class RecommendationEngine {
    * @param ctx - The suggestion context.
    * @param lastTask - Optional pre-identified last completed task to avoid O(N) search.
    */
-  private getValidStrategies(ctx: SuggestionContext, providedLastTask?: TaskEntity): number[] {
+  private getValidStrategies(ctx: SuggestionContext, providedLastTask?: Task): number[] {
     const allActiveTasks = ctx.tasks;
     const activeTaskIds = ctx.activeTaskIds || new Set(allActiveTasks.map(t => t.id));
     const last = providedLastTask || ctx.lastTask || this.getLatestCompletedTask(ctx.completedTasks);
@@ -400,20 +400,20 @@ export class RecommendationEngine {
    * @param ctx - The suggestion context.
    * @param lastTask - Optional pre-identified last completed task.
    */
-  private resolveStrategy(arm: number, ctx: SuggestionContext, providedLastTask?: TaskEntity): Suggestion | null {
+  private resolveStrategy(arm: number, ctx: SuggestionContext, providedLastTask?: Task): Suggestion | null {
     const allActiveTasks = ctx.tasks;
     const activeTaskIds = ctx.activeTaskIds || new Set(allActiveTasks.map(t => t.id));
     const now = ctx.currentTime.getTime();
     const oneDayFromNow = now + 86400000;
 
-    const isBlocked = (task: TaskEntity): boolean => {
+    const isBlocked = (task: Task): boolean => {
         if (!task.blockedBy || task.blockedBy.length === 0) return false;
         return task.blockedBy.some(blockerId => activeTaskIds.has(blockerId));
     };
     let tasks = allActiveTasks.filter(t => !isBlocked(t));
     
     const last = providedLastTask || ctx.lastTask || (ctx.completedTasks.length > 0 ? this.getLatestCompletedTask(ctx.completedTasks) : null);
-    let chosenTask: TaskEntity | null = null;
+    let chosenTask: Task | null = null;
     let type: 'task' | 'wellbeing' = 'task';
     let reason = "";
 
@@ -531,7 +531,7 @@ export class RecommendationEngine {
    * Selects the most suitable task from a candidate list.
    * Prioritizes tasks by earliest due date, followed by most recent creation date.
    */
-  private pickBest(tasks: TaskEntity[]): TaskEntity | null {
+  private pickBest(tasks: Task[]): Task | null {
     if (tasks.length === 0) return null;
     
     let best = tasks[0];
@@ -563,7 +563,7 @@ export class RecommendationEngine {
    * Internal helper to identify which strategies match an organic selection.
    * Returns a list of training samples (x, arm, reward).
    */
-  private getOrganicSamples(task: TaskEntity, context: SuggestionContext, providedLastTask?: TaskEntity): { x: number[], arm: number, reward: number }[] {
+  private getOrganicSamples(task: Task, context: SuggestionContext, providedLastTask?: Task): { x: number[], arm: number, reward: number }[] {
     const last = providedLastTask || context.lastTask || this.getLatestCompletedTask(context.completedTasks);
     const validArms = this.getValidStrategies(context, last);
     const x = this.buildContextVector(context, last);
@@ -646,7 +646,7 @@ export class RecommendationEngine {
    * When a user manually selects a task, this function identifies all strategies
    * that *could* have suggested it and provides them with a positive reward.
    */
-  async logOrganicSelection(task: TaskEntity, context: SuggestionContext) {
+  async logOrganicSelection(task: Task, context: SuggestionContext) {
     const samples = this.getOrganicSamples(task, context);
     if (samples.length > 0) {
       await LinUCBService.getInstance().batchTrain(samples);
@@ -657,7 +657,7 @@ export class RecommendationEngine {
    * Finds the most recently completed task in a list.
    * Bolt ⚡ Optimization: O(N) single-pass traversal.
    */
-  private getLatestCompletedTask(tasks: TaskEntity[]): TaskEntity | null {
+  private getLatestCompletedTask(tasks: Task[]): Task | null {
     if (tasks.length === 0) return null;
     return tasks.reduce((latest, current) =>
       (current.completedAt || 0) > (latest.completedAt || 0) ? current : latest

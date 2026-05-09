@@ -4,7 +4,7 @@ import { useTaskContext } from '@/context/TaskContext';
 import { taskApi } from '@/entities/task';
 import { calculateTaskTime, formatTimer } from '@/shared/lib/timeUtils';
 import { useNavigation } from '@/context/NavigationContext';
-import { TaskEntity } from '@/entities/task';
+import { Task } from '@/entities/task';
 import { useTaskAppStore } from '@/features/task-app/use-task-app';
 import { vibrate } from '@/shared/lib/utils';
 

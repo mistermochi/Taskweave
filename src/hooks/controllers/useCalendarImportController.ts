@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { GoogleCalendarService } from '@/services/GoogleCalendarService';
 import { taskApi } from '@/entities/task';
 import { tagApi, Tag } from '@/entities/tag';
-import { TaskEntity } from '@/entities/task';
+import { Task } from '@/entities/task';
 import { UserSettings } from '@/types';
 
 /**
@@ -29,7 +29,7 @@ export interface CalendarEvent {
  * @param allTasks - Current application tasks (to detect duplicate imports).
  * @returns State (loading status, events) and Actions (start, toggle, confirm, cancel).
  */
-export const useCalendarImportController = (settings: Partial<UserSettings>, allTasks: TaskEntity[]) => {
+export const useCalendarImportController = (settings: Partial<UserSettings>, allTasks: Task[]) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [events, setEvents] = useState<CalendarEvent[]>([]);

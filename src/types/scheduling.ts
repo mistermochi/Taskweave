@@ -5,12 +5,12 @@
  */
 
 // Import from parent types directory
-import { TaskEntity, EnergyLevel } from '@/entities/task';
+import { Task, EnergyLevel } from '@/entities/task';
 import { Category, Tag } from '@/entities/tag';
 import { ContextSnapshot } from '@/entities/context';
 
 // Re-export for convenience
-export type { TaskEntity, EnergyLevel } from '@/entities/task';
+export type { Task, EnergyLevel } from '@/entities/task';
 export type { Category, Tag } from '@/entities/tag';
 export type { ContextSnapshot } from '@/entities/context';
 export type { UserVital } from '@/entities/vital';
@@ -25,13 +25,13 @@ export interface SuggestionContext {
   currentTime: Date;
   energy: number; // 0-100 from dashboard
   availableMinutes: number;
-  tasks: TaskEntity[];
+  tasks: Task[];
   tags: Tag[];
-  completedTasks: TaskEntity[]; // Added for momentum tracking
+  completedTasks: Task[]; // Added for momentum tracking
   /** Optional pre-calculated last completed task for O(1) resolution. */
-  lastTask?: TaskEntity;
+  lastTask?: Task;
   /** Optional pre-calculated active task ID set or map for O(1) blocking checks. */
-  activeTaskIds?: Set<string> | Map<string, TaskEntity>;
+  activeTaskIds?: Set<string> | Map<string, Task>;
   backlogCount: number;
   userContext?: ContextSnapshot; // Added optional context
 }

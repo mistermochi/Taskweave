@@ -5,7 +5,7 @@
  */
 
 import { calculateTaskTime, formatTimer, getNextRecurrenceDate, formatRecurrence } from '@/shared/lib/timeUtils';
-import { TaskEntity, RecurrenceConfig } from '@/entities/task';
+import { Task, RecurrenceConfig } from '@/entities/task';
 
 // Mock Date.now() to ensure consistent test results
 const MOCK_NOW = new Date('2024-01-01T12:00:00Z').getTime();
@@ -26,7 +26,7 @@ describe('timeUtils', () => {
   });
 
   describe('calculateTaskTime', () => {
-    const baseTask: TaskEntity = {
+    const baseTask: Task = {
       id: 'task-1',
       title: 'Test Task',
       status: 'active',
@@ -34,7 +34,7 @@ describe('timeUtils', () => {
       energy: 'Medium',
       category: 'Work',
       createdAt: MOCK_NOW - 100000,
-    } as TaskEntity;
+    } as Task;
 
     it('should return correct metrics for an IDLE task', () => {
       const metrics = calculateTaskTime(baseTask);
@@ -46,7 +46,7 @@ describe('timeUtils', () => {
     });
 
     it('should return correct metrics for a PAUSED task', () => {
-      const pausedTask: TaskEntity = {
+      const pausedTask: Task = {
         ...baseTask,
         remainingSeconds: 900, // Paused with 15 mins remaining
       };
@@ -58,7 +58,7 @@ describe('timeUtils', () => {
     });
 
     it('should return correct metrics for a RUNNING task', () => {
-      const runningTask: TaskEntity = {
+      const runningTask: Task = {
         ...baseTask,
         remainingSeconds: 900, // Was paused with 15 mins left
         lastStartedAt: MOCK_NOW - 300000, // ...and resumed 5 mins (300s) ago

@@ -1,4 +1,4 @@
-import { TaskEntity, RecurrenceConfig } from '@/entities/task';
+import { Task, RecurrenceConfig } from '@/entities/task';
 
 /**
  * Interface representing the real-time state of a task timer.
@@ -38,7 +38,7 @@ export const formatTimer = (seconds: number): string => {
  * @param task - The task entity to calculate metrics for.
  * @returns A `TaskTimeMetrics` object.
  */
-export const calculateTaskTime = (task: TaskEntity | null): TaskTimeMetrics => {
+export const calculateTaskTime = (task: Task | null): TaskTimeMetrics => {
   if (!task) {
     return { 
       totalSeconds: 1500, 

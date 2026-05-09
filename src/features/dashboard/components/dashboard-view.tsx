@@ -5,7 +5,7 @@ import {
   Plus, Star, X, Sparkles
 } from 'lucide-react';
 import { vibrate } from '@/shared/lib/utils';
-import { Task, TaskEntity } from '@/entities/task';
+import { Task } from '@/entities/task';
 import { Tag } from '@/entities/tag';
 import { useDashboardController } from '@/hooks/controllers/useDashboardController';
 import { ReadinessRing } from './readiness-ring';
@@ -88,7 +88,7 @@ export const DashboardView: React.FC = () => {
    * to avoid O(T) recalculation on every render.
    */
   const { tagsMap } = useReferenceContext();
-  const tasks = state.activeTasks as unknown as TaskEntity[];
+  const tasks = state.activeTasks as unknown as Task[];
   
   const [intention, setIntention] = useState(state.latestFocus);
   const inputRef = useRef<HTMLInputElement>(null);

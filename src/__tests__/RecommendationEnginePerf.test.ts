@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { RecommendationEngine } from '../services/RecommendationEngine';
-import { TaskEntity, UserVital } from '@/types/scheduling';
+import { Task, UserVital } from '@/types/scheduling';
 
 // --- Mocks ---
 
@@ -43,7 +43,7 @@ describe('RecommendationEngine Performance', () => {
     const engine = RecommendationEngine.getInstance();
 
     // Generate 1000 tasks
-    const tasks: TaskEntity[] = Array.from({ length: 1000 }, (_, i) => ({
+    const tasks: Task[] = Array.from({ length: 1000 }, (_, i) => ({
       id: `task-${i}`,
       title: `Task ${i}`,
       status: 'completed',
@@ -53,7 +53,7 @@ describe('RecommendationEngine Performance', () => {
       createdAt: Date.now() - (2000 * 60 * 1000),
       completedAt: Date.now() - (1000 * 60 * 1000) + (i * 1000), // Incremental completion
       actualDuration: 30 * 60
-    } as TaskEntity));
+    } as Task));
 
     // Generate 500 vitals
     const vitals: UserVital[] = Array.from({ length: 500 }, (_, i) => ({

@@ -5,7 +5,7 @@ import { useUserId, useFirestoreDoc } from '@/hooks/useFirestore';
 import { taskApi } from '@/entities/task';
 import { calculateSessionImpact } from '@/shared/lib/energyUtils';
 import { useEnergyModel } from '@/hooks/useEnergyModel';
-import { TaskEntity } from '@/entities/task';
+import { Task } from '@/entities/task';
 
 /**
  * View Controller for the post-task Reflection (Session Summary) interface.
@@ -18,7 +18,7 @@ import { TaskEntity } from '@/entities/task';
 export const useSessionSummaryController = (taskId: string | undefined) => {
   const uid = useUserId();
   /** Real-time subscription to the specific task being summarized. */
-  const { data: task, loading: isLoading } = useFirestoreDoc<TaskEntity>('tasks', taskId);
+  const { data: task, loading: isLoading } = useFirestoreDoc<Task>('tasks', taskId);
   const energyModel = useEnergyModel();
 
   const [mood, setMood] = useState<'Energized' | 'Neutral' | 'Drained'>('Neutral');

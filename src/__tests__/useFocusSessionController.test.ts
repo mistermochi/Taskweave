@@ -35,7 +35,7 @@ jest.mock('../hooks/useFirestore', () => ({
 import { useFocusSessionController } from '../hooks/controllers/useFocusSessionController';
 import { useTaskContext } from '../context/TaskContext';
 import { useNavigation } from '../context/NavigationContext';
-import { TaskEntity } from '@/entities/task';
+import { Task } from '@/entities/task';
 
 const mockUseTaskContext = useTaskContext as jest.Mock;
 const mockUseNavigation = useNavigation as jest.Mock;
@@ -44,7 +44,7 @@ const mockCompleteFocusSession = jest.fn();
 const mockStartBreathing = jest.fn();
 
 describe('useFocusSessionController', () => {
-  const mockTask: TaskEntity = {
+  const mockTask: Task = {
     id: 'task-1',
     title: 'Focus on this',
     status: 'active',
@@ -59,7 +59,7 @@ describe('useFocusSessionController', () => {
     blockedBy: [],
   };
 
-  const mockRunningTask: TaskEntity = {
+  const mockRunningTask: Task = {
       ...mockTask,
       isFocused: true,
       lastStartedAt: Date.now(),

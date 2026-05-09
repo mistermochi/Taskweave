@@ -19,7 +19,7 @@ export interface RecurrenceConfig {
   weekOfMonth?: number; // 1, 2, 3, 4, or 5 (Last)
 }
 
-export interface TaskEntity {
+export interface Task {
   id: string;              // UUID
   title: string;
   category: Category;      // Now stores Tag ID (or legacy name), can be empty string if uncategorized
@@ -52,9 +52,4 @@ export interface TaskEntity {
   // Completion Context
   completionMood?: 'Energized' | 'Neutral' | 'Drained';
   completionNotes?: string;
-
-  // AI/Vector hooks (Future proofing)
-  embedding?: number[];    // For semantic search later
 }
-
-export interface Task extends TaskEntity {}

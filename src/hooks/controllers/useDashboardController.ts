@@ -9,7 +9,7 @@ import { useReferenceContext } from '@/context/ReferenceContext';
 import { useEnergyModel } from '@/hooks/useEnergyModel';
 import { getStartOfDay } from '@/shared/lib/timeUtils';
 import { taskApi } from '@/entities/task';
-import { TaskEntity } from '@/entities/task';
+import { Task } from '@/entities/task';
 import { calculateSessionImpact } from '@/shared/lib/energyUtils';
 import { SuggestionContext } from '@/types/scheduling';
 import { RecommendationEngine } from '@/services/RecommendationEngine';
@@ -30,10 +30,10 @@ export const useDashboardController = () => {
   // Bolt ⚡ Optimization: Single-pass partitioning of active and completed tasks
   // Plus identification of latest completed task and active ID set for recommendation context.
   const { activeTasks, activeTaskIds, completedTasks, latestCompletedTask } = useMemo(() => {
-    const active: TaskEntity[] = [];
+    const active: Task[] = [];
     const ids = new Set<string>();
-    const completed: TaskEntity[] = [];
-    let latest: TaskEntity | undefined;
+    const completed: Task[] = [];
+    let latest: Task | undefined;
 
     allTasks.forEach(t => {
       if (t.status === 'active') {
@@ -104,14 +104,14 @@ export const useDashboardController = () => {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const endOfToday = startOfToday + 86400000;
 
-    const isBlocked = (task: TaskEntity): boolean => {
+    const isBlocked = (task: Task): boolean => {
       if (!task.blockedBy || task.blockedBy.length === 0) return false;
       return task.blockedBy.some(blockerId => activeTaskIds.has(blockerId));
     };
 
     // Bolt ⚡ Optimization: Single O(N) pass to partition plan candidates and inbox tasks
-    const planCandidates: TaskEntity[] = [];
-    const inboxTasks: TaskEntity[] = [];
+    const planCandidates: Task[] = [];
+    const inboxTasks: Task[] = [];
 
     activeTasks.forEach(task => {
         if (isBlocked(task)) return;
@@ -235,7 +235,7 @@ export const useDashboardController = () => {
    *
    * @param task - The task being completed.
    */
-  const completeTask = async (task: TaskEntity): Promise<number | null> => {
+  const completeTask = async (task: Task): Promise<number | null> => {
       const durationSeconds = task.duration * 60;
       const delta = calculateSessionImpact(durationSeconds, durationSeconds, 'Neutral');
       const newEnergy = Math.max(0, Math.min(100, energyModel.currentEnergy + delta));
@@ -282,8 +282,8 @@ export const useDashboardController = () => {
       saveMood,
       saveFocus,
       completeTask,
-      updateTask: (taskId: string, updates: Partial<TaskEntity>) => taskApi.updateTask(taskId, updates),
-      createTask: (title: string, overrides?: Partial<TaskEntity>) => taskApi.addTask(
+      updateTask: (taskId: string, updates: Partial<Task>) => taskApi.updateTask(taskId, updates),
+      createTask: (title: string, overrides?: Partial<Task>) => taskApi.addTask(
           title,
           overrides?.category || '',
           overrides?.duration || 30,

@@ -13,8 +13,6 @@ interface NavigationState {
   previousView?: ViewName;
   /** ID of the task currently being focused on, if any. */
   activeTaskId?: string;
-  /** ID of the tag currently being used as a filter in the database view. */
-  activeTagId?: string | null;
   /** Whether the focus player is in its expanded (full-screen) mode. */
   isFocusExpanded: boolean;
   /** Whether a view transition is currently in progress. */
@@ -31,14 +29,6 @@ interface NavigationActions {
   navigate: (view: ViewName) => void;
   /** Reverts to the previous view in the history. */
   returnToPreviousView: () => void;
-  /** Shortcut to show the dashboard. */
-  showDashboard: () => void;
-  /** Shortcut to show the database view, optionally filtered by tag. */
-  showDatabase: (tagId?: string | null) => void;
-  /** Shortcut to show the insights view. */
-  showInsights: () => void;
-  /** Shortcut to show the settings view. */
-  showSettings: () => void;
   /** Sets a specific task as the active focus target. */
   focusOnTask: (taskId: string) => void;
   /** Toggles the focus player between minimized and expanded modes. */
@@ -51,8 +41,6 @@ interface NavigationActions {
   startBreathing: () => void;
   /** Transitions to the sensory grounding exercise view. */
   startGrounding: () => void;
-  /** Sets the active tag filter. */
-  selectTag: (tagId: string | null) => void;
   /** Hides the task completion summary modal. */
   hideSummary: () => void;
 }
@@ -73,7 +61,6 @@ export const NavigationProvider: React.FC<PropsWithChildren> = ({ children }) =>
     currentView: ViewName.DATABASE,
     previousView: undefined,
     activeTaskId: undefined,
-    activeTagId: null,
     isFocusExpanded: false,
     summaryTaskId: undefined,
   });
@@ -116,20 +103,6 @@ export const NavigationProvider: React.FC<PropsWithChildren> = ({ children }) =>
   };
 
   const actions: Omit<NavigationActions, 'navigate' | 'returnToPreviousView' | 'clearFocusSession'> = {
-    showDashboard: () => navigate(ViewName.DASHBOARD),
-    showDatabase: (tagId) => {
-        startTransition(() => {
-            setState(prevState => ({
-                ...prevState,
-                currentView: ViewName.DATABASE,
-                activeTagId: tagId === undefined ? prevState.activeTagId : tagId,
-                previousView: undefined
-            }));
-        });
-    },
-    showInsights: () => navigate(ViewName.INSIGHTS),
-    showSettings: () => navigate(ViewName.SETTINGS),
-    
     focusOnTask: (taskId: string) => {
         startTransition(() => {
             setState(prevState => ({
@@ -180,16 +153,6 @@ export const NavigationProvider: React.FC<PropsWithChildren> = ({ children }) =>
                 ...prevState, 
                 currentView: ViewName.SENSORY_GROUNDING,
                 previousView: prevState.currentView
-            }));
-        });
-    },
-    selectTag: (tagId: string | null) => {
-        startTransition(() => {
-            setState(prevState => ({
-                ...prevState,
-                activeTagId: tagId,
-                currentView: ViewName.DATABASE,
-                previousView: undefined
             }));
         });
     }

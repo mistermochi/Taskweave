@@ -55,7 +55,6 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
   const setActiveView = useTaskAppStore((state) => state.setActiveView);
   const searchQuery = useTaskAppStore((state) => state.searchQuery);
   const setSearchQuery = useTaskAppStore((state) => state.setSearchQuery);
-  const { selectTag } = useNavigation();
   const [draggedTagId, setDraggedTagId] = React.useState<string | null>(null);
 
   // CRUD state
@@ -199,7 +198,6 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                       setSearchQuery(`#${tag.name}`);
                     }
                     setSelectedTagId(null);
-                    selectTag(null);
                     setActiveView("tasks");
                   }}
                   onKeyDown={(e) => {
@@ -351,7 +349,6 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
               onClick={() => {
                 setSearchQuery("");
                 setSelectedTagId(null);
-                selectTag(null);
                 setActiveView('tasks');
               }}
             >

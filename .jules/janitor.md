@@ -108,3 +108,8 @@
 **Clutter:** Redundant `TaskEntity` and `Task` type definitions and an unused `embedding` property.
 **Learning:** Maintaining multiple names for the same core entity increases cognitive load. Consolidating to the most concise name (`Task`) improves codebase signal. Surgical updates are required to avoid breaking UI strings or introducing duplicate imports during global refactors.
 **Action:** Renamed `TaskEntity` to `Task`, removed the redundant alias and unused property, and updated all references across 20 files.
+
+## 2026-05-24 - Streamlined NavigationContext and Removed Redundant Tag State
+**Clutter:** Redundant navigation state (`activeTagId`) and 'shortcut' methods (`showDashboard`, `showDatabase`, `showInsights`, `showSettings`, `selectTag`) in `NavigationContext.tsx`.
+**Learning:** As the application transitioned to a Zustand-based store (`useTaskAppStore`) for primary view and filter state, the original `NavigationContext` accumulated "shadow state" and unused helper methods. These orphans increase cognitive load and the risk of state desynchronization.
+**Action:** Removed the redundant state and methods from the context and interface, updated the only remaining call-site in `TaskTagTree.tsx`, and refactored unit tests. Verified structural integrity with a full production build.

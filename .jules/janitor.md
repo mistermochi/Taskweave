@@ -108,3 +108,8 @@
 **Clutter:** Redundant `TaskEntity` and `Task` type definitions and an unused `embedding` property.
 **Learning:** Maintaining multiple names for the same core entity increases cognitive load. Consolidating to the most concise name (`Task`) improves codebase signal. Surgical updates are required to avoid breaking UI strings or introducing duplicate imports during global refactors.
 **Action:** Renamed `TaskEntity` to `Task`, removed the redundant alias and unused property, and updated all references across 20 files.
+
+## 2026-05-24 - Removed Redundant EnvironmentContext
+**Clutter:** The unused `EnvironmentContext.tsx` and its corresponding provider in `DataProviders.tsx`.
+**Learning:** In Next.js, environment variables like `process.env.NODE_ENV` are build-time constants accessible across both client and server components. Wrapping them in a React Context for simple flag exposure (e.g., `isDevelopment`) adds unnecessary architectural boilerplate and mental overhead.
+**Action:** Removed the unreferenced context and simplified the provider tree. Prefer direct access to `process.env` for global build-time constants.

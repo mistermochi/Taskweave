@@ -108,3 +108,8 @@
 **Clutter:** Redundant `TaskEntity` and `Task` type definitions and an unused `embedding` property.
 **Learning:** Maintaining multiple names for the same core entity increases cognitive load. Consolidating to the most concise name (`Task`) improves codebase signal. Surgical updates are required to avoid breaking UI strings or introducing duplicate imports during global refactors.
 **Action:** Renamed `TaskEntity` to `Task`, removed the redundant alias and unused property, and updated all references across 20 files.
+
+## 2026-05-22 - Removed Redundant EnvironmentContext
+**Clutter:** Unused `EnvironmentContext.tsx` and its corresponding provider in `DataProviders.tsx`.
+**Learning:** The application strictly prefers using `process.env.NODE_ENV` directly for environment-specific logic (e.g., `isDevelopment`). Redundant abstractions like `EnvironmentContext` are considered technical debt and should be avoided to reduce provider nesting and boilerplate.
+**Action:** Deleted the context file and removed the provider wrapper. Always verify with global grep that such contexts are truly unreferenced before removal.

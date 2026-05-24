@@ -38,6 +38,7 @@ import { Task, taskApi, EnergyLevel, RecurrenceConfig } from "@/entities/task";
 import { Tag as TagEntity, tagApi } from "@/entities/tag";
 import { useNavigation } from "@/context/NavigationContext";
 import { useTaskAppStore } from "../use-task-app";
+import { toast } from "sonner";
 import { parseTaskInput, ParsedTaskInput } from "@/shared/lib/textParserUtils";
 import { formatRecurrence } from "@/shared/lib/timeUtils";
 
@@ -170,23 +171,24 @@ export function TaskDetailView({
 
   const handleToggleComplete = async () => {
     if (!task || task.id === "new") return;
+    const taskId = task.id;
     const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
     const onError = () => {
-      useTaskAppStore.getState().showToast("Sync failed. Action reverted.");
-      useTaskAppStore.getState().clearOptimisticTask(task.id);
+      toast("Sync failed. Action reverted.");
+      useTaskAppStore.getState().clearOptimisticTask(taskId);
     };
 
     try {
       if (task.status === "completed") {
-        useTaskAppStore.getState().setOptimisticTask(task.id, { status: "active", completedAt: null, updatedAt: Date.now() });
-        taskApi.uncompleteTask(task.id, onError);
-        useTaskAppStore.getState().showToast(isOffline ? "Task reactivated locally" : "Task reactivated");
+        useTaskAppStore.getState().setOptimisticTask(taskId, { status: "active", completedAt: null, updatedAt: Date.now() });
+        taskApi.uncompleteTask(taskId, onError);
+        toast(isOffline ? "Task reactivated locally" : "Task reactivated");
         vibrate('light');
       } else {
         // Optimistically update status and navigate
         const completedAt = Date.now();
-        useTaskAppStore.getState().setOptimisticTask(task.id, { status: "completed", completedAt, updatedAt: completedAt });
+        useTaskAppStore.getState().setOptimisticTask(taskId, { status: "completed", completedAt, updatedAt: completedAt });
 
         // Use 0 as default actual duration if not specified
         taskApi.completeTask(task, 0, allTasks); // Note: completeTask eventually calls completeTaskAndRespawn which doesn't take onError yet in my current taskApi but it should
@@ -196,14 +198,19 @@ export function TaskDetailView({
         setTaskTab('done');
 
         onClose?.();
-        useTaskAppStore.getState().showToast(isOffline ? "Task completed locally" : "Task completed", () => {
-          useTaskAppStore.getState().setOptimisticTask(task.id, { status: "active", completedAt: null, updatedAt: Date.now() });
-          taskApi.uncompleteTask(task.id, onError);
+        toast(isOffline ? "Task completed locally" : "Task completed", {
+          action: {
+            label: "Undo",
+            onClick: () => {
+              useTaskAppStore.getState().setOptimisticTask(taskId, { status: "active", completedAt: null, updatedAt: Date.now() });
+              taskApi.uncompleteTask(taskId, onError);
+            }
+          }
         });
         vibrate('success');
       }
     } catch {
-      useTaskAppStore.getState().showToast("Action failed");
+      toast("Action failed");
     }
   };
 
@@ -227,36 +234,42 @@ export function TaskDetailView({
 
   const handleToggleArchive = async () => {
     if (!task || task.id === "new") return;
+    const taskId = task.id;
     const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
     const onError = () => {
-      useTaskAppStore.getState().showToast("Sync failed. Action reverted.");
-      useTaskAppStore.getState().clearOptimisticTask(task.id);
+      toast("Sync failed. Action reverted.");
+      useTaskAppStore.getState().clearOptimisticTask(taskId);
     };
 
     try {
       if (task.status === "archived") {
-        useTaskAppStore.getState().setOptimisticTask(task.id, { status: "active", archivedAt: null, updatedAt: Date.now() });
-        taskApi.unarchiveTask(task.id);
-        useTaskAppStore.getState().showToast(isOffline ? "Task restored locally" : "Task restored");
+        useTaskAppStore.getState().setOptimisticTask(taskId, { status: "active", archivedAt: null, updatedAt: Date.now() });
+        taskApi.unarchiveTask(taskId);
+        toast(isOffline ? "Task restored locally" : "Task restored");
       } else {
         const archivedAt = Date.now();
-        useTaskAppStore.getState().setOptimisticTask(task.id, { status: "archived", archivedAt, updatedAt: archivedAt });
-        taskApi.archiveTask(task.id);
+        useTaskAppStore.getState().setOptimisticTask(taskId, { status: "archived", archivedAt, updatedAt: archivedAt });
+        taskApi.archiveTask(taskId);
 
         // Navigate away from the task and go to Archived tab
         useTaskAppStore.getState().setSelectedTask(null);
         setTaskTab('archived');
 
         onClose?.();
-        useTaskAppStore.getState().showToast(isOffline ? "Task archived locally" : "Task archived", () => {
-          useTaskAppStore.getState().setOptimisticTask(task.id, { status: "active", archivedAt: null, updatedAt: Date.now() });
-          taskApi.unarchiveTask(task.id);
+        toast(isOffline ? "Task archived locally" : "Task archived", {
+          action: {
+            label: "Undo",
+            onClick: () => {
+              useTaskAppStore.getState().setOptimisticTask(taskId, { status: "active", archivedAt: null, updatedAt: Date.now() });
+              taskApi.unarchiveTask(taskId);
+            }
+          }
         });
       }
       vibrate('light');
     } catch {
-      useTaskAppStore.getState().showToast("Action failed");
+      toast("Action failed");
     }
   };
 
@@ -265,13 +278,13 @@ export function TaskDetailView({
 
     if (!showDeleteConfirm) {
       setShowDeleteConfirm(true);
-      useTaskAppStore.getState().showToast("Click again to permanently delete this task");
+      toast("Click again to permanently delete this task");
       vibrate('medium');
       return;
     }
 
     const onError = () => {
-      useTaskAppStore.getState().showToast("Delete failed. Task restored.");
+      toast("Delete failed. Task restored.");
       useTaskAppStore.getState().clearOptimisticTask(task.id);
     };
 
@@ -280,10 +293,10 @@ export function TaskDetailView({
       taskApi.deleteTask(task.id, onError);
       useTaskAppStore.getState().setSelectedTask(null);
       onClose?.();
-      useTaskAppStore.getState().showToast("Task deleted");
+      toast("Task deleted");
       vibrate('success');
     } catch {
-      useTaskAppStore.getState().showToast("Action failed");
+      toast("Action failed");
     }
   };
 
@@ -305,7 +318,7 @@ export function TaskDetailView({
     const tagInfo = getTagInfo(localCategory);
     const text = `Task: ${title}\nProject: ${tagInfo?.name || "None"}\nEnergy: ${localEnergy || "None"}\nNotes: ${notes}`;
     navigator.clipboard.writeText(text).then(() => {
-      useTaskAppStore.getState().showToast("Copied to clipboard");
+      toast("Copied to clipboard");
       vibrate('light');
     });
   };
@@ -323,7 +336,7 @@ export function TaskDetailView({
     const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
     const onError = () => {
-      useTaskAppStore.getState().showToast("Failed to sync changes. Please check your connection.");
+      toast("Failed to sync changes. Please check your connection.");
     };
 
     try {
@@ -401,7 +414,7 @@ export function TaskDetailView({
         const newHash = `#/tasks/${newTaskId}`;
         window.location.hash = newHash;
 
-        useTaskAppStore.getState().showToast(isOffline ? "Task saved locally" : "Task created");
+        toast(isOffline ? "Task saved locally" : "Task created");
       } else {
         // Handle tag creation for existing task updates
         if (isNewTag && localCategory) {
@@ -433,11 +446,11 @@ export function TaskDetailView({
         useTaskAppStore.getState().setOptimisticTask(task.id, updates);
         taskApi.updateTask(task.id, updates, onError);
 
-        useTaskAppStore.getState().showToast(isOffline ? "Changes saved locally" : "Changes saved");
+        toast(isOffline ? "Changes saved locally" : "Changes saved");
       }
       vibrate('success');
     } catch {
-      useTaskAppStore.getState().showToast("Failed to save. Check connection.");
+      toast("Failed to save. Check connection.");
     } finally {
       setIsSaving(false);
     }

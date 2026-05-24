@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { Task } from "@/entities/task";
 import { Tag } from "@/entities/tag";
-import { toast } from "sonner";
 
 export type TaskView = 'dashboard' | 'tasks' | 'insights' | 'settings';
 export type TaskTab = 'active' | 'done' | 'archived';
@@ -19,7 +18,6 @@ type TaskAppStore = {
   setSearchQuery: (query: string) => void;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
-  showToast: (message: string, onUndo?: () => void) => void;
   // Optimistic State
   optimisticTasks: Record<string, Partial<Task> | null>;
   setOptimisticTask: (id: string, task: Partial<Task> | null) => void;
@@ -58,16 +56,4 @@ export const useTaskAppStore = create<TaskAppStore>((set) => ({
     const { [id]: _, ...rest } = state.optimisticTags;
     return { optimisticTags: rest };
   }),
-  showToast: (message, onUndo) => {
-    if (onUndo) {
-      toast(message, {
-        action: {
-          label: "Undo",
-          onClick: onUndo,
-        },
-      });
-    } else {
-      toast(message);
-    }
-  },
 }));

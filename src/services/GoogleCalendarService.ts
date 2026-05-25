@@ -22,6 +22,11 @@ const SCOPES = [
 export class GoogleCalendarService {
   /** Singleton instance of the service. */
   private static instance: GoogleCalendarService;
+
+  /**
+   * Private constructor for singleton pattern.
+   */
+  private constructor() {}
   
   /**
    * Returns the singleton instance of GoogleCalendarService.

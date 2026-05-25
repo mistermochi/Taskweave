@@ -108,3 +108,13 @@
 **Clutter:** Redundant `TaskEntity` and `Task` type definitions and an unused `embedding` property.
 **Learning:** Maintaining multiple names for the same core entity increases cognitive load. Consolidating to the most concise name (`Task`) improves codebase signal. Surgical updates are required to avoid breaking UI strings or introducing duplicate imports during global refactors.
 **Action:** Renamed `TaskEntity` to `Task`, removed the redundant alias and unused property, and updated all references across 20 files.
+
+## 2026-05-25 - Enforced Singleton Pattern Across Services
+**Clutter:** Multiple services (, , , , , ) had public or implicit constructors despite being documented as singletons.
+**Learning:** Documenting a class as a singleton is insufficient if the language permits direct instantiation via `new`. Enforcing `private` constructors is a critical structural constraint that prevents accidental state fragmentation and ensures a single "Source of Truth" for core application services.
+**Action:** Enforced `private` constructors on all singleton services and verified that no external code was incorrectly instantiating them using a full build and lint sweep.
+
+## 2026-05-25 - Enforced Singleton Pattern Across Services
+**Clutter:** Multiple services (ContextApi, AIService, GoogleCalendarService, RecommendationEngine, DeviceService, LocationService) had public or implicit constructors despite being documented as singletons.
+**Learning:** Documenting a class as a singleton is insufficient if the language permits direct instantiation via `new`. Enforcing `private` constructors is a critical structural constraint that prevents accidental state fragmentation and ensures a single "Source of Truth" for core application services.
+**Action:** Enforced `private` constructors on all singleton services and verified that no external code was incorrectly instantiating them using a full build and lint sweep.

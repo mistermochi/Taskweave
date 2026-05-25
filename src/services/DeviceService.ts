@@ -11,6 +11,11 @@ export class DeviceService {
     private static instance: DeviceService;
 
     /**
+     * Private constructor for singleton pattern.
+     */
+    private constructor() {}
+
+    /**
      * Returns the singleton instance of DeviceService.
      * @returns The DeviceService instance.
      */

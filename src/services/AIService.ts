@@ -20,7 +20,7 @@ export class AIService {
      * Private constructor for singleton pattern.
      * Initializes the Gemini client using the API key from environment variables.
      */
-    constructor() {
+    private constructor() {
         try {
             if (process.env.API_KEY) {
                 this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });

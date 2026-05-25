@@ -13,6 +13,11 @@ export class LocationService {
     private static instance: LocationService;
 
     /**
+     * Private constructor for singleton pattern.
+     */
+    private constructor() {}
+
+    /**
      * Returns the singleton instance of LocationService.
      * @returns The LocationService instance.
      */

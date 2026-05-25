@@ -16,6 +16,11 @@ export class RecommendationEngine {
   private static instance: RecommendationEngine;
 
   /**
+   * Private constructor for singleton pattern.
+   */
+  private constructor() {}
+
+  /**
    * Returns the singleton instance of RecommendationEngine.
    * @returns The RecommendationEngine instance.
    */

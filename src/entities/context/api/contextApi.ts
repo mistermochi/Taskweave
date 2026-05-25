@@ -27,7 +27,7 @@ export class ContextApi {
     /**
      * Private constructor initializing dependency services.
      */
-    constructor() {
+    private constructor() {
         this.userConfigService = UserConfigService.getInstance();
         this.deviceService = DeviceService.getInstance();
         this.locationService = LocationService.getInstance();

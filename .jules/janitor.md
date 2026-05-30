@@ -114,6 +114,11 @@
 **Learning:** Documenting a class as a singleton is insufficient if the language permits direct instantiation via `new`. Enforcing `private` constructors is a critical structural constraint that prevents accidental state fragmentation and ensures a single "Source of Truth" for core application services.
 **Action:** Enforced `private` constructors on all singleton services and verified that no external code was incorrectly instantiating them using a full build and lint sweep.
 
+## 2026-05-26 - Fixed Inconsistent Firestore Paths in UserConfigService
+**Clutter:** `updateSettings` and `updateCalendarMapping` in `UserConfigService.ts` were missing the `'users'` collection prefix in their Firestore document paths.
+**Learning:** Inconsistent path construction across a service can lead to data being written to incorrect or unexpected collections, especially when some methods in the same class use the correct prefix and others don't. This breaks the "Source of Truth" for data location.
+**Action:** Always verify that Firestore `doc()` calls follow the project's standard collection hierarchy, ensuring consistency with the main initialization methods like `setUserId`.
+
 ## 2026-05-25 - Enforced Singleton Pattern Across Services
 **Clutter:** Multiple services (ContextApi, AIService, GoogleCalendarService, RecommendationEngine, DeviceService, LocationService) had public or implicit constructors despite being documented as singletons.
 **Learning:** Documenting a class as a singleton is insufficient if the language permits direct instantiation via `new`. Enforcing `private` constructors is a critical structural constraint that prevents accidental state fragmentation and ensures a single "Source of Truth" for core application services.

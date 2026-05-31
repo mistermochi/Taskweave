@@ -118,3 +118,8 @@
 **Clutter:** Multiple services (ContextApi, AIService, GoogleCalendarService, RecommendationEngine, DeviceService, LocationService) had public or implicit constructors despite being documented as singletons.
 **Learning:** Documenting a class as a singleton is insufficient if the language permits direct instantiation via `new`. Enforcing `private` constructors is a critical structural constraint that prevents accidental state fragmentation and ensures a single "Source of Truth" for core application services.
 **Action:** Enforced `private` constructors on all singleton services and verified that no external code was incorrectly instantiating them using a full build and lint sweep.
+
+## 2026-05-31 - Removed Redundant EnvironmentContext
+**Clutter:** The `EnvironmentContext.tsx` abstraction and its provider in `DataProviders.tsx`.
+**Learning:** In Next.js, `process.env.NODE_ENV` is globally available and optimized at build time. Wrapping it in a React Context is an anti-pattern that increases provider nesting and boilerplate without adding value. The codebase strictly prefers direct access to environment variables.
+**Action:** Removed the redundant context and provider, simplifying the component tree. Always verify if a context is merely proxying a globally available environment variable before implementation.

@@ -109,6 +109,11 @@
 **Learning:** Maintaining multiple names for the same core entity increases cognitive load. Consolidating to the most concise name (`Task`) improves codebase signal. Surgical updates are required to avoid breaking UI strings or introducing duplicate imports during global refactors.
 **Action:** Renamed `TaskEntity` to `Task`, removed the redundant alias and unused property, and updated all references across 20 files.
 
+## 2026-06-01 - Removed Unused EnvironmentContext
+**Clutter:** `EnvironmentContext.tsx` and its provider in `DataProviders.tsx`.
+**Learning:** The application strictly prefers using `process.env.NODE_ENV` directly for environment-specific logic. Wrapping it in a React Context adds unnecessary provider nesting and cognitive load without providing any reactive benefit, as the environment is static.
+**Action:** Deleted the context file, removed the provider wrapper, and updated documentation to reflect the simplified architecture.
+
 ## 2026-05-25 - Enforced Singleton Pattern Across Services
 **Clutter:** Multiple services (, , , , , ) had public or implicit constructors despite being documented as singletons.
 **Learning:** Documenting a class as a singleton is insufficient if the language permits direct instantiation via `new`. Enforcing `private` constructors is a critical structural constraint that prevents accidental state fragmentation and ensures a single "Source of Truth" for core application services.

@@ -114,6 +114,11 @@
 **Learning:** Documenting a class as a singleton is insufficient if the language permits direct instantiation via `new`. Enforcing `private` constructors is a critical structural constraint that prevents accidental state fragmentation and ensures a single "Source of Truth" for core application services.
 **Action:** Enforced `private` constructors on all singleton services and verified that no external code was incorrectly instantiating them using a full build and lint sweep.
 
+## 2026-05-31 - Removed Redundant EnvironmentContext
+**Clutter:** A React Context (`EnvironmentContext.tsx`) used solely to provide an `isDevelopment` flag derived from `process.env.NODE_ENV`.
+**Learning:** In Next.js, `process.env.NODE_ENV` is static and globally accessible. Creating a React Context for static environment flags is an anti-pattern that increases provider nesting and cognitive load without providing any reactive benefit.
+**Action:** Deleted the unused context, removed its provider from `DataProviders.tsx`, and updated architectural documentation to reflect the simplified structure.
+
 ## 2026-05-25 - Enforced Singleton Pattern Across Services
 **Clutter:** Multiple services (ContextApi, AIService, GoogleCalendarService, RecommendationEngine, DeviceService, LocationService) had public or implicit constructors despite being documented as singletons.
 **Learning:** Documenting a class as a singleton is insufficient if the language permits direct instantiation via `new`. Enforcing `private` constructors is a critical structural constraint that prevents accidental state fragmentation and ensures a single "Source of Truth" for core application services.

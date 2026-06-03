@@ -34,7 +34,6 @@ describe('NavigationContext', () => {
 
     expect(result.current.currentView).toBe(ViewName.DATABASE); // Updated default
     expect(result.current.activeTaskId).toBeUndefined();
-    expect(result.current.activeTagId).toBeNull();
     expect(result.current.isFocusExpanded).toBe(false);
   });
 
@@ -120,7 +119,7 @@ describe('NavigationContext', () => {
       const { result } = renderHook(() => useNavigation(), { wrapper });
 
       act(() => {
-        result.current.showDashboard();
+        result.current.navigate(ViewName.DASHBOARD);
       });
 
       act(() => {
@@ -156,34 +155,15 @@ describe('NavigationContext', () => {
         const { result } = renderHook(() => useNavigation(), { wrapper });
 
         act(() => {
-          result.current.showDashboard();
+          result.current.navigate(ViewName.DASHBOARD);
         });
         act(() => {
-            result.current.showDatabase();
+            result.current.navigate(ViewName.DATABASE);
         });
 
         expect(result.current.currentView).toBe(ViewName.DATABASE);
         // Navigating between main views should not set a "previous view" for breaks
         expect(result.current.previousView).toBeUndefined();
       });
-  });
-
-  // Test Suite for View/Filter Selection
-  describe('View and Filter Selection Flow', () => {
-    it('should select a tag and switch to database view', () => {
-      const { result } = renderHook(() => useNavigation(), { wrapper });
-
-      act(() => {
-        result.current.showDashboard();
-      });
-
-      act(() => {
-        result.current.selectTag('tag-work-1');
-      });
-
-      expect(result.current.currentView).toBe(ViewName.DATABASE);
-      expect(result.current.activeTagId).toBe('tag-work-1');
-    });
-
   });
 });

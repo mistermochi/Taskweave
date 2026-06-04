@@ -76,12 +76,9 @@ export class RecommendationEngine {
         const syntheticContext: SuggestionContext = {
             currentTime: mockDate,
             energy: s.energy,
-            availableMinutes: 60, 
             tasks: tasks,
             tags: [], 
             completedTasks: mockCompleted, 
-            backlogCount: tasks.length,
-            userContext: undefined 
         };
 
         const x = this.buildContextVector(syntheticContext);
@@ -186,14 +183,11 @@ export class RecommendationEngine {
       const context: SuggestionContext = {
         currentTime: new Date(completionTime),
         energy: energyAtTime,
-        availableMinutes: 60,
         tasks: activeTasksAtTime,
         tags: [],
         completedTasks: previousCompletions, // Bolt ⚡: Maintain history for feature extraction
         lastTask, // Bolt ⚡: Pass pre-identified last task
         activeTaskIds: activePool, // Bolt ⚡: Pass existing active pool Map for O(1) blocking check without allocation
-        backlogCount: activeTasksAtTime.length,
-        userContext: undefined, 
       };
       
       const samples = this.getOrganicSamples(task, context);

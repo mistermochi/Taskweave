@@ -67,19 +67,14 @@ export const useDashboardController = () => {
     const calculateRecommendation = async () => {
       try {
         const engine = RecommendationEngine.getInstance();
-         // contextService consolidated
-        const userContext = await contextApi.getSnapshot();
         const context: SuggestionContext = {
           currentTime: new Date(),
           energy: energyModel.currentEnergy, 
-          availableMinutes: 60,
           tasks: activeTasks,
           tags: tags, 
           completedTasks: completedTasks,
           lastTask: latestCompletedTask, // Bolt ⚡: O(1) resolution in RecommendationEngine
           activeTaskIds: activeTaskIds, // Bolt ⚡: Reuse stable O(1) lookup set
-          backlogCount: activeTasks.length,
-          userContext
         };
         const result = await engine.generateSuggestion(context);
         if (result.suggestion && result.suggestion.type === 'task' && result.suggestion.taskId) {
@@ -244,21 +239,15 @@ export const useDashboardController = () => {
       await taskApi.logSessionCompletion(task, 'Neutral', 'Quick Complete', newEnergy);
 
       try {
-           // contextService consolidated
-          const userContext = await contextApi.getSnapshot();
-
           const remainingTasks = activeTasks.filter(t => t.id !== task.id);
           const completionContext: SuggestionContext = {
               currentTime: new Date(),
               energy: energyModel.currentEnergy,
-              availableMinutes: 60,
               tasks: remainingTasks,
               tags: tags,
               completedTasks: completedTasks,
               lastTask: task, // The task just completed is the last task
               activeTaskIds: new Set(remainingTasks.map(t => t.id)),
-              backlogCount: remainingTasks.length,
-              userContext: userContext,
           };
           await RecommendationEngine.getInstance().logOrganicSelection(task, completionContext);
       } catch {

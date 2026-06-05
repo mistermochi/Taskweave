@@ -118,3 +118,12 @@
 **Clutter:** Redundant navigation state (`activeTagId`) and 'shortcut' methods (`showDashboard`, `showDatabase`, `showInsights`, `showSettings`, `selectTag`) in `NavigationContext.tsx`.
 **Learning:** Overlapping navigation systems create structural entropy and state synchronization risks. The generic `navigate` method already handles history clearing for main views, making specialized shortcuts redundant. Removing these orphans improves codebase signal without impacting functionality, as filtering is now managed by the global store.
 **Action:** Deleted redundant members from the context and updated consumers and unit tests, verifying stability with a full build.
+## 2026-05-25 - Enforced Singleton Pattern Across Services
+**Clutter:** Multiple services (ContextApi, AIService, GoogleCalendarService, RecommendationEngine, DeviceService, LocationService) had public or implicit constructors despite being documented as singletons.
+**Learning:** Documenting a class as a singleton is insufficient if the language permits direct instantiation via `new`. Enforcing `private` constructors is a critical structural constraint that prevents accidental state fragmentation and ensures a single "Source of Truth" for core application services.
+**Action:** Enforced `private` constructors on all singleton services and verified that no external code was incorrectly instantiating them using a full build and lint sweep.
+
+## 2026-05-28 - Streamlined SuggestionContext and Removed Redundant Async Logic
+**Clutter:** Redundant properties `availableMinutes`, `backlogCount`, and `userContext` in `SuggestionContext` interface.
+**Learning:** Derived state (like `backlogCount`) should be calculated by consumers from raw data (`tasks.length`) to prevent desynchronization. Removing unused asynchronous calls (like `contextApi.getSnapshot()`) that populate these redundant properties reduces latency and cognitive load.
+**Action:** Pruned the `SuggestionContext` interface and updated all call sites in the recommendation engine and dashboard controller.

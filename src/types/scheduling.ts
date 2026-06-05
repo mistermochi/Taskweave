@@ -24,7 +24,6 @@ export type { UserVital } from '@/entities/vital';
 export interface SuggestionContext {
   currentTime: Date;
   energy: number; // 0-100 from dashboard
-  availableMinutes: number;
   tasks: Task[];
   tags: Tag[];
   completedTasks: Task[]; // Added for momentum tracking
@@ -32,8 +31,6 @@ export interface SuggestionContext {
   lastTask?: Task;
   /** Optional pre-calculated active task ID set or map for O(1) blocking checks. */
   activeTaskIds?: Set<string> | Map<string, Task>;
-  backlogCount: number;
-  userContext?: ContextSnapshot; // Added optional context
 }
 
 /**

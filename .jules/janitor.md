@@ -123,3 +123,8 @@
 **Clutter:** Redundant properties `availableMinutes`, `backlogCount`, and `userContext` in `SuggestionContext` interface.
 **Learning:** Derived state (like `backlogCount`) should be calculated by consumers from raw data (`tasks.length`) to prevent desynchronization. Removing unused asynchronous calls (like `contextApi.getSnapshot()`) that populate these redundant properties reduces latency and cognitive load.
 **Action:** Pruned the `SuggestionContext` interface and updated all call sites in the recommendation engine and dashboard controller.
+
+## 2026-06-01 - Removed Redundant EnvironmentContext
+**Clutter:** Unused `EnvironmentContext.tsx` and its provider in `DataProviders.tsx`.
+**Learning:** The application strictly prefers using `process.env.NODE_ENV` directly for environment-specific logic (e.g., `isDevelopment`). Redundant abstractions like `EnvironmentContext` are considered technical debt as they increase provider nesting and mental overhead without providing any dynamic benefits that justify a React context.
+**Action:** Removed the unused `EnvironmentContext.tsx` and its provider, and surgically updated `architecture.md` to reflect the change.

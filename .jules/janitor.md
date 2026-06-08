@@ -123,3 +123,8 @@
 **Clutter:** Redundant properties `availableMinutes`, `backlogCount`, and `userContext` in `SuggestionContext` interface.
 **Learning:** Derived state (like `backlogCount`) should be calculated by consumers from raw data (`tasks.length`) to prevent desynchronization. Removing unused asynchronous calls (like `contextApi.getSnapshot()`) that populate these redundant properties reduces latency and cognitive load.
 **Action:** Pruned the `SuggestionContext` interface and updated all call sites in the recommendation engine and dashboard controller.
+
+## 2026-06-05 - Removed Redundant defaultCollapsed Prop
+**Clutter:** The `defaultCollapsed` prop in `TaskApp.tsx` and its passing in `src/app/page.tsx`.
+**Learning:** Leftover props that mirror the internal default state of a store (Zustand) create redundant reactivity and prop drift. Removing these "ghost props" simplifies component interfaces and reduces maintenance overhead.
+**Action:** Removed the redundant prop and its associated `useEffect` in `TaskApp.tsx`, and cleaned up the `MainContent` component in `page.tsx`.

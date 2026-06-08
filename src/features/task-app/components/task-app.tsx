@@ -36,7 +36,6 @@ interface TaskAppProps {
   tags: Tag[];
   tasksLoading?: boolean;
   tagsLoading?: boolean;
-  defaultCollapsed?: boolean;
   hasPendingWrites?: boolean;
 }
 
@@ -45,7 +44,6 @@ export function TaskApp({
   tags,
   tasksLoading = false,
   tagsLoading = false,
-  defaultCollapsed = false,
   hasPendingWrites = false,
 }: TaskAppProps) {
   const {
@@ -295,12 +293,6 @@ export function TaskApp({
       }
     }
   }, [activeTaskId, mergedTasksMap, clearFocusSession]);
-
-  React.useEffect(() => {
-    if (defaultCollapsed !== undefined) {
-      setIsCollapsed(defaultCollapsed);
-    }
-  }, [defaultCollapsed, setIsCollapsed]);
 
   const toggleCollapsed = React.useCallback(
     (collapsed: boolean) => {

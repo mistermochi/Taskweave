@@ -123,3 +123,8 @@
 **Clutter:** Redundant properties `availableMinutes`, `backlogCount`, and `userContext` in `SuggestionContext` interface.
 **Learning:** Derived state (like `backlogCount`) should be calculated by consumers from raw data (`tasks.length`) to prevent desynchronization. Removing unused asynchronous calls (like `contextApi.getSnapshot()`) that populate these redundant properties reduces latency and cognitive load.
 **Action:** Pruned the `SuggestionContext` interface and updated all call sites in the recommendation engine and dashboard controller.
+
+## 2026-06-05 - Removed Redundant EnvironmentContext
+**Clutter:** The unused `EnvironmentContext.tsx` and its corresponding provider in `DataProviders.tsx`.
+**Learning:** Redundant abstractions for globally available environment variables (like `process.env.NODE_ENV`) add unnecessary complexity and provider nesting depth. Direct access is preferred in Next.js to reduce bundle size and mental overhead.
+**Action:** Deleted the context file, removed the provider, and surgically updated the architecture documentation to maintain consistency.

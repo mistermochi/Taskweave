@@ -84,8 +84,6 @@ function MainContent({
 }: {
   authLoading: boolean;
 }) {
-  const defaultCollapsed = false;
-
   const { tasks, loading: tasksLoading, hasPendingWrites: tasksPending } = useTaskContext();
   const { tags, loading: tagsLoading, hasPendingWrites: tagsPending } = useReferenceContext();
 
@@ -98,7 +96,6 @@ function MainContent({
         tags={tags}
         tasksLoading={authLoading || tasksLoading}
         tagsLoading={authLoading || tagsLoading}
-        defaultCollapsed={defaultCollapsed}
         hasPendingWrites={tasksPending || tagsPending}
       />
     </div>

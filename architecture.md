@@ -29,14 +29,12 @@
 │
 ├── context/                      # React Context Providers
 │   ├── AppProvider.tsx          # Root provider composing all contexts
-│   ├── DataProviders.tsx        # Data layer providers (Environment, Reference, Vitals)
+│   ├── DataProviders.tsx        # Data layer providers (Reference, Vitals)
 │   ├── AppStateProvider.tsx     # Application state providers
 │   ├── NavigationContext.tsx    # View navigation & routing state
 │   ├── TaskContext.tsx          # Active tasks data
 │   ├── ReferenceContext.tsx     # Tags/reference data
-│   ├── VitalsContext.tsx        # User vitals (mood, focus, etc.)
-│   ├── ContextServiceContext.tsx # Contextual awareness service
-│   └── EnvironmentContext.tsx   # Dev/prod environment detection
+│   └── VitalsContext.tsx        # User vitals (mood, focus, etc.)
 │
 ├── hooks/                        # Custom React Hooks
 │   ├── controllers/             # View Controller hooks (business logic)
@@ -113,11 +111,9 @@ The contexts are organized in a hierarchical structure:
 ```
 AppProvider (Root)
 ├── DataProviders
-│   ├── EnvironmentProvider
 │   ├── ReferenceProvider (Tags)
 │   └── VitalsProvider (Mood/Focus data)
 ├── AppStateProvider
-│   ├── ContextServiceProvider
 │   ├── TaskProvider (Active tasks)
 │   └── NavigationProvider (View state)
 └── ThemeProvider
@@ -131,7 +127,6 @@ AppProvider (Root)
 | **ReferenceContext** | Tags/categories | Firestore: `users/{uid}/tags` |
 | **VitalsContext** | User vitals (mood, focus) | Firestore: `users/{uid}/vitals` |
 | **NavigationContext** | View routing state | Local React state |
-| **ContextServiceContext** | Contextual awareness | Aggregated from device/location/motion |
 
 ### Context Pattern Example (TaskContext)
 
@@ -245,8 +240,7 @@ Global State (Firebase-backed)
 └── Context Snapshot (ContextService)
 
 Global UI State (React Context)
-├── Navigation (NavigationContext)
-└── Environment (EnvironmentContext)
+└── Navigation (NavigationContext)
 
 Local State (Component-level)
 ├── Form inputs

@@ -7,11 +7,10 @@ Taskweave is a biometric-aware productivity system designed to adapt to user ene
 ### `/services`
 The core business logic of the application. Services are typically implemented as singletons that handle specific domains:
 - `AIService.ts`: Integration with Google Gemini for scheduling suggestions and calibration data.
-- `TaskService.ts`: CRUD operations for tasks, including recurrence logic and focus session management.
-- `ContextService.ts`: Aggregates environmental data (location, motion, time) into a unified context.
 - `RecommendationEngine.ts`: The "brain" of the app, combining machine learning (LinUCB) and AI to suggest tasks.
-- `LearningEngine.ts`: Manages user performance models and predictive analytics.
 - `DeviceService.ts`: Low-level hardware interactions like haptic feedback and battery drain simulation.
+- `UserConfigService.ts`: Manages user settings and calendar mappings.
+- `GoogleCalendarService.ts`: Integration with Google Calendar API.
 
 ### `/context`
 React Context providers that manage global state and bridge services with the UI:
@@ -26,10 +25,7 @@ Custom React hooks for shared logic:
 - `useFirestore.ts`: Generic real-time data fetching from Firebase.
 
 ### `/components`
-Reusable UI elements, organized by feature:
-- `/ui`: Atomic design components (Buttons, Cards, Inputs).
-- `FocusPlayer.tsx`: The main interface for an active focus session.
-- `TaskRow.tsx`: A standard representation of a task across various lists.
+Reusable UI elements, organized by feature. Major features reside in `src/features`.
 
 ### `/views`
 Top-level page components switched by the `NavigationContext`:

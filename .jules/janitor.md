@@ -128,3 +128,8 @@
 **Clutter:** The `defaultCollapsed` prop in `TaskApp.tsx` and its hardcoded passing in `src/app/page.tsx`.
 **Learning:** Leftover boilerplate props from template components can remain even after the underlying functionality is moved to a global store. These "ghost props" increase cognitive load and make the component interface appear more complex than it actually is.
 **Action:** Removed the unused prop and the `useEffect` that synchronized it to the store, simplifying the component interface and reducing property drilling.
+
+## 2026-06-11 - Removed Redundant EnvironmentContext and Synchronized Documentation
+**Clutter:** Redundant `EnvironmentContext.tsx` abstraction over `process.env.NODE_ENV` and stale references in `architecture.md` and `PROJECT_STRUCTURE.md` (pointing to non-existent files like `ContextService.ts`, `TaskService.ts`, etc.).
+**Learning:** Next.js applications strictly prefer using `process.env.NODE_ENV` directly. Redundant context wrappers increase provider nesting and cognitive load. Additionally, documentation often lags behind major refactors; surgical pruning of these "documentation ghosts" is essential to prevent developer confusion and maintain a high-signal codebase.
+**Action:** Deleted `EnvironmentContext.tsx`, removed its provider from `DataProviders.tsx`, and performed a sweep of all documentation files to remove unreferenced service and component mentions.

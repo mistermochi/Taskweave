@@ -128,3 +128,8 @@
 **Clutter:** The `defaultCollapsed` prop in `TaskApp.tsx` and its hardcoded passing in `src/app/page.tsx`.
 **Learning:** Leftover boilerplate props from template components can remain even after the underlying functionality is moved to a global store. These "ghost props" increase cognitive load and make the component interface appear more complex than it actually is.
 **Action:** Removed the unused prop and the `useEffect` that synchronized it to the store, simplifying the component interface and reducing property drilling.
+
+## 2026-06-05 - Enforced Singleton Pattern on TagApi
+**Clutter:** `TagApi` had a public constructor despite being implemented and used as a singleton.
+**Learning:** Structural consistency across the service layer is vital for maintainability. If the codebase follows a singleton pattern for APIs, all such classes must strictly enforce it with `private` constructors to prevent accidental instantiation and state fragmentation.
+**Action:** Made the `TagApi` constructor private, aligning it with other singleton services in the codebase.

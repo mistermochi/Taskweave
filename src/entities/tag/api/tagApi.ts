@@ -22,6 +22,11 @@ export class TagApi {
   };
 
   /**
+   * Private constructor to enforce singleton pattern.
+   */
+  private constructor() {}
+
+  /**
    * Returns the singleton instance of TagApi.
    * @returns The TagApi instance.
    */

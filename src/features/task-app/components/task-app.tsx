@@ -352,14 +352,13 @@ export function TaskApp({
   const activeSource = taskTab === 'active' ? activeTasks : null;
   const completedSource = taskTab === 'done' ? completedTasks : null;
   const archivedSource = taskTab === 'archived' ? archivedTasks : null;
-  const mergedSource = (taskTab !== 'active' && taskTab !== 'done' && taskTab !== 'archived') ? mergedTasks : null;
 
   const sourceTasks = React.useMemo(() => {
     if (taskTab === 'active') return activeSource!;
     if (taskTab === 'done') return completedSource!;
     if (taskTab === 'archived') return archivedSource!;
-    return mergedSource!;
-  }, [taskTab, activeSource, completedSource, archivedSource, mergedSource]);
+    return activeSource!; // Fallback
+  }, [taskTab, activeSource, completedSource, archivedSource]);
 
   // Bolt ⚡ Optimization: Memoize search parsing to avoid redundant regex execution
   // when the task list updates but the search query remains the same.
@@ -371,7 +370,7 @@ export function TaskApp({
     // Bolt ⚡ Optimization: Return sourceTasks reference directly if no filters are active
     // and no status fallback is required. This avoids redundant O(N) traversals
     // and preserves reference stability for child components like TaskList.
-    const isUnfiltered = !searchQuery && !selectedTagId && sourceTasks !== mergedSource;
+    const isUnfiltered = !searchQuery && !selectedTagId;
     if (isUnfiltered) return sourceTasks;
 
     const tagKeyword = parsedSearch?.attributes.tagKeyword;
@@ -387,14 +386,6 @@ export function TaskApp({
       : null;
 
     return sourceTasks.filter((task) => {
-      // Bolt ⚡: For robustness, if we fell back to mergedTasks (mergedSource),
-      // we must still apply status filtering.
-      if (sourceTasks === mergedSource) {
-        if (taskTab === "active" && task.status !== "active") return false;
-        if (taskTab === "done" && task.status !== "completed") return false;
-        if (taskTab === "archived" && task.status !== "archived") return false;
-      }
-
       // Search filter
       if (searchQuery) {
           // If there's a tag keyword, task must match it
@@ -424,7 +415,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, parsedSearch, searchQuery]);
+  }, [sourceTasks, selectedTagId, mergedTagsMap, mergedTagsByName, parsedSearch, searchQuery]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

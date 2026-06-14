@@ -133,3 +133,7 @@
 **Clutter:** `TagApi` had a public constructor despite being implemented and used as a singleton.
 **Learning:** Structural consistency across the service layer is vital for maintainability. If the codebase follows a singleton pattern for APIs, all such classes must strictly enforce it with `private` constructors to prevent accidental instantiation and state fragmentation.
 **Action:** Made the `TagApi` constructor private, aligning it with other singleton services in the codebase.
+## 2026-06-14 - Preserved Functional Persistence and Robustness
+**Clutter:** Redundant intermediate variables in TaskApp.tsx filtering logic.
+**Learning:** Janitor sweeps must prioritize functional safety over mere code reduction. Persistence mechanisms (like cookies for UI state) and 'robustness' fallbacks in filtering logic should be preserved even if they appear technically unreachable or the associated library seems absent, as they may be critical for UI stability and error handling.
+**Action:** Streamlined variable structure while explicitly restoring functional cookie logic and robustness checks following code review feedback.

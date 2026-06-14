@@ -128,3 +128,8 @@
 **Clutter:** The `defaultCollapsed` prop in `TaskApp.tsx` and its hardcoded passing in `src/app/page.tsx`.
 **Learning:** Leftover boilerplate props from template components can remain even after the underlying functionality is moved to a global store. These "ghost props" increase cognitive load and make the component interface appear more complex than it actually is.
 **Action:** Removed the unused prop and the `useEffect` that synchronized it to the store, simplifying the component interface and reducing property drilling.
+
+## 2026-06-14 - Preserved Functional Persistence and Robustness
+**Clutter:** Redundant intermediate variables in TaskApp.tsx filtering logic.
+**Learning:** Janitor sweeps must prioritize functional safety over mere code reduction. Persistence mechanisms (like cookies for UI state) and 'robustness' fallbacks in filtering logic should be preserved even if they appear technically unreachable or the associated library seems absent, as they may be critical for UI stability and error handling.
+**Action:** Streamlined variable structure while explicitly restoring functional cookie logic and robustness checks following code review feedback.

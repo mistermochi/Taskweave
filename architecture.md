@@ -19,24 +19,16 @@
 │   ├── settings/                # Settings page components
 │   ├── task-row/                # Task editing UI components
 │   ├── dashboard/               # Dashboard-specific components
-│   ├── layout/                  # Layout components (Page wrapper)
-│   ├── AppContent.tsx           # Main app content with view routing
-│   ├── AppLayout.tsx            # App shell with sidebar
-│   ├── FocusPlayer.tsx          # Active focus session UI
-│   ├── Sidebar.tsx              # Navigation sidebar
-│   ├── TaskRow.tsx              # Individual task display
-│   └── TaskSection.tsx          # Collapsible task list section
+│   └── layout/                  # Layout components (Page wrapper)
 │
 ├── context/                      # React Context Providers
 │   ├── AppProvider.tsx          # Root provider composing all contexts
-│   ├── DataProviders.tsx        # Data layer providers (Environment, Reference, Vitals)
+│   ├── DataProviders.tsx        # Data layer providers (Reference, Vitals)
 │   ├── AppStateProvider.tsx     # Application state providers
 │   ├── NavigationContext.tsx    # View navigation & routing state
 │   ├── TaskContext.tsx          # Active tasks data
 │   ├── ReferenceContext.tsx     # Tags/reference data
-│   ├── VitalsContext.tsx        # User vitals (mood, focus, etc.)
-│   ├── ContextServiceContext.tsx # Contextual awareness service
-│   └── EnvironmentContext.tsx   # Dev/prod environment detection
+│   └── VitalsContext.tsx        # User vitals (mood, focus, etc.)
 │
 ├── hooks/                        # Custom React Hooks
 │   ├── controllers/             # View Controller hooks (business logic)
@@ -48,14 +40,10 @@
 │   ├── useFirestore.ts          # Firebase data fetching hooks
 │   ├── useEnergyModel.ts        # Energy calculation model
 │   ├── useTaskEditState.ts      # Task editing state management
-│   ├── useContextService.ts     # Context service singleton hook
 │   └── usePassiveDrain.ts       # Energy depletion over time
 │
 ├── services/                     # Business Logic Services (Singleton Pattern)
-│   ├── TaskService.ts           # CRUD operations for tasks
-│   ├── ContextService.ts        # Contextual awareness aggregation
 │   ├── RecommendationEngine.ts  # AI task suggestions
-│   ├── TagService.ts            # Tag management
 │   ├── UserConfigService.ts     # User settings
 │   ├── DeviceService.ts         # Device context (battery, network)
 │   ├── LocationService.ts       # Location context
@@ -100,7 +88,7 @@ Page (Route)
 1. **View Components** (`views/`): Page-level components that compose the UI
 2. **UI Components** (`components/ui/`): Reusable, dumb presentational components
 3. **Domain Components** (`components/pickers/`, `components/settings/`): Feature-specific components
-4. **Layout Components** (`components/layout/`, `AppLayout.tsx`): Structural components
+4. **Layout Components** (`components/layout/`): Structural components
 
 ---
 
@@ -113,11 +101,9 @@ The contexts are organized in a hierarchical structure:
 ```
 AppProvider (Root)
 ├── DataProviders
-│   ├── EnvironmentProvider
 │   ├── ReferenceProvider (Tags)
 │   └── VitalsProvider (Mood/Focus data)
 ├── AppStateProvider
-│   ├── ContextServiceProvider
 │   ├── TaskProvider (Active tasks)
 │   └── NavigationProvider (View state)
 └── ThemeProvider
@@ -131,7 +117,6 @@ AppProvider (Root)
 | **ReferenceContext** | Tags/categories | Firestore: `users/{uid}/tags` |
 | **VitalsContext** | User vitals (mood, focus) | Firestore: `users/{uid}/vitals` |
 | **NavigationContext** | View routing state | Local React state |
-| **ContextServiceContext** | Contextual awareness | Aggregated from device/location/motion |
 
 ### Context Pattern Example (TaskContext)
 
@@ -184,7 +169,6 @@ export const useDashboardController = () => {
 |----------|----------|---------|
 | **Data Hooks** | `useFirestore.ts` | Firebase data fetching |
 | **Controller Hooks** | `useDashboardController.ts` | View business logic |
-| **Service Hooks** | `useContextService.ts` | Access singleton services |
 | **Feature Hooks** | `useEnergyModel.ts` | Specific domain logic |
 
 ---
@@ -241,12 +225,10 @@ The application uses a **hybrid approach**:
 Global State (Firebase-backed)
 ├── Tasks (TaskContext)
 ├── Vitals (VitalsContext)
-├── Tags (ReferenceContext)
-└── Context Snapshot (ContextService)
+└── Tags (ReferenceContext)
 
 Global UI State (React Context)
-├── Navigation (NavigationContext)
-└── Environment (EnvironmentContext)
+└── Navigation (NavigationContext)
 
 Local State (Component-level)
 ├── Form inputs
@@ -270,59 +252,18 @@ Local State (Component-level)
 
 ### Singleton Service Pattern
 
-Services are implemented as **singletons** to manage Firebase interactions:
-
-```typescript
-export class TaskService {
-  private static instance: TaskService;
-  
-  public static getInstance(): TaskService {
-    if (!TaskService.instance) {
-      TaskService.instance = new TaskService();
-    }
-    return TaskService.instance;
-  }
-  
-  // Business logic methods
-  async completeTask(task, duration) { ... }
-}
-```
+Services are implemented as **singletons** to manage Firebase interactions.
 
 ### Key Services
 
 | Service | Responsibility |
 |---------|--------------|
-| **TaskService** | Task CRUD, completion, recurrence |
-| **ContextService** | Aggregates device/location/temporal context |
 | **RecommendationEngine** | AI task suggestions using contextual data |
-| **TagService** | Tag management with defaults |
 | **DeviceService** | Battery, network, online status |
 | **LocationService** | GPS location with home/work detection |
 | **MotionService** | Device motion activity detection |
 | **UserConfigService** | User settings cache |
 
-### Context-Awareness System
-
-The ContextService aggregates multiple data sources:
-
-```typescript
-// services/ContextService.ts
-async getSnapshot(): Promise<ContextSnapshot> {
-  const [deviceContext, locationContext] = await Promise.all([
-    this.deviceService.getDeviceStatus(),
-    this.locationService.getLocationStatus(config),
-  ]);
-  const activityContext = this.motionService.getActivityStatus();
-  
-  return {
-    location: locationContext,
-    device: deviceContext,
-    activity: activityContext,
-    temporal: { hour, dayOfWeek, isWorkHours },
-    environment: { isDaytime }
-  };
-}
-```
 
 ---
 
@@ -340,10 +281,9 @@ async getSnapshot(): Promise<ContextSnapshot> {
 
 ### Anti-Patterns Observed
 
-1. **ContextService Singleton**: The ContextService is both a singleton AND provided via React Context - potential confusion
-2. **Mixed State Management**: Some state in Context, some in Services - needs clear conventions
-3. **Large Controller Hooks**: Some controllers (like useDashboardController) are quite large and could be further decomposed
-4. **Direct Firebase Access**: Some components directly import `db` from firebase.ts rather than using the service layer
+1. **Mixed State Management**: Some state in Context, some in Services - needs clear conventions
+2. **Large Controller Hooks**: Some controllers (like useDashboardController) are quite large and could be further decomposed
+3. **Direct Firebase Access**: Some components directly import `db` from firebase.ts rather than using the service layer
 
 ### Strengths
 
@@ -356,9 +296,8 @@ async getSnapshot(): Promise<ContextSnapshot> {
 
 ### Recommendations
 
-1. Consider unifying ContextService access (either singleton OR context, not both)
-2. Standardize Firebase access through service layer exclusively
-3. Break down large controller hooks into smaller, focused hooks
+1. Standardize Firebase access through service layer exclusively
+2. Break down large controller hooks into smaller, focused hooks
 4. Add loading state management pattern across the app
 5. Consider React Query/SWR for more sophisticated server state management
 
@@ -370,10 +309,7 @@ async getSnapshot(): Promise<ContextSnapshot> {
 |------|------|
 | `/app/page.tsx` | App entry, auth handling, migration logic |
 | `/context/AppProvider.tsx` | Root provider composition |
-| `/components/AppContent.tsx` | Main view router and layout |
 | `/context/NavigationContext.tsx` | View routing and navigation state |
 | `/context/TaskContext.tsx` | Active tasks data provider |
-| `/services/TaskService.ts` | Task CRUD operations |
-| `/services/ContextService.ts` | Contextual awareness aggregator |
 | `/types.ts` | TypeScript type definitions |
 | `/hooks/useFirestore.ts` | Firebase data fetching hooks |

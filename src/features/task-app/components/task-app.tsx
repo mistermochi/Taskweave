@@ -349,17 +349,12 @@ export function TaskApp({
   // By isolating the source array selection into its own memo with conditional dependencies,
   // we ensure that updates to unrelated task subsets (e.g. archiving a task) don't
   // trigger a re-filter of the currently active view.
-  const activeSource = taskTab === 'active' ? activeTasks : null;
-  const completedSource = taskTab === 'done' ? completedTasks : null;
-  const archivedSource = taskTab === 'archived' ? archivedTasks : null;
-  const mergedSource = (taskTab !== 'active' && taskTab !== 'done' && taskTab !== 'archived') ? mergedTasks : null;
-
   const sourceTasks = React.useMemo(() => {
-    if (taskTab === 'active') return activeSource!;
-    if (taskTab === 'done') return completedSource!;
-    if (taskTab === 'archived') return archivedSource!;
-    return mergedSource!;
-  }, [taskTab, activeSource, completedSource, archivedSource, mergedSource]);
+    if (taskTab === 'active') return activeTasks;
+    if (taskTab === 'done') return completedTasks;
+    if (taskTab === 'archived') return archivedTasks;
+    return mergedTasks;
+  }, [taskTab, activeTasks, completedTasks, archivedTasks, mergedTasks]);
 
   // Bolt ⚡ Optimization: Memoize search parsing to avoid redundant regex execution
   // when the task list updates but the search query remains the same.
@@ -371,8 +366,7 @@ export function TaskApp({
     // Bolt ⚡ Optimization: Return sourceTasks reference directly if no filters are active
     // and no status fallback is required. This avoids redundant O(N) traversals
     // and preserves reference stability for child components like TaskList.
-    const isUnfiltered = !searchQuery && !selectedTagId && sourceTasks !== mergedSource;
-    if (isUnfiltered) return sourceTasks;
+    if (!searchQuery && !selectedTagId) return sourceTasks;
 
     const tagKeyword = parsedSearch?.attributes.tagKeyword;
     const searchTitle = parsedSearch?.cleanTitle.toLowerCase();
@@ -387,9 +381,9 @@ export function TaskApp({
       : null;
 
     return sourceTasks.filter((task) => {
-      // Bolt ⚡: For robustness, if we fell back to mergedTasks (mergedSource),
+      // Bolt ⚡: For robustness, if we fell back to mergedTasks,
       // we must still apply status filtering.
-      if (sourceTasks === mergedSource) {
+      if (sourceTasks === mergedTasks) {
         if (taskTab === "active" && task.status !== "active") return false;
         if (taskTab === "done" && task.status !== "completed") return false;
         if (taskTab === "archived" && task.status !== "archived") return false;
@@ -424,7 +418,7 @@ export function TaskApp({
 
       return true;
     });
-  }, [sourceTasks, mergedSource, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, parsedSearch, searchQuery]);
+  }, [sourceTasks, mergedTasks, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, parsedSearch, searchQuery]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

@@ -47,7 +47,6 @@ export interface Suggestion {
   estimatedDuration: number; // minutes
   category?: Category;
   energyRequirement?: EnergyLevel;
-  isUrgent?: boolean;
   confidence: number; // 0-100, how confident we are in this suggestion
 }
 

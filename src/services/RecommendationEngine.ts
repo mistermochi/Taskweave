@@ -1,7 +1,6 @@
 import { Task, Category, SuggestionContext, Suggestion, UserVital } from "@/types/scheduling";
 import { LinUCBService, StrategyArm, ARM_NAMES } from "./LinUCBService";
 import { AIService } from "./AIService";
-import { AIPromptBuilder } from "./AIPromptBuilder";
 import { normalizeEnergy } from "@/shared/lib/energyUtils";
 
 /**

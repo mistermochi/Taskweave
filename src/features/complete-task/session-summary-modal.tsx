@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Check, Zap, BatteryWarning, Meh, X } from 'lucide-react';
+import { Check, Zap, BatteryWarning, Meh } from 'lucide-react';
 import { useSessionSummaryController } from '@/hooks/controllers/useSessionSummaryController';
 import { Modal } from '@/shared/ui/ui/dialog';
 import { vibrate } from '@/shared/lib/utils';
@@ -32,7 +32,6 @@ const SessionSummaryModal: React.FC<SessionSummaryModalProps> = ({ taskId, onClo
     <Modal.Root isOpen={!!taskId} onClose={onClose}>
       <Modal.Header
         title="Session Complete"
-        onClose={onClose}
       />
       <Modal.Content>
         {/* Success Header */}

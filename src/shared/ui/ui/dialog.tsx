@@ -56,7 +56,7 @@ export const Modal = {
       </DialogContent>
     </Dialog>
   ),
-  Header: ({ title, onClose, actions, className }: { title: React.ReactNode; onClose: () => void; actions?: React.ReactNode; className?: string }) => (
+  Header: ({ title, actions, className }: { title: React.ReactNode; actions?: React.ReactNode; className?: string }) => (
     <DialogHeader className={cn("flex flex-row items-center justify-between border-b px-6 py-4 space-y-0", className)}>
       <DialogTitle className="font-bold text-foreground text-sm uppercase tracking-wider truncate flex-1 pr-4 text-left">{title}</DialogTitle>
       <div className="flex items-center gap-2">{actions}</div>

@@ -133,3 +133,8 @@
 **Clutter:** Redundant intermediate variables in TaskApp.tsx filtering logic.
 **Learning:** Janitor sweeps must prioritize functional safety over mere code reduction. Persistence mechanisms (like cookies for UI state) and 'robustness' fallbacks in filtering logic should be preserved even if they appear technically unreachable or the associated library seems absent, as they may be critical for UI stability and error handling.
 **Action:** Streamlined variable structure while explicitly restoring functional cookie logic and robustness checks following code review feedback.
+
+## 2026-06-17 - Standardized Component Naming and Pruned Modal Interface
+**Clutter:** PascalCase naming for `SessionSummaryModal.tsx` and an unused `onClose` prop in the shared `Modal.Header` component.
+**Learning:** Shared UI components and feature-level modals are gradually being standardized to kebab-case to ensure consistency across the FSD-inspired structure. Redundant props in shared UI wrappers (like `Modal.Header`) often stem from legacy manual implementations and should be pruned to keep the internal library interface clean.
+**Action:** Renamed the modal file, updated its feature export, and surgically removed the unreferenced prop from the shared `Modal` utility and its call sites.

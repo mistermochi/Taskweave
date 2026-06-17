@@ -96,7 +96,6 @@ export const CalendarImportModal: React.FC<CalendarImportModalProps> = ({
                 <span>Import from Calendar</span>
             </div>
         }
-        onClose={onCancel}
       />
       <Modal.Content>
         {events.length === 0 ? (

@@ -80,3 +80,7 @@
 ## 2026-04-10 - [Eliminating O(N^2) Array Spreading in Loops]
 **Learning:** Spreading an accumulating array (e.g., `[...previousCompletions]`) inside a chronological loop creates an O(N²) time and space bottleneck, even if the algorithm's core logic is optimized to O(N). Passing the array by reference is safe when the context is transient and the array is only mutated after the current iteration's use.
 **Action:** Avoid using the spread operator on large arrays inside loops. Use direct references if the object being created is short-lived or if you can guarantee mutation safety.
+
+## 2026-04-28 - [O(1) Allocation in History Replay]
+**Learning:** The use of `Array.from(iterator).filter()` inside high-frequency loops (like RecommendationEngine history recalibration) causes double array allocation per iteration. Due to the `target: "es5"` constraint, standard `for...of` on iterators is unavailable, but `Map.forEach` provides a zero-allocation way to traverse and filter into a pre-allocated result array.
+**Action:** Use `Map.forEach` or standard `for` loops instead of combining iterator-to-array conversions with functional filters in performance-critical paths.

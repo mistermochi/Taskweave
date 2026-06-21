@@ -35,8 +35,7 @@
 │   ├── TaskContext.tsx          # Active tasks data
 │   ├── ReferenceContext.tsx     # Tags/reference data
 │   ├── VitalsContext.tsx        # User vitals (mood, focus, etc.)
-│   ├── ContextServiceContext.tsx # Contextual awareness service
-│   └── EnvironmentContext.tsx   # Dev/prod environment detection
+│   └── ContextServiceContext.tsx # Contextual awareness service
 │
 ├── hooks/                        # Custom React Hooks
 │   ├── controllers/             # View Controller hooks (business logic)
@@ -113,7 +112,6 @@ The contexts are organized in a hierarchical structure:
 ```
 AppProvider (Root)
 ├── DataProviders
-│   ├── EnvironmentProvider
 │   ├── ReferenceProvider (Tags)
 │   └── VitalsProvider (Mood/Focus data)
 ├── AppStateProvider
@@ -245,8 +243,7 @@ Global State (Firebase-backed)
 └── Context Snapshot (ContextService)
 
 Global UI State (React Context)
-├── Navigation (NavigationContext)
-└── Environment (EnvironmentContext)
+└── Navigation (NavigationContext)
 
 Local State (Component-level)
 ├── Form inputs

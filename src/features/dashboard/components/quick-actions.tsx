@@ -21,13 +21,14 @@ export const QuickActions = () => {
             {actions.map((action) => (
                 <button
                     key={action.label}
+                    type="button"
                     onClick={() => {
                         vibrate('light');
                         action.onClick();
                     }}
                     aria-label={action.description}
                     title={action.description}
-                    className="p-3 bg-muted/50 hover:bg-accent hover:text-accent-foreground rounded-lg border border-border flex flex-col items-center gap-2 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="p-3 bg-muted/50 hover:bg-accent hover:text-accent-foreground rounded-lg border border-border flex flex-col items-center gap-2 transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                     <action.icon size={20} className="text-primary" />
                     <span className="text-[10px] font-bold uppercase text-muted-foreground group-hover:text-inherit">

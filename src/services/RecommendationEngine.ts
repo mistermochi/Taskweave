@@ -175,9 +175,13 @@ export class RecommendationEngine {
 
       // 4. Construct context for this completion event.
       // Bolt ⚡: activeTasksAtTime is pool minus current task.
-      // We use the pool directly to avoid re-allocating an array if possible,
-      // but the SuggestionContext interface expects an array.
-      const activeTasksAtTime = Array.from(activePool.values()).filter(t => t.id !== task.id);
+      // We use a single O(N) pass with forEach to avoid double allocation of Array.from().filter().
+      const activeTasksAtTime: TaskEntity[] = [];
+      activePool.forEach(t => {
+        if (t.id !== task.id) {
+          activeTasksAtTime.push(t);
+        }
+      });
       const lastTask = i > 0 ? completedTasks[i - 1] : undefined;
 
       const context: SuggestionContext = {
@@ -654,12 +658,17 @@ export class RecommendationEngine {
 
   /**
    * Finds the most recently completed task in a list.
-   * Bolt ⚡ Optimization: O(N) single-pass traversal.
+   * Bolt ⚡ Optimization: O(N) single-pass traversal using a standard for loop for minimal overhead.
    */
   private getLatestCompletedTask(tasks: Task[]): Task | null {
     if (tasks.length === 0) return null;
-    return tasks.reduce((latest, current) =>
-      (current.completedAt || 0) > (latest.completedAt || 0) ? current : latest
-    );
+
+    let latest = tasks[0];
+    for (let i = 1; i < tasks.length; i++) {
+      if ((tasks[i].completedAt || 0) > (latest.completedAt || 0)) {
+        latest = tasks[i];
+      }
+    }
+    return latest;
   }
 }

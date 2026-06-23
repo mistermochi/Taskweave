@@ -106,10 +106,10 @@ export class UserConfigService {
      */
     public async updateSettings(updates: Partial<UserSettings>) {
         if (!this.userId) return;
-        const ref = doc(db, this.userId, 'settings', 'general');
+        const ref = doc(db, 'users', this.userId, 'settings', 'general');
         await setDoc(ref, updates, { merge: true });
     }
-    
+
     /**
      * Specialized update for mapping a Google Calendar ID to an internal project/tag ID.
      *
@@ -118,7 +118,7 @@ export class UserConfigService {
      */
     public async updateCalendarMapping(calendarId: string, projectId: string): Promise<void> {
         if (!this.userId) return;
-        const ref = doc(db, this.userId, 'settings', 'general');
+        const ref = doc(db, 'users', this.userId, 'settings', 'general');
         await updateDoc(ref, { [`calendarProjectMapping.${calendarId}`]: projectId });
     }
 

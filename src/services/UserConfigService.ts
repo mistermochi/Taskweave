@@ -55,6 +55,14 @@ export class UserConfigService {
     }
 
     /**
+     * Internal helper to retrieve the Firestore document reference for user settings.
+     * @param uid - The user ID.
+     */
+    private getSettingsRef(uid: string) {
+        return doc(db, 'users', uid, 'settings', 'general');
+    }
+
+    /**
      * Sets the user ID and initializes the Firestore snapshot listener for their settings.
      * If a user logs out, it cleans up the listener and resets to defaults.
      *
@@ -74,7 +82,7 @@ export class UserConfigService {
         }
 
         if (uid) {
-            const ref = doc(db, 'users', uid, 'settings', 'general');
+            const ref = this.getSettingsRef(uid);
             this.unsubscribe = onSnapshot(ref, (snap) => {
                 if (snap.exists()) {
                     this.settings = { ...DEFAULT_SETTINGS, ...snap.data() } as UserSettings;
@@ -106,10 +114,10 @@ export class UserConfigService {
      */
     public async updateSettings(updates: Partial<UserSettings>) {
         if (!this.userId) return;
-        const ref = doc(db, this.userId, 'settings', 'general');
+        const ref = this.getSettingsRef(this.userId);
         await setDoc(ref, updates, { merge: true });
     }
-    
+
     /**
      * Specialized update for mapping a Google Calendar ID to an internal project/tag ID.
      *
@@ -118,7 +126,7 @@ export class UserConfigService {
      */
     public async updateCalendarMapping(calendarId: string, projectId: string): Promise<void> {
         if (!this.userId) return;
-        const ref = doc(db, this.userId, 'settings', 'general');
+        const ref = this.getSettingsRef(this.userId);
         await updateDoc(ref, { [`calendarProjectMapping.${calendarId}`]: projectId });
     }
 

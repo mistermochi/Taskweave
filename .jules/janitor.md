@@ -133,3 +133,8 @@
 **Clutter:** Redundant intermediate variables in TaskApp.tsx filtering logic.
 **Learning:** Janitor sweeps must prioritize functional safety over mere code reduction. Persistence mechanisms (like cookies for UI state) and 'robustness' fallbacks in filtering logic should be preserved even if they appear technically unreachable or the associated library seems absent, as they may be critical for UI stability and error handling.
 **Action:** Streamlined variable structure while explicitly restoring functional cookie logic and robustness checks following code review feedback.
+
+## 2026-06-27 - Removed Redundant EnvironmentContext
+**Clutter:** The redundant `EnvironmentContext` (src/context/EnvironmentContext.tsx) and its provider in `DataProviders.tsx`.
+**Learning:** The application strictly prefers using `process.env.NODE_ENV` directly for environment-specific logic (e.g., `isDevelopment`). Using a React Context to wrap a static build-time constant adds unnecessary provider nesting and cognitive overhead without providing any reactive benefits.
+**Action:** Removed the context and updated architectural documentation. Direct environment checks should be used instead of context-based flags for static environment detection.

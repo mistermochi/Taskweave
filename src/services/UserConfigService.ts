@@ -1,4 +1,4 @@
-import { doc, onSnapshot, setDoc, updateDoc, DocumentData } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/shared/api/firebase';
 import { UserSettings } from '@/types';
 
@@ -44,6 +44,15 @@ export class UserConfigService {
     }
 
     /**
+     * Internal helper to get the reference to the user's settings document.
+     * @param uid - The user ID.
+     * @returns The Firestore document reference.
+     */
+    private getSettingsRef(uid: string) {
+        return doc(db, 'users', uid, 'settings', 'general');
+    }
+
+    /**
      * Returns the singleton instance of UserConfigService.
      * @returns The UserConfigService instance.
      */
@@ -74,7 +83,7 @@ export class UserConfigService {
         }
 
         if (uid) {
-            const ref = doc(db, 'users', uid, 'settings', 'general');
+            const ref = this.getSettingsRef(uid);
             this.unsubscribe = onSnapshot(ref, (snap) => {
                 if (snap.exists()) {
                     this.settings = { ...DEFAULT_SETTINGS, ...snap.data() } as UserSettings;
@@ -106,7 +115,7 @@ export class UserConfigService {
      */
     public async updateSettings(updates: Partial<UserSettings>) {
         if (!this.userId) return;
-        const ref = doc(db, this.userId, 'settings', 'general');
+        const ref = this.getSettingsRef(this.userId);
         await setDoc(ref, updates, { merge: true });
     }
     
@@ -118,7 +127,7 @@ export class UserConfigService {
      */
     public async updateCalendarMapping(calendarId: string, projectId: string): Promise<void> {
         if (!this.userId) return;
-        const ref = doc(db, this.userId, 'settings', 'general');
+        const ref = this.getSettingsRef(this.userId);
         await updateDoc(ref, { [`calendarProjectMapping.${calendarId}`]: projectId });
     }
 

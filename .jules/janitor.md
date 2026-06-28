@@ -133,3 +133,8 @@
 **Clutter:** Redundant intermediate variables in TaskApp.tsx filtering logic.
 **Learning:** Janitor sweeps must prioritize functional safety over mere code reduction. Persistence mechanisms (like cookies for UI state) and 'robustness' fallbacks in filtering logic should be preserved even if they appear technically unreachable or the associated library seems absent, as they may be critical for UI stability and error handling.
 **Action:** Streamlined variable structure while explicitly restoring functional cookie logic and robustness checks following code review feedback.
+
+## 2026-06-25 - Standardized Service-Level Firestore Paths
+**Clutter:** Inconsistent Firestore document paths in `UserConfigService.ts` where write operations (`updateSettings`, `updateCalendarMapping`) were missing the 'users' collection prefix.
+**Learning:** Service singletons that manage specific document hierarchies should centralize path generation in a private helper. Manual path construction in multiple methods leads to structural inconsistencies and silent bugs where writes go to a different collection than reads.
+**Action:** Introduced `getSettingsRef` to encapsulate the path logic and ensured all methods in the service use it, restoring structural integrity to the user settings hierarchy.

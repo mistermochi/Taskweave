@@ -133,3 +133,8 @@
 **Clutter:** Redundant intermediate variables in TaskApp.tsx filtering logic.
 **Learning:** Janitor sweeps must prioritize functional safety over mere code reduction. Persistence mechanisms (like cookies for UI state) and 'robustness' fallbacks in filtering logic should be preserved even if they appear technically unreachable or the associated library seems absent, as they may be critical for UI stability and error handling.
 **Action:** Streamlined variable structure while explicitly restoring functional cookie logic and robustness checks following code review feedback.
+
+## 2026-07-01 - Removed Redundant EnvironmentContext
+**Clutter:** The `EnvironmentContext` and its provider were unreferenced and redundant.
+**Learning:** The application strictly prefers using `process.env.NODE_ENV` directly for environment-specific logic. Redundant context providers increase component nesting and mental overhead without functional benefits.
+**Action:** Deleted the `EnvironmentContext.tsx` file and removed its provider from the data provider chain.

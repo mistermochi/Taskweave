@@ -74,7 +74,7 @@ export class UserConfigService {
         }
 
         if (uid) {
-            const ref = doc(db, 'users', uid, 'settings', 'general');
+            const ref = this.getSettingsRef(uid);
             this.unsubscribe = onSnapshot(ref, (snap) => {
                 if (snap.exists()) {
                     this.settings = { ...DEFAULT_SETTINGS, ...snap.data() } as UserSettings;
@@ -106,7 +106,7 @@ export class UserConfigService {
      */
     public async updateSettings(updates: Partial<UserSettings>) {
         if (!this.userId) return;
-        const ref = doc(db, this.userId, 'settings', 'general');
+        const ref = this.getSettingsRef(this.userId);
         await setDoc(ref, updates, { merge: true });
     }
     
@@ -118,8 +118,16 @@ export class UserConfigService {
      */
     public async updateCalendarMapping(calendarId: string, projectId: string): Promise<void> {
         if (!this.userId) return;
-        const ref = doc(db, this.userId, 'settings', 'general');
+        const ref = this.getSettingsRef(this.userId);
         await updateDoc(ref, { [`calendarProjectMapping.${calendarId}`]: projectId });
+    }
+
+    /**
+     * Helper to get a reference to the user's general settings document.
+     * @param uid - The user ID.
+     */
+    private getSettingsRef(uid: string) {
+        return doc(db, 'users', uid, 'settings', 'general');
     }
 
     /**

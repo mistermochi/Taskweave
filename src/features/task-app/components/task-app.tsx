@@ -55,7 +55,6 @@ export function TaskApp({
   } = useNavigation();
 
   const selectedTask = useTaskAppStore((state) => state.selectedTask);
-  const selectedTagId = useTaskAppStore((state) => state.selectedTagId);
   const activeView = useTaskAppStore((state) => state.activeView);
   const taskTab = useTaskAppStore((state) => state.taskTab);
   const setTaskTab = useTaskAppStore((state) => state.setTaskTab);
@@ -201,7 +200,7 @@ export function TaskApp({
 
   // Bolt ⚡ Optimization: Consolidate tag merging and lookup map generation into a single O(T) pass.
   // We use .forEach on the Map to ensure compatibility with the es5 target and avoid intermediate array allocations.
-  const { mergedTags, mergedTagsMap, mergedTagsByName } = React.useMemo(() => {
+  const { mergedTags, mergedTagsByName } = React.useMemo(() => {
     const tagMap = new Map<string, Tag>();
     tags.forEach(t => tagMap.set(t.id, t));
 
@@ -219,18 +218,15 @@ export function TaskApp({
     });
 
     const allMerged: Tag[] = [];
-    const idMap: Record<string, Tag> = {};
     const nameMap: Record<string, Tag> = {};
 
     tagMap.forEach(tag => {
       allMerged.push(tag);
-      idMap[tag.id] = tag;
       nameMap[tag.name.toLowerCase()] = tag;
     });
 
     return {
       mergedTags: allMerged,
-      mergedTagsMap: idMap,
       mergedTagsByName: nameMap
     };
   }, [tags, optimisticTags]);
@@ -366,15 +362,11 @@ export function TaskApp({
     // Bolt ⚡ Optimization: Return sourceTasks reference directly if no filters are active
     // and no status fallback is required. This avoids redundant O(N) traversals
     // and preserves reference stability for child components like TaskList.
-    if (!searchQuery && !selectedTagId) return sourceTasks;
+    if (!searchQuery) return sourceTasks;
 
     const tagKeyword = parsedSearch?.attributes.tagKeyword;
     const searchTitle = parsedSearch?.cleanTitle.toLowerCase();
     const lowerTagKeyword = tagKeyword?.toLowerCase();
-
-    const selectedTag = selectedTagId
-      ? mergedTagsMap[selectedTagId]
-      : null;
 
     const matchedTag = lowerTagKeyword
       ? mergedTagsByName[lowerTagKeyword] // Bolt ⚡: O(1) lookup from specialized map
@@ -406,19 +398,9 @@ export function TaskApp({
           }
       }
 
-      // Legacy Tag filter (still used by some parts of the app possibly)
-      if (selectedTagId && !tagKeyword) {
-        if (!selectedTag) return false;
-        if (
-          task.category !== selectedTag.id &&
-          task.category !== selectedTag.name
-        )
-          return false;
-      }
-
       return true;
     });
-  }, [sourceTasks, mergedTasks, taskTab, selectedTagId, mergedTagsMap, mergedTagsByName, parsedSearch, searchQuery]);
+  }, [sourceTasks, mergedTasks, taskTab, mergedTagsByName, parsedSearch, searchQuery]);
 
   const taskDetail = React.useMemo(() => (
     <TaskDetail

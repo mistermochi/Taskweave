@@ -50,8 +50,6 @@ interface TaskTagTreeProps {
 
 export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskTagTreeProps) {
   const [expanded, setExpanded] = React.useState<Set<string>>(new Set());
-  const selectedTagId = useTaskAppStore((state) => state.selectedTagId);
-  const setSelectedTagId = useTaskAppStore((state) => state.setSelectedTagId);
   const setActiveView = useTaskAppStore((state) => state.setActiveView);
   const searchQuery = useTaskAppStore((state) => state.searchQuery);
   const setSearchQuery = useTaskAppStore((state) => state.setSearchQuery);
@@ -198,7 +196,6 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
                     } else {
                       setSearchQuery(`#${tag.name}`);
                     }
-                    setSelectedTagId(null);
                     selectTag(null);
                     setActiveView("tasks");
                   }}
@@ -350,7 +347,6 @@ export function TaskTagTree({ tags, tasks, isCollapsed, loading = false }: TaskT
               className="h-9 w-9"
               onClick={() => {
                 setSearchQuery("");
-                setSelectedTagId(null);
                 selectTag(null);
                 setActiveView('tasks');
               }}

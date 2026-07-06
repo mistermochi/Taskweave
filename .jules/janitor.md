@@ -133,3 +133,8 @@
 **Clutter:** Redundant intermediate variables in TaskApp.tsx filtering logic.
 **Learning:** Janitor sweeps must prioritize functional safety over mere code reduction. Persistence mechanisms (like cookies for UI state) and 'robustness' fallbacks in filtering logic should be preserved even if they appear technically unreachable or the associated library seems absent, as they may be critical for UI stability and error handling.
 **Action:** Streamlined variable structure while explicitly restoring functional cookie logic and robustness checks following code review feedback.
+
+## 2026-07-06 - Removed Legacy Tag Selection Logic
+**Clutter:** Redundant `selectedTagId` state in `useTaskAppStore` and associated `mergedTagsMap` lookup in `TaskApp.tsx`.
+**Learning:** The application has unified tag filtering through the search query (`#tagname`). Maintaining a parallel, legacy ID-based filtering system creates desynchronization risks between the URL hash, the store, and the UI.
+**Action:** Removed the unused state, setters, and lookup maps across the store, router, and main app components to streamline the filtering pipeline.

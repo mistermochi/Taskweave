@@ -8,23 +8,19 @@ function filterTasksLogic({
     sourceTasks,
     mergedSource,
     taskTab,
-    selectedTagId,
-    mergedTagsMap,
     mergedTagsByName,
     searchQuery
 }: {
     sourceTasks: Task[],
     mergedSource: Task[] | null,
     taskTab: string,
-    selectedTagId: string | null,
-    mergedTagsMap: Record<string, Tag>,
     mergedTagsByName: Record<string, Tag>,
     searchQuery: string
 }) {
     // Bolt ⚡ Optimization: Return sourceTasks reference directly if no filters are active
     // and no status fallback is required. This avoids redundant O(N) traversals
     // and preserves reference stability for child components like TaskList.
-    const isUnfiltered = !searchQuery && !selectedTagId && sourceTasks !== mergedSource;
+    const isUnfiltered = !searchQuery && sourceTasks !== mergedSource;
     if (isUnfiltered) return sourceTasks;
 
     // Bolt ⚡: Hoist search parsing and only execute if query exists
@@ -32,10 +28,6 @@ function filterTasksLogic({
     const tagKeyword = parsedSearch?.attributes.tagKeyword;
     const searchTitle = parsedSearch?.cleanTitle.toLowerCase();
     const lowerTagKeyword = tagKeyword?.toLowerCase();
-
-    const selectedTag = selectedTagId
-      ? mergedTagsMap[selectedTagId]
-      : null;
 
     const matchedTag = lowerTagKeyword
       ? mergedTagsByName[lowerTagKeyword] // Bolt ⚡: O(1) lookup from specialized map
@@ -67,16 +59,6 @@ function filterTasksLogic({
           }
       }
 
-      // Legacy Tag filter (still used by some parts of the app possibly)
-      if (selectedTagId && !tagKeyword) {
-        if (!selectedTag) return false;
-        if (
-          task.category !== selectedTag.id &&
-          task.category !== selectedTag.name
-        )
-          return false;
-      }
-
       return true;
     });
 }
@@ -96,9 +78,6 @@ describe('Task Filtering Performance (After Optimization)', () => {
         blockedBy: []
     } as Task));
 
-    const mergedTagsMap: Record<string, Tag> = {
-        'work': { id: 'work', name: 'Work', color: 'blue', order: 0, parentId: null }
-    };
     const mergedTagsByName: Record<string, Tag> = {
         'work': { id: 'work', name: 'Work', color: 'blue', order: 0, parentId: null }
     };
@@ -109,8 +88,6 @@ describe('Task Filtering Performance (After Optimization)', () => {
             sourceTasks,
             mergedSource: [], // Not the same as sourceTasks, so it isUnfiltered = true
             taskTab: 'active',
-            selectedTagId: null,
-            mergedTagsMap,
             mergedTagsByName,
             searchQuery: ''
         });
@@ -132,8 +109,6 @@ describe('Task Filtering Performance (After Optimization)', () => {
             sourceTasks,
             mergedSource: [],
             taskTab: 'active',
-            selectedTagId: null,
-            mergedTagsMap,
             mergedTagsByName,
             searchQuery: 'Task 123'
         });

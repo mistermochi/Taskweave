@@ -14,8 +14,6 @@ export function useHashRouter(tasksMap: Map<string, Task>) {
     setTaskTab,
     selectedTask,
     setSelectedTask,
-    selectedTagId,
-    setSelectedTagId,
     searchQuery,
     setSearchQuery,
   } = useTaskAppStore();
@@ -29,10 +27,6 @@ export function useHashRouter(tasksMap: Map<string, Task>) {
     isReadyRef.current = isReady;
   }, [isReady]);
 
-  const selectedTagIdRef = useRef(selectedTagId);
-  useEffect(() => {
-    selectedTagIdRef.current = selectedTagId;
-  }, [selectedTagId]);
 
   // Bolt ⚡ Optimization: Use refs for the event listener to avoid frequent re-binding
   // and race conditions during rapid state/task updates.
@@ -142,5 +136,5 @@ export function useHashRouter(tasksMap: Map<string, Task>) {
       window.location.hash = newHash;
       lastProcessedHash.current = newHash;
     }
-  }, [isReady, activeView, taskTab, selectedTask, searchQuery, selectedTagId]);
+  }, [isReady, activeView, taskTab, selectedTask, searchQuery]);
 }

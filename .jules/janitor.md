@@ -133,3 +133,8 @@
 **Clutter:** Redundant intermediate variables in TaskApp.tsx filtering logic.
 **Learning:** Janitor sweeps must prioritize functional safety over mere code reduction. Persistence mechanisms (like cookies for UI state) and 'robustness' fallbacks in filtering logic should be preserved even if they appear technically unreachable or the associated library seems absent, as they may be critical for UI stability and error handling.
 **Action:** Streamlined variable structure while explicitly restoring functional cookie logic and robustness checks following code review feedback.
+
+## 2026-07-08 - Removed Redundant EnvironmentContext
+**Clutter:** Redundant `EnvironmentContext` and `EnvironmentProvider` wrapping `process.env.NODE_ENV`.
+**Learning:** In Next.js, `process.env.NODE_ENV` is globally available and preferred for environment-level flags. Creating a React Context for this adds unnecessary provider nesting and mental overhead without providing any dynamic benefit.
+**Action:** Removed the context and provider, cleaned up the compound provider tree, and updated architectural documentation to reflect the streamlined state hierarchy.

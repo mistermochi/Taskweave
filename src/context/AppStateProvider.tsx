@@ -4,7 +4,7 @@ import { NavigationProvider } from './NavigationContext';
 
 /**
  * Compound provider that bundles UI-related state providers.
- * Manages the order of operations for environmental context, task data, and navigation.
+ * Manages the order of operations for task data and navigation.
  *
  * @param children - The application components requiring access to UI state.
  */
